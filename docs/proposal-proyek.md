@@ -18,9 +18,10 @@
 4. [Fitur Utama Sistem](#4-fitur-utama-sistem)
 5. [Arsitektur Sistem](#5-arsitektur-sistem)
 6. [Roadmap Pengembangan](#6-roadmap-pengembangan)
-7. [Teknologi yang Digunakan](#7-teknologi-yang-digunakan)
-8. [Keuntungan bagi Developer](#8-keuntungan-bagi-developer)
-9. [Penutup](#9-penutup)
+7. [Metode Pengembangan](#7-metode-pengembangan)
+8. [Teknologi yang Digunakan](#8-teknologi-yang-digunakan)
+9. [Keuntungan bagi Developer](#9-keuntungan-bagi-developer)
+10. [Penutup](#10-penutup)
 
 ---
 
@@ -361,7 +362,167 @@ Kami mengusulkan pembangunan **Sistem Informasi Manajemen Developer Perumahan (S
 
 ---
 
-## 7. Teknologi yang Digunakan
+## 7. Metode Pengembangan
+
+### Pendekatan Pengembangan
+
+Kami menggunakan **kombinasi metodologi Agile-Incremental dengan pendekatan Feature-Driven Development (FDD)** untuk memastikan hasil yang berkualitas dan tepat waktu.
+
+#### Mengapa Metode Ini?
+
+| Metode | Alasan Pemilihan | Manfaat untuk Proyek SIMDP |
+|--------|-----------------|---------------------------|
+| **Agile (Scrum)** | Fleksibilitas tinggi terhadap perubahan requirement | Setiap 2-3 minggu ada hasil konkret yang bisa direview |
+| **Incremental** | Pembangunan bertahap per modul | Modul yang sudah jadi bisa langsung digunakan sambil modul lain masih dikembangkan |
+| **Feature-Driven** | Fokus pada fitur bisnis yang memberikan nilai | Setiap sprint menghasilkan fitur yang langsung bermanfaat bagi operasional |
+
+### Prinsip Pengembangan
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  PRINSIP UTAMA: "Working Software Over Documentation"   │
+└─────────────────────────────────────────────────────────┘
+         │
+         ├─► Iterasi Cepat (Sprint 2-3 minggu)
+         ├─► Feedback Berkelanjutan dari Stakeholder
+         ├─► Deployment Bertahap per Modul
+         ├─► Testing Terintegrasi di Setiap Tahap
+         └─► Dokumentasi Praktis & Up-to-date
+```
+
+### Siklus Pengembangan per Sprint
+
+| Minggu | Aktivitas | Output | Stakeholder Terlibat |
+|--------|-----------|--------|---------------------|
+| **Minggu 1** | Sprint Planning & Design | Wireframe UI/UX, spesifikasi fitur | Tim Developer, Manajer Proyek, User Representative |
+| **Minggu 2-3** | Development & Internal Testing | Modul/fitur yang berfungsi di staging environment | Tim Developer, QA Tester |
+| **Minggu 3** | Sprint Review & Demo | Presentasi hasil ke stakeholder, terima feedback | Semua stakeholder, User |
+| **Minggu 3** | Sprint Retrospective | Evaluasi proses, identifikasi improvement | Tim Developer, Manajer Proyek |
+
+### Tahapan Pengembangan SIMDP
+
+#### **Fase 1: Fondasi Bisnis (8-10 minggu)**
+
+**Sprint 1-2: Authentication & Setup**
+- Setup infrastruktur cloud & database
+- Sistem login & manajemen pengguna
+- Hak akses berbasis role
+
+**Sprint 3-5: CRM & Sales Module**
+- Leads management & pipeline
+- Unit inventory & status
+- Sales activity tracking
+- Laporan penjualan
+
+**Sprint 6-8: Modul Keuangan**
+- Cashflow monitoring
+- Tagihan & piutang pembeli
+- Pengeluaran operasional
+- RAB vs realisasi
+- Dashboard keuangan
+
+**Sprint 9-10: Customer Portal (versi dasar)**
+- Login pembeli
+- Lihat info unit & progres
+- Riwayat pembayaran
+- Unduh dokumen
+
+**Output Fase 1:** Sistem penjualan dan keuangan sudah bisa digunakan untuk operasional sehari-hari
+
+---
+
+#### **Fase 2: Monitoring Proyek (6-8 minggu)**
+
+**Sprint 11-13: Project Management (Web)**
+- Daftar proyek & unit
+- Milestone tracking per unit
+- Dashboard progres konstruksi
+- Laporan kendala
+- Manajemen Site Engineer
+
+**Sprint 14-15: Mobile App Lapangan**
+- Upload foto progres
+- Checklist milestone
+- Laporan harian
+- Notifikasi tugas
+
+**Sprint 16: Legal & Perizinan**
+- Repository dokumen perizinan
+- Tracker status & masa berlaku
+- Notifikasi reminder
+
+**Output Fase 2:** Konstruksi dan perizinan terpantau real-time dari kantor maupun lapangan
+
+---
+
+#### **Fase 3: Kontrol Procurement & Finalisasi (4-6 minggu)**
+
+**Sprint 17-18: Pengeluaran & Vendor**
+- Database kontraktor & vendor
+- Pengajuan tagihan termin
+- Workflow approval berjenjang
+- Verifikasi milestone vs pembayaran
+- Berita Acara digital
+
+**Sprint 19: Integrasi Penuh**
+- Integrasi semua modul
+- Sinkronisasi data antar aplikasi
+- Testing end-to-end
+
+**Sprint 20: UAT & Go-Live**
+- User Acceptance Testing dengan tim internal
+- Bug fixing final
+- Pelatihan pengguna
+- Deployment production
+- Serah terima sistem
+
+**Output Fase 3:** Sistem lengkap siap operasional penuh
+
+---
+
+### Quality Assurance & Testing
+
+| Jenis Testing | Kapan Dilakukan | Tujuan |
+|---------------|----------------|--------|
+| **Unit Testing** | Setiap fitur selesai dikoding | Pastikan setiap komponen berfungsi benar |
+| **Integration Testing** | Setiap sprint | Pastikan modul-modul terintegrasi dengan baik |
+| **User Acceptance Testing (UAT)** | Akhir setiap fase | Validasi bahwa sistem memenuhi kebutuhan bisnis |
+| **Performance Testing** | Sebelum go-live | Pastikan sistem cepat dan stabil saat digunakan banyak user |
+| **Security Testing** | Berkelanjutan | Pastikan data aman dari ancaman |
+
+### Manajemen Risiko Pengembangan
+
+| Risiko | Mitigasi |
+|--------|----------|
+| Requirement berubah di tengah jalan | Agile memungkinkan perubahan di sprint berikutnya tanpa mengganggu sprint saat ini |
+| Keterlambatan development | Buffer time 20% di setiap fase, prioritas fitur critical first |
+| Bug di production | Staging environment untuk testing sebelum deploy, rollback plan tersedia |
+| User tidak familiar dengan sistem | Pelatihan bertahap per modul, dokumentasi user-friendly, support periode awal |
+
+### Komunikasi & Kolaborasi
+
+**Weekly Progress Report:**
+- Setiap Jumat: Laporan progress mingguan
+- Sprint Demo: Setiap akhir sprint (2-3 minggu)
+- Ad-hoc Meeting: Sesuai kebutuhan urgent
+
+**Tools Kolaborasi:**
+- Project Management: Jira / Trello
+- Communication: Slack / WhatsApp Group
+- Version Control: Git (GitHub / GitLab)
+- Documentation: Notion / Confluence
+
+### Post-Launch Support
+
+| Periode | Dukungan yang Diberikan |
+|---------|------------------------|
+| **Bulan 1-3** | Full support 24/7, bug fixing gratis, training on-site |
+| **Bulan 4-6** | Support jam kerja 08:00-17:00, minor improvement gratis |
+| **Bulan 7-12** | Support & maintenance sesuai kontrak, major update berbayar |
+
+---
+
+## 8. Teknologi yang Digunakan
 
 | Komponen | Teknologi |
 |----------|-----------|
@@ -386,7 +547,7 @@ Kami mengusulkan pembangunan **Sistem Informasi Manajemen Developer Perumahan (S
 
 ---
 
-## 8. Keuntungan bagi Developer
+## 9. Keuntungan bagi Developer
 
 ### Keuntungan Langsung (Terukur)
 
@@ -419,7 +580,7 @@ Kami mengusulkan pembangunan **Sistem Informasi Manajemen Developer Perumahan (S
 
 ---
 
-## 9. Penutup
+## 10. Penutup
 
 Digitalisasi bukan lagi pilihan bagi developer perumahan yang ingin bertumbuh — ini adalah kebutuhan. Developer yang lebih awal mengadopsi sistem yang tepat akan memiliki keunggulan kompetitif yang signifikan: operasional lebih efisien, pembeli lebih puas, dan keputusan bisnis lebih tepat sasaran.
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import AppShell from "@/components/layout/app-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,9 +75,12 @@ export default function UnitPage() {
   }, []);
 
   return (
-    <AppShell title="CRM — Manajemen Unit">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <h1 className="text-2xl font-bold text-slate-900">CRM — Manajemen Unit</h1>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Total Unit", value: summary.total, color: "text-slate-900" },
           { label: "Tersedia", value: summary.tersedia, color: "text-emerald-600" },
@@ -348,6 +350,7 @@ export default function UnitPage() {
           )}
         </DialogContent>
       </Dialog>
-    </AppShell>
+      </div>
+    </div>
   );
 }

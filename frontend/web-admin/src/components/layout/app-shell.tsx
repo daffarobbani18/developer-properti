@@ -11,7 +11,7 @@ import {
 
 interface AppShellProps {
   children: React.ReactNode;
-  title: string;
+  title?: string;
 }
 
 export default function AppShell({ children, title }: AppShellProps) {

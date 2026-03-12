@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import AppShell from "@/components/layout/app-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -93,11 +92,14 @@ export default function AktivitasPage() {
   }, []);
 
   return (
-    <AppShell title="CRM — Aktivitas Sales">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main — Activity Timeline */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Filters */}
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <h1 className="text-2xl font-bold text-slate-900">CRM — Aktivitas Sales</h1>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main — Activity Timeline */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Filters */}
           <Card className="bg-white/80 backdrop-blur-md border border-slate-200/50 shadow-sm rounded-xl">
             <CardContent className="p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -362,6 +364,7 @@ export default function AktivitasPage() {
           </Card>
         </div>
       </div>
-    </AppShell>
+      </div>
+    </div>
   );
 }

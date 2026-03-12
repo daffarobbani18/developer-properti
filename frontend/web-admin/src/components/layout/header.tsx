@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 
 interface HeaderProps {
-  title: string;
+  title?: string;
   onMenuClick: () => void;
 }
 
@@ -28,9 +28,11 @@ export default function Header({ title, onMenuClick }: HeaderProps) {
         >
           <Menu className="h-5 w-5 text-slate-600" />
         </Button>
-        <h1 className="font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-slate-900">
-          {title}
-        </h1>
+        {title && (
+          <h1 className="font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-slate-900">
+            {title}
+          </h1>
+        )}
       </div>
 
       {/* Right: Notification + Avatar */}

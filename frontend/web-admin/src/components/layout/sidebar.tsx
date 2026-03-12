@@ -16,6 +16,8 @@ import {
   Home,
   Receipt,
   Activity,
+  Building2,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -64,7 +66,14 @@ const menuItems: MenuGroup[] = [
           { label: "RAB & Realisasi", href: "/keuangan/rab", icon: FolderKanban },
         ],
       },
-      { label: "Monitoring Proyek", href: "/proyek", icon: FolderKanban },
+      {
+        label: "Monitoring Proyek",
+        href: "/proyek",
+        icon: Building2,
+        children: [
+          { label: "Daftar Proyek", href: "/proyek", icon: Building2 },
+        ],
+      },
       { label: "Pengeluaran & Vendor", href: "/vendor", icon: HardHat },
       { label: "Legal & Perizinan", href: "/legal", icon: FileCheck },
     ],

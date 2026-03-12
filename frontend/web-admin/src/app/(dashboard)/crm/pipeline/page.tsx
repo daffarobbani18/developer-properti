@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import AppShell from "@/components/layout/app-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -66,9 +65,12 @@ export default function PipelinePage() {
   };
 
   return (
-    <AppShell title="CRM — Pipeline">
-      {/* Pipeline Info */}
-      <div className="mb-6">
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <h1 className="text-2xl font-bold text-slate-900">CRM — Pipeline</h1>
+
+        {/* Pipeline Info */}
+        <div className="mb-6">
         <p className="text-sm text-slate-500">
           Drag & drop kartu untuk memindahkan leads antar tahap pipeline.
         </p>
@@ -259,6 +261,7 @@ export default function PipelinePage() {
           )}
         </DialogContent>
       </Dialog>
-    </AppShell>
+      </div>
+    </div>
   );
 }

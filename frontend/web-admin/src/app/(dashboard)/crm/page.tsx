@@ -1,6 +1,5 @@
 "use client";
 
-import AppShell from "@/components/layout/app-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -58,14 +57,16 @@ const crmMenus = [
 
 export default function CRMIndexPage() {
   return (
-    <AppShell title="CRM & Sales">
-      <div className="mb-6">
-        <p className="text-sm text-slate-500">
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">CRM & Sales</h1>
+          <p className="text-sm text-slate-600 mt-2">
           Pusat pengelolaan calon pembeli, pipeline penjualan, dan transaksi unit perumahan.
-        </p>
-      </div>
+          </p>
+        </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {crmMenus.map((menu) => (
           <Link key={menu.href} href={menu.href}>
             <Card className="group h-full cursor-pointer bg-white/80 backdrop-blur-md border border-slate-200/50 shadow-sm rounded-xl transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-md hover:border-blue-300/50 hover:bg-white/90">
@@ -91,7 +92,8 @@ export default function CRMIndexPage() {
             </Card>
           </Link>
         ))}
+        </div>
       </div>
-    </AppShell>
+    </div>
   );
 }

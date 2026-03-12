@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import AppShell from "@/components/layout/app-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -68,9 +67,12 @@ export default function TransaksiPage() {
   };
 
   return (
-    <AppShell title="CRM — Transaksi">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <h1 className="text-2xl font-bold text-slate-900">CRM — Transaksi</h1>
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
         <div>
           <p className="text-sm text-slate-500">
             {dummyTransaksi.length} transaksi tercatat
@@ -322,6 +324,7 @@ export default function TransaksiPage() {
           )}
         </DialogContent>
       </Dialog>
-    </AppShell>
+      </div>
+    </div>
   );
 }

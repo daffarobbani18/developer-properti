@@ -1,6 +1,5 @@
 "use client";
 
-import AppShell from "@/components/layout/app-shell";
 import {
   Card,
   CardContent,
@@ -63,16 +62,17 @@ const stats = [
 
 export default function DashboardPage() {
   return (
-    <AppShell title="Dashboard">
-      {/* Greeting */}
-      <div className="mb-8">
-        <h2 className="font-[family-name:var(--font-heading)] text-2xl font-bold tracking-tight text-slate-900">
-          Selamat Datang 👋
-        </h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Berikut ringkasan proyek perumahan Anda hari ini.
-        </p>
-      </div>
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Greeting */}
+        <div>
+          <h2 className="font-[family-name:var(--font-heading)] text-2xl font-bold tracking-tight text-slate-900">
+            Selamat Datang 👋
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Berikut ringkasan proyek perumahan Anda hari ini.
+          </p>
+        </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -143,7 +143,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="mt-8">
+      <div>
         <h3 className="font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-slate-900 mb-4">
           Aksi Cepat
         </h3>
@@ -184,6 +184,7 @@ export default function DashboardPage() {
           ))}
         </div>
       </div>
-    </AppShell>
+      </div>
+    </div>
   );
 }

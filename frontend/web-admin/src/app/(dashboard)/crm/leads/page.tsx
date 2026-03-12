@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import AppShell from "@/components/layout/app-shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -107,10 +106,12 @@ export default function LeadsPage() {
   }, []);
 
   return (
-    <AppShell title="CRM — Leads">
-      {/* Summary Badges */}
-      <div className="mb-6 flex flex-wrap gap-2">
-        {allStatuses.map((s) => (
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <h1 className="text-2xl font-bold text-slate-900">CRM — Leads</h1>
+
+        {/* Summary Badges */}
+        <div className="flex flex-wrap gap-2">{allStatuses.map((s) => (
           <button
             key={s}
             onClick={() =>
@@ -419,6 +420,7 @@ export default function LeadsPage() {
           )}
         </DialogContent>
       </Dialog>
-    </AppShell>
+      </div>
+    </div>
   );
 }
