@@ -7,7 +7,7 @@ Sistem Informasi Manajemen Developer Perumahan (SIMDP)
 ```
 developer-properti/
 ├── docs/                        # Dokumentasi & fase pengembangan
-├── backend/                     # NestJS API (shared untuk semua app)
+├── backend/                     # Express API (shared untuk semua app)
 │   ├── src/
 │   │   ├── modules/             # Domain modules
 │   │   │   ├── auth/            # Autentikasi & JWT
@@ -29,8 +29,7 @@ developer-properti/
 │   └── prisma/                  # Prisma schema & migrations
 ├── frontend/
 │   ├── web-admin/               # Next.js — Web Admin (internal)
-│   ├── web-marketing/           # Next.js — Website Marketing (publik)
-│   ├── customer-portal/         # Next.js — Customer Portal (pembeli)
+│   ├── web-public-portal/       # Next.js — Website Publik + Portal Customer
 │   └── shared/                  # Komponen & utilitas bersama
 │       ├── components/
 │       ├── hooks/
@@ -53,9 +52,9 @@ developer-properti/
 
 | Layer | Teknologi |
 |-------|-----------|
-| Backend | NestJS + Prisma + PostgreSQL |
+| Backend | Node.js (Express) + Prisma + PostgreSQL |
 | Web Frontend | Next.js + Tailwind CSS + shadcn/ui |
-| Mobile | React Native (TBD) |
+| Mobile | React Native (Expo) |
 | Auth | JWT + Role-Based Access Control |
 
 ## Aplikasi
@@ -63,6 +62,22 @@ developer-properti/
 | App | Deskripsi | User |
 |-----|-----------|------|
 | Web Admin | Pusat kendali operasional | Tim internal (8 role) |
-| Website Marketing | Showcase perumahan & lead capture | Publik |
-| Customer Portal | Portal pembeli: tagihan, dokumen, progress | Pembeli |
+| Website Publik + Portal Customer | Marketing publik + area customer terproteksi | Publik & Pembeli |
 | Mobile Lapangan | Laporan milestone & foto konstruksi | Site Engineer |
+
+## Port Development
+
+- Web Admin: `http://localhost:3001`
+- Website Publik + Portal: `http://localhost:3002`
+- Backend API: `http://localhost:4000`
+- Expo Metro (Mobile): `http://localhost:8082`
+
+## Commands (from repository root)
+
+```bash
+npm run install:all
+npm run dev:web-admin
+npm run dev:web-public
+npm run dev:backend
+npm run dev:mobile
+```
