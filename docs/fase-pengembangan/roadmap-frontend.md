@@ -5,7 +5,7 @@
 
 ## Ikhtisar
 
-Dokumen ini adalah peta jalan pengembangan **seluruh frontend** SIMDP, mencakup 4 aplikasi yang disusun dalam urutan prioritas dan saling terhubung satu sama lain.
+Dokumen ini adalah peta jalan pengembangan **seluruh frontend** SIMDP, mencakup 3 aplikasi utama yang disusun dalam urutan prioritas dan saling terhubung satu sama lain.
 
 Setiap tahap (step) dirancang agar menghasilkan output yang bisa diuji dan digunakan secara nyata sebelum melanjutkan ke tahap berikutnya.
 
@@ -16,9 +16,12 @@ Setiap tahap (step) dirancang agar menghasilkan output yang bisa diuji dan digun
 | No | Aplikasi | Teknologi | Pengguna | Jumlah Halaman |
 |----|----------|-----------|----------|:--------------:|
 | 1 | Web Admin | Next.js + Tailwind | Tim internal (8 role) | 26 halaman |
-| 2 | Website Marketing | Next.js + Tailwind | Publik (calon pembeli) | 15 halaman |
-| 3 | Customer Portal | Next.js (Web) + React Native (Mobile) | Pembeli terdaftar | 12 web + 7 mobile |
-| 4 | Mobile Lapangan | React Native | Site Engineer, Manajer Proyek | 12 screens |
+| 2 | Website Publik + Portal Customer | Next.js + Tailwind | Publik + Pembeli terdaftar | 27 halaman |
+| 3 | Mobile Lapangan | React Native | Site Engineer, Manajer Proyek | 12 screens |
+
+Catatan arsitektur: Website Marketing dan Customer Portal dijalankan dalam **satu website/codabase** dengan pemisahan area route.
+- Area publik: `/`, `/tipe-rumah`, `/simulasi-kpr`, dll.
+- Area customer (protected): `/portal/*`.
 
 ---
 
@@ -31,17 +34,15 @@ Setiap tahap (step) dirancang agar menghasilkan output yang bisa diuji dan digun
  [1] Web Admin        Fondasi sistem. Semua modul bisnis berjalan di sini.
       |                Tanpa ini, tidak ada data untuk app lain.
       |
- [2] Website          Quick win. Bisa langsung dipresentasikan ke mitra.
-     Marketing        Output nyata pertama yang terlihat oleh dunia luar.
+ [2] Website Publik   Quick win. Bisa langsung dipresentasikan ke mitra,
+    + Portal         lalu customer dapat lanjut ke area portal tanpa pindah app.
+    Customer
       |
  [3] Mobile           Dibutuhkan saat konstruksi aktif.
-     Lapangan         Data milestone mengalir ke Web Admin & Customer Portal.
-      |
- [4] Customer         Dibutuhkan setelah pembeli mulai bertransaksi.
-     Portal           Bergantung pada data dari Web Admin & Mobile Lapangan.
+    Lapangan         Data milestone mengalir ke Web Admin & area portal customer.
 ```
 
-**Catatan**: Urutan di atas tidak berarti harus selesai 100% sebelum memulai aplikasi berikutnya. Dalam praktiknya, setelah Web Admin Fase 1-2 selesai, Website Marketing bisa mulai dikerjakan secara paralel.
+**Catatan**: Urutan di atas tidak berarti harus selesai 100% sebelum memulai aplikasi berikutnya. Dalam praktiknya, setelah Web Admin Fase 1-2 selesai, Website Publik (area marketing) bisa mulai lebih dulu, kemudian area `/portal` dilanjutkan bertahap.
 
 ---
 
@@ -53,11 +54,11 @@ Setiap tahap (step) dirancang agar menghasilkan output yang bisa diuji dan digun
 |:----:|----------|:----:|------|:-------------|
 | 1 | Web Admin | 1 | Fondasi & Auth | Login, RBAC, dashboard dasar |
 | 2 | Web Admin | 2 | CRM & Sales | Pipeline penjualan digital |
-| 3 | Website Marketing | 1 | Landing Page | Halaman utama perumahan live |
-| 4 | Website Marketing | 2 | Produk & Galeri | Katalog unit online |
+| 3 | Website Publik + Portal Customer | 1 | Landing Page | Halaman utama perumahan live |
+| 4 | Website Publik + Portal Customer | 2 | Produk & Galeri | Katalog unit online |
 | 5 | Web Admin | 3 | Keuangan & Cashflow | Tagihan, cashflow, RAB, laporan |
-| 6 | Website Marketing | 3 | Formulir & Simulasi | Form leads + kalkulator KPR |
-| 7 | Website Marketing | 4 | Optimasi & Polish | SEO, performa, analytics |
+| 6 | Website Publik + Portal Customer | 3 | Formulir & Simulasi | Form leads + kalkulator KPR |
+| 7 | Website Publik + Portal Customer | 4 | Fondasi Portal Customer | Auth pembeli + beranda portal |
 | 8 | Web Admin | 4 | Monitoring Milestone | Dashboard progres konstruksi |
 | 9 | Mobile Lapangan | 1 | Setup & Login | App mobile + auth 2 role |
 | 10 | Mobile Lapangan | 2 | Update Milestone & Foto | Input milestone + kamera |
@@ -66,12 +67,12 @@ Setiap tahap (step) dirancang agar menghasilkan output yang bisa diuji dan digun
 | 13 | Mobile Lapangan | 4 | Notifikasi & Offline | Push notif + mode tanpa internet |
 | 14 | Mobile Lapangan | 5 | Polish & Deployment | Rilis ke tim lapangan |
 | 15 | Web Admin | 6 | Legal & Perizinan | Repositori dokumen + tracker |
-| 16 | Customer Portal | 1 | Fondasi & Login | Auth pembeli + beranda |
-| 17 | Customer Portal | 2 | Progres Unit | Pantau konstruksi + foto |
-| 18 | Customer Portal | 3 | Tagihan & Pembayaran | Self-service keuangan |
-| 19 | Customer Portal | 4 | Dokumen & Legal | Arsip digital pembeli |
-| 20 | Customer Portal | 5 | Komplain & Komunikasi | Tiket + FAQ |
-| 21 | Customer Portal | 6 | Polish & Mobile | React Native + PWA |
+| 16 | Website Publik + Portal Customer | 5 | Progres Unit Portal | Pantau konstruksi + foto |
+| 17 | Website Publik + Portal Customer | 6 | Tagihan & Pembayaran Portal | Self-service keuangan |
+| 18 | Website Publik + Portal Customer | 7 | Dokumen & Legal Portal | Arsip digital pembeli |
+| 19 | Website Publik + Portal Customer | 8 | Komplain & Komunikasi Portal | Tiket + FAQ |
+| 20 | Website Publik + Portal Customer | 9 | Optimasi & Polish Website | SEO, performa, analytics |
+| 21 | Website Publik + Portal Customer | 10 | Polish Mobile/PWA Portal | PWA siap pakai |
 | 22 | Web Admin | 7 | Polish & Integrasi | Koneksi semua modul + deploy |
 
 ---
@@ -688,7 +689,7 @@ Setiap tahap (step) dirancang agar menghasilkan output yang bisa diuji dan digun
 4. Dokumen Pembeli
    - [ ] Upload AJB, SHM, BPHTB per unit
    - [ ] Status serah terima dokumen ke pembeli
-   - [ ] Link ke Customer Portal (pembeli bisa unduh)
+   - [ ] Link ke area `/portal/dokumen` (pembeli bisa unduh)
 
 **Checklist Selesai**:
 - [ ] Dokumen bisa diupload & dipreview
@@ -697,14 +698,14 @@ Setiap tahap (step) dirancang agar menghasilkan output yang bisa diuji dan digun
 
 ---
 
-### Step 16 — Customer Portal: Fondasi & Login
+### Step 16 — Website Publik + Portal Customer: Fondasi Portal & Login
 
 **Tujuan**: Membangun kerangka portal dan sistem login khusus pembeli.
 
 **Pekerjaan**:
 
-1. Setup Proyek Web
-   - [ ] Inisialisasi Next.js (repo terpisah)
+1. Setup Area Portal di Website
+   - [ ] Inisialisasi area `/portal/*` pada codebase website utama
    - [ ] Setup Tailwind CSS — tema warna perumahan
    - [ ] Struktur folder: `/app`, `/components`, `/lib`, `/styles`
    - [ ] Setup environment variables
@@ -722,7 +723,7 @@ Setiap tahap (step) dirancang agar menghasilkan output yang bisa diuji dan digun
    - [ ] Guard route — pembeli hanya akses data unit miliknya
    - [ ] Logout
 
-4. Halaman Beranda (`/`)
+4. Halaman Beranda (`/portal`)
    - [ ] Sambutan dengan nama pembeli
    - [ ] Ringkasan unit: nama, blok, tipe, status konstruksi
    - [ ] Kartu cepat: progres %, tagihan berikutnya, notifikasi terbaru
@@ -736,13 +737,13 @@ Setiap tahap (step) dirancang agar menghasilkan output yang bisa diuji dan digun
 
 ---
 
-### Step 17 — Customer Portal: Progres Unit
+### Step 17 — Website Publik + Portal Customer: Progres Unit Portal
 
 **Tujuan**: Transparansi penuh kepada pembeli tentang status konstruksi rumah mereka.
 
 **Pekerjaan**:
 
-1. Halaman Progres (`/progres`)
+1. Halaman Progres (`/portal/progres`)
    - [ ] Progress bar besar — persentase total konstruksi
    - [ ] Breakdown per tahap: Pondasi, Struktur, Dinding, Atap, Finishing
    - [ ] Status tiap tahap: Belum Mulai / Sedang Berjalan / Selesai
@@ -772,13 +773,13 @@ Setiap tahap (step) dirancang agar menghasilkan output yang bisa diuji dan digun
 
 ---
 
-### Step 18 — Customer Portal: Tagihan & Pembayaran
+### Step 18 — Website Publik + Portal Customer: Tagihan & Pembayaran Portal
 
 **Tujuan**: Kemudahan untuk pembeli memantau dan mengelola kewajiban pembayaran tanpa menghubungi admin.
 
 **Pekerjaan**:
 
-1. Ringkasan Keuangan (`/tagihan`)
+1. Ringkasan Keuangan (`/portal/tagihan`)
    - [ ] Kartu: total harga unit, total sudah dibayar, sisa kewajiban
    - [ ] Skema pembayaran aktif
    - [ ] Info cicilan KPR: bank, tanggal akad, besaran per bulan
@@ -808,13 +809,13 @@ Setiap tahap (step) dirancang agar menghasilkan output yang bisa diuji dan digun
 
 ---
 
-### Step 19 — Customer Portal: Dokumen & Legal
+### Step 19 — Website Publik + Portal Customer: Dokumen & Legal Portal
 
 **Tujuan**: Gudang digital semua dokumen penting unit pembeli.
 
 **Pekerjaan**:
 
-1. Halaman Dokumen (`/dokumen`)
+1. Halaman Dokumen (`/portal/dokumen`)
    - [ ] Daftar dokumen yang bisa diunduh
    - [ ] Kategori: Pra-pembelian (SPK, Brosur), Transaksi (AJB, Kwitansi DP), Kepemilikan (SHM, IMB/PBG), Serah Terima (BA, Garansi)
 
@@ -839,19 +840,19 @@ Setiap tahap (step) dirancang agar menghasilkan output yang bisa diuji dan digun
 
 ---
 
-### Step 20 — Customer Portal: Komplain & Komunikasi
+### Step 20 — Website Publik + Portal Customer: Komplain & Komunikasi Portal
 
 **Tujuan**: Saluran resmi bagi pembeli untuk keluhan atau pertanyaan, menggantikan WA/telepon yang tidak terstruktur.
 
 **Pekerjaan**:
 
-1. Formulir Komplain (`/bantuan/komplain`)
+1. Formulir Komplain (`/portal/bantuan/komplain`)
    - [ ] Pilih kategori: Progres / Kualitas / Dokumen / Tagihan / Lainnya
    - [ ] Kolom deskripsi masalah
    - [ ] Upload foto (jika ada kerusakan)
    - [ ] Submit dan tiket dibuat dengan nomor tiket
 
-2. Daftar Tiket (`/bantuan/tiket`)
+2. Daftar Tiket (`/portal/bantuan/tiket`)
    - [ ] Semua tiket yang pernah diajukan
    - [ ] Status: Baru / Sedang Ditangani / Selesai / Ditutup
    - [ ] Detail tiket: deskripsi, foto, riwayat balasan
@@ -861,7 +862,7 @@ Setiap tahap (step) dirancang agar menghasilkan output yang bisa diuji dan digun
    - [ ] Pembeli bisa tambah balasan / info tambahan
    - [ ] Notifikasi saat ada balasan
 
-4. FAQ (`/bantuan/faq`)
+4. FAQ (`/portal/bantuan/faq`)
    - [ ] Daftar pertanyaan yang sering ditanya
    - [ ] Kategori: serah terima, pembayaran, sertifikat
 
@@ -877,7 +878,7 @@ Setiap tahap (step) dirancang agar menghasilkan output yang bisa diuji dan digun
 
 ---
 
-### Step 21 — Customer Portal: Polish & Mobile
+### Step 21 — Website Publik + Portal Customer: Polish & Mobile Portal
 
 **Tujuan**: Memoles web dan membangun versi mobile (React Native) dengan fitur yang sama.
 
@@ -920,7 +921,7 @@ Setiap tahap (step) dirancang agar menghasilkan output yang bisa diuji dan digun
 - [ ] Push notification berfungsi
 - [ ] Semua fitur web tersedia di mobile
 
-**-- Customer Portal selesai di titik ini --**
+**-- Area Portal Customer pada website selesai di titik ini --**
 
 ---
 
@@ -938,9 +939,9 @@ Setiap tahap (step) dirancang agar menghasilkan output yang bisa diuji dan digun
 
 2. Konektivitas Antar Modul
    - [ ] Unit terjual di CRM -> otomatis update modul Keuangan
-   - [ ] Data pembeli di CRM -> membuat akun Customer Portal
+   - [ ] Data pembeli di CRM -> membuat akun area portal customer
    - [ ] Termin disetujui di Vendor -> tercatat sebagai pengeluaran di Keuangan
-   - [ ] Milestone selesai di Mobile -> tampil di Web Admin, Customer Portal, & unlock termin
+   - [ ] Milestone selesai di Mobile -> tampil di Web Admin, area portal customer, & unlock termin
 
 3. UI/UX Polish
    - [ ] Loading state (skeleton) di semua tabel & halaman

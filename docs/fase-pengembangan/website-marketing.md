@@ -5,12 +5,20 @@
 
 ## Gambaran Umum
 
-Website Marketing adalah aplikasi **publik** (tanpa login) yang berfungsi sebagai wajah digital perumahan kepada calon pembeli. Ini adalah aplikasi yang paling cepat memberikan **nilai nyata** karena langsung bisa dipresentasikan ke mitra dan digunakan untuk marketing.
+Website Marketing adalah area **publik** (tanpa login) dari website utama yang berfungsi sebagai wajah digital perumahan kepada calon pembeli. Ini adalah area yang paling cepat memberikan **nilai nyata** karena langsung bisa dipresentasikan ke mitra dan digunakan untuk marketing.
 
 - **Teknologi**: Next.js (React)
 - **Target pengguna**: Calon pembeli umum (publik)
 - **Tujuan utama**: Tampilkan produk, generate leads, simulasi KPR
 - **Integrasi**: Form leads → Modul CRM
+
+### Catatan Arsitektur
+
+Website Marketing dan Customer Portal berada dalam **satu website/codabase** dengan pemisahan area route:
+- Area publik (marketing): `/`, `/tipe-rumah`, `/galeri`, `/simulasi-kpr`, `/kontak`
+- Area customer (protected): `/portal/*`
+
+Dengan skema ini, user tidak perlu pindah aplikasi saat bertransisi dari pengunjung menjadi customer terdaftar.
 
 ---
 
