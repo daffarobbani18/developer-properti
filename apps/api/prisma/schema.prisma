@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String             @id @default(cuid())
+  email                  String             @unique
+  passwordHash           String
+  fullName               String
+  role                   String
+  phone                  String?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  assignedLeads          Lead[]             @relation("LeadAssignee")
+  leadActivities         LeadActivity[]
+  milestoneUpdates       UnitMilestone[]    @relation("MilestoneUpdatedBy")
+  milestonePhotos        MilestonePhoto[]   @relation("MilestonePhotoUploader")
+  reportedIssues         FieldIssue[]       @relation("IssueReporter")
+  assignedIssues         FieldIssue[]       @relation("IssueAssignee")
+  submittedVendorInvoices VendorInvoice[]   @relation("VendorInvoiceSubmitter")
+  approvedVendorInvoices VendorInvoice[]    @relation("VendorInvoiceApprover")
+  verifiedPayments       Payment[]          @relation("PaymentVerifier")
+  ticketMessages         ComplaintMessage[]
+  notifications          Notification[]
+  customerProfile        CustomerProfile?
+}
+
+model Project {
+  id             String          @id @default(cuid())
+  name           String
+  slug           String          @unique
+  location       String
+  description    String?
+  status         String          @default("ACTIVE")
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  units          Unit[]
+  leads          Lead[]
+  issues         FieldIssue[]
+  vendorInvoices VendorInvoice[]
+  legalDocuments LegalDocument[]
+}
+
+model Unit {
+  id              String           @id @default(cuid())
+  projectId       String
+  code            String
+  typeName        String
+  landArea        Int
+  buildingArea    Int
+  price           Int
+  status          String           @default("AVAILABLE")
+  progress        Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  project         Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  leads           Lead[]
+  issues          FieldIssue[]
+  saleTransaction SaleTransaction?
+  milestones      UnitMilestone[]
+  invoices        Invoice[]
+  legalDocuments  LegalDocument[]
+  customerProfile CustomerProfile?
+
+  @@unique([projectId, code])
+}
+
+model Lead {
+  id                 String         @id @default(cuid())
+  projectId          String?
+  name               String
+  phone              String
+  email              String?
+  source             String
+  interestedUnitType String?
+  status             String         @default("NEW")
+  notes              String?
+  assignedToId       String?
+  unitId             String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  project            Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  assignedTo         User?          @relation("LeadAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  activities         LeadActivity[]
+  transactions       SaleTransaction[]
+  unit               Unit?          @relation(fields: [unitId], references: [id], onDelete: SetNull)
+}
+
+model LeadActivity {
+  id           String   @id @default(cuid())
+  leadId       String
+  userId       String
+  activityType String
+  note         String
+  activityAt   DateTime @default(now())
+  lead         Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+}
+
+model SaleTransaction {
+  id             String   @id @default(cuid())
+  leadId         String
+  unitId         String   @unique
+  paymentScheme  String
+  bookingFee     Int      @default(0)
+  kprStatus      String?
+  spkDocumentUrl String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  lead           Lead     @relation(fields: [leadId], references: [id], onDelete: Restrict)
+  unit           Unit     @relation(fields: [unitId], references: [id], onDelete: Restrict)
+}
+
+model MilestoneTemplate {
+  id             String          @id @default(cuid())
+  name           String          @unique
+  orderNo        Int
+  unitMilestones UnitMilestone[]
+}
+
+model UnitMilestone {
+  id                  String          @id @default(cuid())
+  unitId              String
+  milestoneTemplateId String
+  status              String          @default("NOT_STARTED")
+  targetDate          DateTime?
+  actualDate          DateTime?
+  note                String?
+  updatedById         String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  unit                Unit            @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  template            MilestoneTemplate @relation(fields: [milestoneTemplateId], references: [id], onDelete: Restrict)
+  updatedBy           User?           @relation("MilestoneUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  photos              MilestonePhoto[]
+  vendorInvoices      VendorInvoice[]
+
+  @@unique([unitId, milestoneTemplateId])
+}
+
+model MilestonePhoto {
+  id              String        @id @default(cuid())
+  unitMilestoneId String
+  url             String
+  caption         String?
+  uploadedById    String
+  createdAt       DateTime      @default(now())
+  milestone       UnitMilestone @relation(fields: [unitMilestoneId], references: [id], onDelete: Cascade)
+  uploadedBy      User          @relation("MilestonePhotoUploader", fields: [uploadedById], references: [id], onDelete: Restrict)
+}
+
+model FieldIssue {
+  id           String       @id @default(cuid())
+  projectId    String
+  unitId       String?
+  title        String
+  category     String
+  urgency      String
+  description  String
+  status       String       @default("NEW")
+  reportedById String
+  assigneeId   String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  unit         Unit?        @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  reportedBy   User         @relation("IssueReporter", fields: [reportedById], references: [id], onDelete: Restrict)
+  assignee     User?        @relation("IssueAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+}
+
+model Vendor {
+  id            String          @id @default(cuid())
+  name          String
+  contactPerson String?
+  phone         String?
+  email         String?
+  serviceType   String?
+  rating        Int?
+  createdAt     DateTime        @default(now())
+  invoices      VendorInvoice[]
+}
+
+model VendorInvoice {
+  id              String         @id @default(cuid())
+  vendorId        String
+  projectId       String
+  milestoneId     String?
+  amount          Int
+  description     String
+  status          String         @default("PENDING")
+  submittedById   String?
+  approvedById    String?
+  approvedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  vendor          Vendor         @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  project         Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone       UnitMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  submittedBy     User?          @relation("VendorInvoiceSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
+  approvedBy      User?          @relation("VendorInvoiceApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+}
+
+model CustomerProfile {
+  id        String          @id @default(cuid())
+  userId    String          @unique
+  unitId    String?         @unique
+  createdAt DateTime        @default(now())
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  unit      Unit?           @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  invoices  Invoice[]
+  tickets   ComplaintTicket[]
+}
+
+model Invoice {
+  id          String        @id @default(cuid())
+  customerId  String
+  unitId      String?
+  type        String
+  amount      Int
+  dueDate     DateTime
+  status      String        @default("UNPAID")
+  description String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  customer    CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  unit        Unit?         @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  payments    Payment[]
+}
+
+model Payment {
+  id           String   @id @default(cuid())
+  invoiceId    String
+  amount       Int
+  paidAt       DateTime @default(now())
+  method       String
+  proofUrl     String?
+  verifiedById String?
+  createdAt    DateTime @default(now())
+  invoice      Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  verifiedBy   User?    @relation("PaymentVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+}
+
+model LegalDocument {
+  id         String      @id @default(cuid())
+  projectId  String?
+  unitId     String?
+  category   String
+  title      String
+  number     String?
+  issuedAt   DateTime?
+  expiresAt  DateTime?
+  status     String      @default("PROCESSING")
+  storageUrl String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  project    Project?    @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  unit       Unit?       @relation(fields: [unitId], references: [id], onDelete: SetNull)
+}
+
+model ComplaintTicket {
+  id          String         @id @default(cuid())
+  customerId  String
+  category    String
+  subject     String
+  description String
+  status      String         @default("NEW")
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  customer    CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  messages    ComplaintMessage[]
+}
+
+model ComplaintMessage {
+  id            String   @id @default(cuid())
+  ticketId      String
+  senderId      String
+  message       String
+  attachmentUrl String?
+  createdAt     DateTime @default(now())
+  ticket        ComplaintTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender        User     @relation(fields: [senderId], references: [id], onDelete: Restrict)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  type      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

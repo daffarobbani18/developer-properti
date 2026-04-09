@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "SIMDP Mobile Customer",
+    "slug": "simdp-mobile-customer",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "platforms": ["android", "ios"],
+    "splash": {
+      "backgroundColor": "#0f8077"
+    },
+    "assetBundlePatterns": ["**/*"]
+  }
+}

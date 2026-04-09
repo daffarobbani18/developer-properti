@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "SIMDP Mobile Lapangan",
+    "slug": "simdp-mobile-lapangan",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "platforms": ["android", "ios"],
+    "splash": {
+      "backgroundColor": "#0b3a54"
+    },
+    "assetBundlePatterns": ["**/*"]
+  }
+}

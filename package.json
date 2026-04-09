@@ -1,0 +1,25 @@
+{
+  "name": "simdp-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:api": "pnpm --filter @simdp/api dev",
+    "dev:web-admin": "pnpm --filter @simdp/web-admin dev",
+    "dev:marketing": "pnpm --filter @simdp/website-marketing dev",
+    "dev:portal": "pnpm --filter @simdp/customer-portal dev",
+    "dev:mobile-lapangan": "pnpm --filter @simdp/mobile-lapangan start",
+    "dev:mobile-customer": "pnpm --filter @simdp/mobile-customer start",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "db:generate": "pnpm --filter @simdp/api db:generate",
+    "db:migrate": "pnpm --filter @simdp/api db:migrate",
+    "db:seed": "pnpm --filter @simdp/api db:seed"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-next": "14.2.25"
+  }
+}
