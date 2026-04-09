@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+/* ============================================================
+   DESIGN SYSTEM — SIMDP Website Marketing
+   Sesuai: docs/fase-pengembangan/website-marketing-frontend.md
+   ============================================================ */
+
+@theme inline {
+  /* --- Font --- */
+  --font-sans: var(--font-inter);
+
+  /* --- Palet Warna Utama --- */
+  --color-primary:        #1E3A5F; /* Biru gelap — header, tombol utama */
+  --color-primary-light:  #2D5F8B; /* Biru medium — hover state */
+  --color-secondary:      #D4A843; /* Emas — aksen, badge, highlight */
+  --color-accent:         #27AE60; /* Hijau — status tersedia, CTA sukses */
+  --color-danger:         #E74C3C; /* Merah — status terjual, error */
+
+  /* --- Neutral --- */
+  --color-neutral-50:   #F8FAFB;
+  --color-neutral-100:  #EEF1F4;
+  --color-neutral-200:  #E2E8F0;
+  --color-neutral-300:  #CBD5E1;
+  --color-neutral-400:  #94A3B8;
+  --color-neutral-500:  #64748B;
+  --color-neutral-600:  #475569;
+  --color-neutral-700:  #374151;
+  --color-neutral-800:  #1E293B;
+  --color-neutral-900:  #111827;
+
+  /* --- Shadow (via custom CSS var, pakai di komponen) --- */
+  --shadow-card:        0 1px 2px rgba(0,0,0,0.05);
+  --shadow-card-hover:  0 4px 12px rgba(0,0,0,0.10);
+  --shadow-modal:       0 8px 24px rgba(0,0,0,0.12);
+
+  /* --- Border Radius --- */
+  --radius-btn:    8px;
+  --radius-card:   12px;
+  --radius-input:  8px;
+  --radius-badge:  999px;
+}
+
+/* --- Base & Reset --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #ffffff;
+  color: var(--color-neutral-700);
+  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Scroll Animation Helper --- */
+.animate-fade-up {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.animate-fade-up.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Custom container utility --- */
+.container-site {
+  width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+@media (min-width: 768px)  { .container-site { max-width: 768px;  } }
+@media (min-width: 1024px) { .container-site { max-width: 1024px; } }
+@media (min-width: 1280px) { .container-site { max-width: 1200px; } }
+
+/* --- Shimmer skeleton loader --- */
+@keyframes shimmer {
+  0%   { background-position: -468px 0; }
+  100% { background-position: 468px 0; }
+}
+.skeleton {
+  background: linear-gradient(to right, #EEF1F4 8%, #e2e8f0 18%, #EEF1F4 33%);
+  background-size: 936px 104px;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: var(--radius-card);
+}
