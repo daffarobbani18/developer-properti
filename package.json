@@ -1,0 +1,16 @@
+{
+  "name": "developer-properti",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev:web-admin": "npm --prefix frontend/web-admin run dev",
+    "dev:web-public": "npm --prefix frontend/web-public-portal run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:mobile": "npm --prefix mobile run dev",
+    "install:web-admin": "npm --prefix frontend/web-admin install",
+    "install:web-public": "npm --prefix frontend/web-public-portal install",
+    "install:backend": "npm --prefix backend install",
+    "install:mobile": "npm --prefix mobile install",
+    "install:all": "npm run install:web-admin && npm run install:web-public && npm run install:backend && npm run install:mobile"
+  }
+}
