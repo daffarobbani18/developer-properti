@@ -1,50 +1,83 @@
-# SIMDP Monorepo
+# Developer Properti — Monorepo
 
-Monorepo implementasi Sistem Informasi Manajemen Developer Perumahan (SIMDP).
+Sistem Informasi Manajemen Developer Perumahan (SIMDP)
+
+## Struktur Repository
+
+```
+developer-properti/
+├── docs/                        # Dokumentasi & fase pengembangan
+├── backend/                     # Express API (shared untuk semua app)
+│   ├── src/
+│   │   ├── modules/             # Domain modules
+│   │   │   ├── auth/            # Autentikasi & JWT
+│   │   │   ├── user/            # Manajemen user & role
+│   │   │   ├── crm/             # CRM & Sales
+│   │   │   ├── keuangan/        # Keuangan & Cashflow
+│   │   │   ├── proyek/          # Monitoring Milestone
+│   │   │   ├── vendor/          # Pengeluaran & Vendor
+│   │   │   ├── legal/           # Legal & Perizinan
+│   │   │   └── notifikasi/      # Notifikasi
+│   │   ├── common/              # Shared utilities
+│   │   │   ├── decorators/
+│   │   │   ├── filters/
+│   │   │   ├── guards/
+│   │   │   ├── interceptors/
+│   │   │   └── pipes/
+│   │   ├── config/              # Konfigurasi app
+│   │   └── database/            # Database config & seeds
+│   └── prisma/                  # Prisma schema & migrations
+├── frontend/
+│   ├── web-admin/               # Next.js — Web Admin (internal)
+│   ├── web-public-portal/       # Next.js — Website Publik + Portal Customer
+│   └── shared/                  # Komponen & utilitas bersama
+│       ├── components/
+│       ├── hooks/
+│       ├── types/
+│       └── utils/
+├── mobile/                      # React Native — Mobile App
+│   └── src/
+│       ├── screens/
+│       ├── components/
+│       ├── navigation/
+│       ├── services/
+│       ├── hooks/
+│       └── types/
+└── packages/
+    └── types/                   # Shared TypeScript types (BE & FE)
+        └── src/
+```
+
+## Tech Stack
+
+| Layer | Teknologi |
+|-------|-----------|
+| Backend | Node.js (Express) + Prisma + PostgreSQL |
+| Web Frontend | Next.js + Tailwind CSS + shadcn/ui |
+| Mobile | React Native (Expo) |
+| Auth | JWT + Role-Based Access Control |
 
 ## Aplikasi
 
-- `apps/api`: Backend API (Express + Prisma + PostgreSQL/SQLite)
-- `apps/website-marketing`: Website publik marketing (Next.js)
-- `apps/web-admin`: Aplikasi internal admin (Next.js)
-- `apps/customer-portal`: Portal pembeli web (Next.js)
-- `apps/mobile-lapangan`: Aplikasi lapangan (Expo React Native)
-- `apps/mobile-customer`: Aplikasi pelanggan (Expo React Native)
-- `packages/shared`: Shared types dan utilities
+| App | Deskripsi | User |
+|-----|-----------|------|
+| Web Admin | Pusat kendali operasional | Tim internal (8 role) |
+| Website Publik + Portal Customer | Marketing publik + area customer terproteksi | Publik & Pembeli |
+| Mobile Lapangan | Laporan milestone & foto konstruksi | Site Engineer |
 
-## Menjalankan
+## Port Development
 
-1. Install dependency: `pnpm install`
-2. Setup env backend: salin `apps/api/.env.example` menjadi `apps/api/.env`
-3. Generate Prisma client: `pnpm db:generate`
-4. Migrasi database: `pnpm db:migrate`
-5. Seed data: `pnpm db:seed`
-6. Jalankan per app sesuai kebutuhan, contoh:
-   - API: `pnpm dev:api`
-   - Marketing: `pnpm dev:marketing`
-   - Web Admin: `pnpm dev:web-admin`
-   - Portal: `pnpm dev:portal`
-   - Mobile Lapangan: `pnpm dev:mobile-lapangan`
-   - Mobile Customer: `pnpm dev:mobile-customer`
+- Web Admin: `http://localhost:3001`
+- Website Publik + Portal: `http://localhost:3002`
+- Backend API: `http://localhost:4000`
+- Expo Metro (Mobile): `http://localhost:8082`
 
-## Akun Seed (Default)
+## Commands (from repository root)
 
-Semua akun seed menggunakan password: `Password123!`
-
-- Direktur: `direktur@simdp.local`
-- Sales Manager: `sales.manager@simdp.local`
-- Sales: `sales@simdp.local`
-- Finance Manager: `finance.manager@simdp.local`
-- Finance Admin: `finance@simdp.local`
-- Project Manager: `pm@simdp.local`
-- Site Engineer: `engineer@simdp.local`
-- Legal Admin: `legal@simdp.local`
-- Customer: `customer@simdp.local`
-
-## Validasi
-
-- Typecheck: `pnpm typecheck`
-- Lint: `pnpm lint`
-- Build: `pnpm build`
-
-Dokumentasi teknis tambahan tersedia di `docs/`.
+```bash
+npm run install:all
+npm run dev:web-admin
+npm run dev:web-public
+npm run dev:backend
+npm run dev:mobile
+```
