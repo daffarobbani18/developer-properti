@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
 import {
   ArrowRight,
   Car,
@@ -139,7 +140,7 @@ export default function HomePage() {
             : "bg-transparent py-8"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 flex items-center justify-center border-2 border-amber-600 rounded-sm transform rotate-45">
               <span
@@ -182,14 +183,39 @@ export default function HomePage() {
 
           <button
             className="md:hidden text-amber-500"
+            aria-label="Toggle menu"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
+
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-zinc-200 bg-white/95 backdrop-blur-xl">
+            <div className="px-4 sm:px-6 py-5 flex flex-col gap-4">
+              {[
+                { label: "Katalog", target: "#katalog" },
+                { label: "Fasilitas", target: "#fasilitas" },
+                { label: "Site Plan", target: "#siteplan" },
+                { label: "Lokasi", target: "#lokasi" },
+                { label: "FAQ", target: "#faq" },
+                { label: "VIP Access", target: "#vip" },
+              ].map((item) => (
+                <a
+                  key={item.label}
+                  href={item.target}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-xs uppercase tracking-[0.2em] text-zinc-700 font-medium"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </nav>
 
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 animate-[pulse_20s_ease-in-out_infinite] scale-105">
             <img
@@ -201,7 +227,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/70 via-zinc-950/40 to-zinc-950/90" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12 w-full mt-20 text-center flex flex-col items-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 w-full mt-20 sm:mt-24 text-center flex flex-col items-center">
           <Reveal delay={100}>
             <div className="flex items-center gap-4 mb-8">
               <div className="w-12 h-[1px] bg-amber-500" />
@@ -213,7 +239,7 @@ export default function HomePage() {
           </Reveal>
 
           <Reveal delay={300}>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-light text-white leading-[1.1] mb-8 tracking-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif font-light text-white leading-[1.1] mb-8 tracking-tight">
               Elevasi Gaya Hidup <br />
               <span className="font-bold italic text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-600">
                 Tanpa Batas.
@@ -222,17 +248,17 @@ export default function HomePage() {
           </Reveal>
 
           <Reveal delay={500}>
-            <p className="text-lg md:text-xl text-zinc-300 font-light max-w-2xl mx-auto leading-relaxed mb-12">
+            <p className="text-base sm:text-lg md:text-xl text-zinc-300 font-light max-w-2xl mx-auto leading-relaxed mb-10 sm:mb-12">
               Koleksi hunian ultra-modern yang dirancang oleh arsitek ternama. Menyatu harmonis
               dengan alam, menghadirkan privasi absolut untuk Anda.
             </p>
           </Reveal>
 
           <Reveal delay={700}>
-            <div className="flex flex-col sm:flex-row gap-6">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full sm:w-auto">
               <a
                 href="#katalog"
-                className="group flex items-center justify-center gap-3 px-8 py-4 bg-amber-600 text-white font-medium text-sm uppercase tracking-widest hover:bg-amber-500 transition-colors rounded-sm"
+                className="group flex items-center justify-center gap-3 px-8 py-4 bg-amber-600 text-white font-medium text-sm uppercase tracking-widest hover:bg-amber-500 transition-colors rounded-sm w-full sm:w-auto"
               >
                 Eksplorasi Koleksi
                 <ArrowRight
@@ -240,12 +266,12 @@ export default function HomePage() {
                   className="transform group-hover:translate-x-2 transition-transform duration-300"
                 />
               </a>
-              <a
-                href="#video"
-                className="group flex items-center justify-center gap-3 px-8 py-4 border border-white/30 text-white font-medium text-sm uppercase tracking-widest hover:bg-white hover:text-zinc-900 transition-colors rounded-sm backdrop-blur-sm"
+              <Link
+                href="/unit"
+                className="group flex items-center justify-center gap-3 px-8 py-4 border border-white/30 text-white font-medium text-sm uppercase tracking-widest hover:bg-white hover:text-zinc-900 transition-colors rounded-sm backdrop-blur-sm w-full sm:w-auto"
               >
-                <Play size={16} className="fill-current" /> Tonton Video
-              </a>
+                <Play size={16} className="fill-current" /> Lihat Semua Unit
+              </Link>
             </div>
           </Reveal>
         </div>
@@ -256,10 +282,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="relative z-20 -mt-16 max-w-6xl mx-auto px-6">
+      <section className="relative z-20 -mt-14 sm:-mt-16 max-w-6xl mx-auto px-4 sm:px-6">
         <Reveal>
-          <div className="bg-white/80 backdrop-blur-2xl shadow-2xl shadow-zinc-900/10 border border-zinc-100 rounded-sm p-8 flex flex-col md:flex-row justify-around items-center gap-8 divide-y md:divide-y-0 md:divide-x divide-zinc-200">
-            <div className="text-center px-8">
+          <div className="bg-white/80 backdrop-blur-2xl shadow-2xl shadow-zinc-900/10 border border-zinc-100 rounded-sm p-6 sm:p-8 flex flex-col md:flex-row justify-around items-center gap-6 sm:gap-8 divide-y md:divide-y-0 md:divide-x divide-zinc-200">
+            <div className="text-center px-6 sm:px-8 py-2 md:py-0">
               <p className="text-4xl font-serif text-zinc-900 mb-2">
                 15<span className="text-amber-600">+</span>
               </p>
@@ -267,13 +293,13 @@ export default function HomePage() {
                 Hektar Area Hijau
               </p>
             </div>
-            <div className="text-center px-8">
+            <div className="text-center px-6 sm:px-8 py-2 md:py-0">
               <p className="text-4xl font-serif text-zinc-900 mb-2">50</p>
               <p className="text-xs text-zinc-500 uppercase tracking-widest font-medium">
                 Unit Eksklusif
               </p>
             </div>
-            <div className="text-center px-8">
+            <div className="text-center px-6 sm:px-8 py-2 md:py-0">
               <p className="text-4xl font-serif text-zinc-900 mb-2">
                 24<span className="text-amber-600">/</span>7
               </p>
@@ -285,9 +311,9 @@ export default function HomePage() {
         </Reveal>
       </section>
 
-      <section id="fasilitas" className="py-32 bg-[#FAFAFA]">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <section id="fasilitas" className="py-20 md:py-24 lg:py-32 bg-[#FAFAFA]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div>
               <Reveal direction="left">
                 <h2 className="text-xs text-amber-600 font-bold uppercase tracking-[0.3em] mb-4">
@@ -300,7 +326,7 @@ export default function HomePage() {
                   Setiap detail di Griya Persada dirancang untuk memanjakan residen. Mulai dari
                   sistem rumah pintar terpadu hingga clubhouse eksklusif bergaya resor.
                 </p>
-                <div className="grid grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                   <div className="flex flex-col gap-3">
                     <Shield className="text-amber-600 w-8 h-8 stroke-[1.5]" />
                     <h4 className="text-zinc-900 font-medium">Smart Security</h4>
@@ -328,7 +354,7 @@ export default function HomePage() {
                 </div>
               </Reveal>
             </div>
-            <div className="relative h-[600px]">
+            <div className="relative h-[420px] sm:h-[520px] lg:h-[600px]">
               <Reveal direction="right" delay={200}>
                 <img
                   src="https://images.unsplash.com/photo-1576013551627-c020e556f8f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80"
@@ -347,8 +373,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="katalog" className="py-32 bg-white border-y border-zinc-100">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+      <section id="katalog" className="py-20 md:py-24 lg:py-32 bg-white border-y border-zinc-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
           <Reveal>
             <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
               <div className="max-w-2xl">
@@ -368,10 +394,10 @@ export default function HomePage() {
             </div>
           </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
             <Reveal delay={100}>
-              <div className="group cursor-pointer">
-                <div className="relative h-[500px] overflow-hidden rounded-sm mb-6">
+              <Link href="/unit/astoria" className="group cursor-pointer block">
+                <div className="relative h-[360px] sm:h-[440px] lg:h-[500px] overflow-hidden rounded-sm mb-6">
                   <div className="absolute inset-0 bg-zinc-900/20 group-hover:bg-transparent transition-colors duration-700 z-10" />
                   <img
                     src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
@@ -402,14 +428,17 @@ export default function HomePage() {
                   <div className="text-right">
                     <p className="text-xs text-zinc-400 uppercase tracking-widest mb-1">Mulai Dari</p>
                     <p className="text-2xl font-serif text-amber-600">Rp 2.8 M</p>
+                    <p className="text-xs uppercase tracking-[0.18em] text-zinc-500 mt-4 group-hover:text-amber-600 transition-colors">
+                      Detail Unit
+                    </p>
                   </div>
                 </div>
-              </div>
+              </Link>
             </Reveal>
 
             <Reveal delay={300} direction="up">
-              <div className="group cursor-pointer md:mt-24">
-                <div className="relative h-[500px] overflow-hidden rounded-sm mb-6">
+              <Link href="/unit/bvlgari" className="group cursor-pointer md:mt-24 block">
+                <div className="relative h-[360px] sm:h-[440px] lg:h-[500px] overflow-hidden rounded-sm mb-6">
                   <div className="absolute inset-0 bg-zinc-900/20 group-hover:bg-transparent transition-colors duration-700 z-10" />
                   <img
                     src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
@@ -440,15 +469,18 @@ export default function HomePage() {
                   <div className="text-right">
                     <p className="text-xs text-zinc-400 uppercase tracking-widest mb-1">Mulai Dari</p>
                     <p className="text-2xl font-serif text-amber-600">Rp 4.5 M</p>
+                    <p className="text-xs uppercase tracking-[0.18em] text-zinc-500 mt-4 group-hover:text-amber-600 transition-colors">
+                      Detail Unit
+                    </p>
                   </div>
                 </div>
-              </div>
+              </Link>
             </Reveal>
           </div>
         </div>
       </section>
 
-      <section id="siteplan" className="py-32 bg-zinc-950 relative overflow-hidden">
+      <section id="siteplan" className="py-20 md:py-24 lg:py-32 bg-zinc-950 relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-amber-600/10 rounded-full blur-[120px] pointer-events-none" />
         <div
           className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none"
@@ -459,8 +491,8 @@ export default function HomePage() {
           }}
         />
 
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
-          <div className="flex flex-col lg:flex-row gap-20 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 relative z-10">
+          <div className="flex flex-col lg:flex-row gap-14 lg:gap-20 items-center">
             <div className="lg:w-1/3">
               <Reveal>
                 <div className="inline-flex items-center gap-3 px-4 py-2 border border-zinc-800 bg-zinc-900/50 rounded-sm mb-6">
@@ -475,8 +507,9 @@ export default function HomePage() {
                 <h3 className="text-4xl font-serif text-white mb-6">Peta Digital Kavling</h3>
                 <p className="text-zinc-400 text-lg font-light mb-10 leading-relaxed">
                   Tinjau ketersediaan unit impian Anda. Terhubung secara eksklusif dengan
-                  *database* manajemen kami, memberikan Anda informasi yang presisi dan transparan
-                  di detik ini juga.
+                  <span className="italic"> database </span>
+                  manajemen kami, memberikan Anda informasi yang presisi dan transparan di detik
+                  ini juga.
                 </p>
 
                 <div className="space-y-6">
@@ -513,10 +546,10 @@ export default function HomePage() {
               </Reveal>
             </div>
 
-            <div className="lg:w-2/3 w-full md:perspective-[1800px]">
+            <div className="lg:w-2/3 w-full md:perspective-[1800px] overflow-x-auto pb-10">
               <Reveal delay={300} direction="left">
-                <div className="relative transition-all duration-[1000ms] ease-out drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] md:transform-gpu md:hover:rotate-x-[4deg] md:hover:rotate-z-[-1.5deg]">
-                  <div className="grid grid-cols-4 gap-4 p-8 bg-zinc-900/40 backdrop-blur-sm border border-zinc-800 rounded-lg">
+                <div className="relative transition-all duration-[1000ms] ease-out drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] md:transform-gpu md:hover:rotate-x-[4deg] md:hover:rotate-z-[-1.5deg] min-w-[720px]">
+                  <div className="grid grid-cols-4 gap-3 sm:gap-4 p-5 sm:p-8 bg-zinc-900/40 backdrop-blur-sm border border-zinc-800 rounded-lg">
                     {[
                       { id: "BLK-A1", status: "sold" },
                       { id: "BLK-A2", status: "available" },
@@ -578,8 +611,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="lokasi" className="py-32 bg-[#FAFAFA] border-y border-zinc-100">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
+      <section id="lokasi" className="py-20 md:py-24 lg:py-32 bg-[#FAFAFA] border-y border-zinc-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-14 items-center">
           <Reveal>
             <div>
               <h2 className="text-xs text-amber-600 font-bold uppercase tracking-[0.3em] mb-4">
@@ -609,14 +642,14 @@ export default function HomePage() {
           </Reveal>
 
           <Reveal delay={200} direction="left">
-            <div className="relative h-[420px] rounded-sm overflow-hidden border border-zinc-200 shadow-xl shadow-zinc-900/10">
+            <div className="relative h-[340px] sm:h-[420px] rounded-sm overflow-hidden border border-zinc-200 shadow-xl shadow-zinc-900/10">
               <img
                 src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1400&q=80"
                 alt="Preview Peta Lokasi Perumahan"
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/55 to-zinc-950/10" />
-              <div className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-md border border-zinc-200 rounded-sm p-4 flex items-center justify-between gap-4">
+              <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 right-4 sm:right-6 bg-white/90 backdrop-blur-md border border-zinc-200 rounded-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.2em] text-zinc-500 mb-1">
                     Titik Dummy Lokasi
@@ -632,8 +665,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-28 bg-white">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+      <section className="py-20 md:py-24 lg:py-28 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
           <Reveal>
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-14">
               <div>
@@ -667,8 +700,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="faq" className="py-28 bg-zinc-950 border-t border-zinc-900">
-        <div className="max-w-5xl mx-auto px-6 lg:px-12">
+      <section id="faq" className="py-20 md:py-24 lg:py-28 bg-zinc-950 border-t border-zinc-900">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-12">
           <Reveal>
             <div className="text-center mb-14">
               <h2 className="text-xs text-amber-500 font-bold uppercase tracking-[0.3em] mb-4">
@@ -702,17 +735,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="vip" className="py-32 bg-zinc-900 relative">
-        <div className="max-w-4xl mx-auto px-6 relative z-10">
+      <section id="vip" className="py-20 md:py-24 lg:py-32 bg-zinc-900 relative">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
           <Reveal>
-            <div className="bg-zinc-950 border border-zinc-800 p-10 md:p-16 rounded-sm shadow-2xl relative overflow-hidden">
+            <div className="bg-zinc-950 border border-zinc-800 p-7 sm:p-10 md:p-16 rounded-sm shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 left-0 w-2 h-full bg-amber-600" />
 
               <div className="text-center mb-12">
                 <h3 className="text-3xl font-serif text-white mb-4">Jadwalkan Kunjungan Pribadi</h3>
                 <p className="text-zinc-400 font-light text-sm max-w-lg mx-auto">
-                  Tinggalkan kontak Anda. *Lifestyle Consultant* kami akan menghubungi Anda untuk
-                  mengatur sesi tinjauan lokasi (*Private Viewing*) secara eksklusif.
+                  Tinggalkan kontak Anda. <span className="italic">Lifestyle Consultant</span> kami
+                  akan menghubungi Anda untuk mengatur sesi tinjauan lokasi (
+                  <span className="italic">Private Viewing</span>) secara eksklusif.
                 </p>
               </div>
 
@@ -784,8 +818,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="bg-zinc-950 text-zinc-400 py-16 border-t border-zinc-900">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-12">
+      <footer className="bg-zinc-950 text-zinc-400 py-14 md:py-16 border-t border-zinc-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-12">
           <div className="md:col-span-5">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-8 h-8 flex items-center justify-center border border-zinc-700 transform rotate-45">
@@ -836,7 +870,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 mt-16 pt-8 border-t border-zinc-900 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-light">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 mt-12 md:mt-16 pt-8 border-t border-zinc-900 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-light">
           <p>&copy; {new Date().getFullYear()} Griya Persada Development. Hak Cipta Dilindungi.</p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-white transition-colors">
@@ -848,6 +882,15 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      <a
+        href="https://wa.me/6281100009999?text=Halo%20tim%20Griya%20Persada%2C%20saya%20ingin%20info%20unit%20yang%20tersedia."
+        target="_blank"
+        rel="noreferrer"
+        className="fixed right-4 bottom-4 sm:right-6 sm:bottom-6 z-50 inline-flex items-center gap-2 bg-emerald-500 text-white px-4 py-3 rounded-full shadow-2xl shadow-emerald-900/30 text-xs uppercase tracking-wider font-semibold hover:bg-emerald-400 transition-colors"
+      >
+        Chat WhatsApp
+      </a>
     </div>
   );
 }
