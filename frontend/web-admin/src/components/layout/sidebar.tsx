@@ -108,12 +108,13 @@ export default function Sidebar({ onClose }: SidebarProps) {
   };
 
   return (
-    <aside className="flex h-full w-64 flex-col bg-white/80 backdrop-blur-md border-r border-slate-200/50">
+    <aside className="flex h-full w-64 flex-col border-r border-slate-200 bg-white backdrop-blur-2xl text-slate-900 shadow-[0_0_20px_rgba(0,0,0,0.08)]">
       {/* Logo & Brand */}
       <div className="flex h-16 items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-[family-name:var(--font-heading)] font-bold text-sm shadow-sm">
-            S
+          <div className="relative flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-100 to-slate-50 text-slate-900 font-[family-name:var(--font-heading)] font-bold text-sm shadow-sm shadow-black/5">
+            <span className="absolute inset-0 rounded-2xl bg-amber-500/5 blur-md" />
+            <span className="relative">S</span>
           </div>
           <span className="font-[family-name:var(--font-heading)] font-bold text-lg tracking-tight text-slate-900">
             SIMDP
@@ -124,20 +125,20 @@ export default function Sidebar({ onClose }: SidebarProps) {
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="md:hidden hover:bg-white/90 rounded-lg"
+            className="md:hidden rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100"
           >
-            <X className="h-5 w-5 text-slate-500" />
+            <X className="h-5 w-5 text-slate-700" />
           </Button>
         )}
       </div>
 
-      <Separator className="bg-slate-200/50" />
+      <Separator className="bg-slate-200" />
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
         {menuItems.map((group) => (
           <div key={group.group}>
-            <p className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+            <p className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
               {group.group}
             </p>
             <ul className="space-y-1">
@@ -156,17 +157,17 @@ export default function Sidebar({ onClose }: SidebarProps) {
                         <button
                           onClick={() => toggleExpand(item.href)}
                           className={cn(
-                            "flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ease-in-out",
+                            "flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ease-in-out",
                             isActive
-                              ? "text-blue-600"
-                              : "text-slate-500 hover:bg-white/90 hover:text-slate-900"
+                              ? "bg-amber-50 text-amber-600 border border-amber-200/50"
+                              : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                           )}
                         >
                           <span className="flex items-center gap-3">
                             <item.icon
                               className={cn(
                                 "h-[18px] w-[18px] shrink-0",
-                                isActive ? "text-blue-600" : "text-slate-400"
+                                isActive ? "text-amber-600" : "text-slate-600"
                               )}
                             />
                             {item.label}
@@ -179,7 +180,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
                           />
                         </button>
                         {isExpanded && (
-                          <ul className="mt-1 ml-4 space-y-0.5 border-l border-slate-200/50 pl-3">
+                          <ul className="mt-1 ml-4 space-y-0.5 border-l border-slate-200 pl-3">
                             {item.children!.map((child) => {
                               const isChildActive = pathname === child.href;
                               return (
@@ -188,18 +189,18 @@ export default function Sidebar({ onClose }: SidebarProps) {
                                     href={child.href}
                                     onClick={onClose}
                                     className={cn(
-                                      "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-200 ease-in-out",
+                                      "flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-medium transition-all duration-200 ease-in-out",
                                       isChildActive
-                                        ? "bg-blue-50/80 text-blue-600 shadow-sm border border-blue-200/40"
-                                        : "text-slate-500 hover:bg-white/90 hover:text-slate-900"
+                                        ? "bg-amber-50 text-amber-600 shadow-sm border border-amber-200/50"
+                                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                                     )}
                                   >
                                     <child.icon
                                       className={cn(
                                         "h-4 w-4 shrink-0",
                                         isChildActive
-                                          ? "text-blue-600"
-                                          : "text-slate-400"
+                                          ? "text-amber-600"
+                                          : "text-slate-600"
                                       )}
                                     />
                                     {child.label}
@@ -215,16 +216,16 @@ export default function Sidebar({ onClose }: SidebarProps) {
                         href={item.href}
                         onClick={onClose}
                         className={cn(
-                          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ease-in-out",
+                          "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ease-in-out",
                           isExactActive
-                            ? "bg-blue-50/80 text-blue-600 shadow-sm border border-blue-200/40"
-                            : "text-slate-500 hover:bg-white/90 hover:text-slate-900"
+                            ? "bg-amber-50 text-amber-600 shadow-sm border border-amber-200/50"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                         )}
                       >
                         <item.icon
                           className={cn(
                             "h-[18px] w-[18px] shrink-0",
-                            isExactActive ? "text-blue-600" : "text-slate-400"
+                            isExactActive ? "text-amber-600" : "text-slate-600"
                           )}
                         />
                         {item.label}
@@ -239,8 +240,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-slate-200/50 p-4">
-        <p className="text-[11px] text-slate-400 text-center">
+      <div className="border-t border-slate-200 p-4">
+        <p className="text-[11px] text-slate-500 text-center">
           SIMDP v1.0 &copy; 2026
         </p>
       </div>
