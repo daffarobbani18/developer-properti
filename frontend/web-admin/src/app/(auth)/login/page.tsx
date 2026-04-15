@@ -4,16 +4,19 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CheckCircle2, Eye, EyeOff, Lock, Mail, ShieldAlert, Code2 } from "lucide-react";
 
+type UserRole = "admin" | "inventory" | "sales" | "finance" | "legal" | "supervisor";
+
 const DEV_ACCOUNTS = [
-  { label: "Admin / Direktur", email: "admin@simdp.dev", password: "Admin@123", redirectTo: "/crm" },
-  { label: "Admin Inventory", email: "inventory@simdp.dev", password: "Inventory@123", redirectTo: "/inventory" },
-  { label: "Sales & Marketing", email: "sales@simdp.dev", password: "Sales@123", redirectTo: "/sales" },
-  { label: "Finance & Accounting", email: "finance@simdp.dev", password: "Finance@123", redirectTo: "/finance" },
-  { label: "Tim Legal", email: "legal@simdp.dev", password: "Legal@123", redirectTo: "/legal" },
-  { label: "Pengawas Lapangan", email: "supervisor@simdp.dev", password: "Supervisor@123", redirectTo: "/supervisor" },
+  { label: "Admin / Direktur", email: "admin@simdp.dev", password: "Admin@123", role: "admin" as UserRole, redirectTo: "/crm" },
+  { label: "Admin Inventory", email: "inventory@simdp.dev", password: "Inventory@123", role: "inventory" as UserRole, redirectTo: "/inventory" },
+  { label: "Sales & Marketing", email: "sales@simdp.dev", password: "Sales@123", role: "sales" as UserRole, redirectTo: "/sales" },
+  { label: "Finance & Accounting", email: "finance@simdp.dev", password: "Finance@123", role: "finance" as UserRole, redirectTo: "/finance" },
+  { label: "Tim Legal", email: "legal@simdp.dev", password: "Legal@123", role: "legal" as UserRole, redirectTo: "/legal" },
+  { label: "Pengawas Lapangan", email: "supervisor@simdp.dev", password: "Supervisor@123", role: "supervisor" as UserRole, redirectTo: "/supervisor" },
 ];
 
 const DEFAULT_REDIRECT = "/crm";
+const DEFAULT_ROLE: UserRole = "admin";
 
 export default function App() {
   const router = useRouter();
@@ -29,20 +32,49 @@ export default function App() {
     setMounted(true);
   }, []);
 
+  const getAccountByEmail = (emailValue: string) => {
+    return DEV_ACCOUNTS.find((item) => item.email.toLowerCase() === emailValue.trim().toLowerCase());
+  };
+
   const getRoleRedirect = (emailValue: string) => {
-    const account = DEV_ACCOUNTS.find((item) => item.email.toLowerCase() === emailValue.trim().toLowerCase());
+    const account = getAccountByEmail(emailValue);
     return account?.redirectTo ?? DEFAULT_REDIRECT;
   };
 
   const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoginState("loading");
+    const matchedAccount = getAccountByEmail(email);
+    const resolvedRole: UserRole = matchedAccount?.role ?? DEFAULT_ROLE;
     const targetRoute = getRoleRedirect(email);
 
     window.setTimeout(() => {
       setLoginState("success");
 
       window.setTimeout(() => {
+        const authPayload = JSON.stringify({
+          email: email.trim(),
+          role: resolvedRole,
+          redirectTo: targetRoute,
+          loginAt: Date.now(),
+        });
+
+        try {
+          if (rememberSession) {
+            localStorage.setItem("simdp_auth", authPayload);
+            sessionStorage.removeItem("simdp_auth");
+            document.cookie = `simdp_role=${resolvedRole}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
+            document.cookie = `simdp_email=${encodeURIComponent(email.trim())}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
+          } else {
+            sessionStorage.setItem("simdp_auth", authPayload);
+            localStorage.removeItem("simdp_auth");
+            document.cookie = `simdp_role=${resolvedRole}; path=/; samesite=lax`;
+            document.cookie = `simdp_email=${encodeURIComponent(email.trim())}; path=/; samesite=lax`;
+          }
+        } catch {
+          // Ignore storage errors in preview mode.
+        }
+
         router.push(targetRoute);
         setLoginState("idle");
       }, 1800);

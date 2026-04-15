@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -17,17 +17,22 @@ import {
   Receipt,
   Activity,
   Building2,
-  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
+type UserRole = "admin" | "inventory" | "sales" | "finance" | "legal" | "supervisor";
+type RoleWithGuest = UserRole | "guest";
+
+const ALL_ROLES: UserRole[] = ["admin", "inventory", "sales", "finance", "legal", "supervisor"];
+
 interface MenuItem {
   label: string;
   href: string;
   icon: React.ElementType;
-  children?: { label: string; href: string; icon: React.ElementType }[];
+  roles: UserRole[];
+  children?: { label: string; href: string; icon: React.ElementType; roles: UserRole[] }[];
 }
 
 interface MenuGroup {
@@ -38,7 +43,7 @@ interface MenuGroup {
 const menuItems: MenuGroup[] = [
   {
     group: "Utama",
-    items: [{ label: "Dashboard", href: "/", icon: LayoutDashboard }],
+    items: [{ label: "Dashboard", href: "/", icon: LayoutDashboard, roles: ALL_ROLES }],
   },
   {
     group: "Operasional",
@@ -47,46 +52,52 @@ const menuItems: MenuGroup[] = [
         label: "Admin Inventory",
         href: "/inventory",
         icon: Building2,
+        roles: ["admin", "inventory"],
       },
       {
         label: "Sales & Marketing",
         href: "/sales",
         icon: Users,
+        roles: ["admin", "sales"],
         children: [
-          { label: "Leads", href: "/crm/leads", icon: Users },
-          { label: "Pipeline", href: "/crm/pipeline", icon: KanbanSquare },
-          { label: "Unit", href: "/crm/unit", icon: Home },
-          { label: "Transaksi", href: "/crm/transaksi", icon: Receipt },
-          { label: "Aktivitas", href: "/crm/aktivitas", icon: Activity },
+          { label: "Leads", href: "/crm/leads", icon: Users, roles: ["admin", "sales"] },
+          { label: "Pipeline", href: "/crm/pipeline", icon: KanbanSquare, roles: ["admin", "sales"] },
+          { label: "Unit", href: "/crm/unit", icon: Home, roles: ["admin", "sales"] },
+          { label: "Transaksi", href: "/crm/transaksi", icon: Receipt, roles: ["admin", "sales"] },
+          { label: "Aktivitas", href: "/crm/aktivitas", icon: Activity, roles: ["admin", "sales"] },
         ],
       },
       {
         label: "Finance & Accounting",
         href: "/finance",
         icon: Banknote,
+        roles: ["admin", "finance"],
         children: [
-          { label: "Cashflow", href: "/keuangan/cashflow", icon: Activity },
-          { label: "Tagihan", href: "/keuangan/tagihan", icon: Receipt },
-          { label: "Pengeluaran", href: "/keuangan/pengeluaran", icon: Receipt },
-          { label: "RAB & Realisasi", href: "/keuangan/rab", icon: FolderKanban },
+          { label: "Cashflow", href: "/keuangan/cashflow", icon: Activity, roles: ["admin", "finance"] },
+          { label: "Tagihan", href: "/keuangan/tagihan", icon: Receipt, roles: ["admin", "finance"] },
+          { label: "Pengeluaran", href: "/keuangan/pengeluaran", icon: Receipt, roles: ["admin", "finance"] },
+          { label: "RAB & Realisasi", href: "/keuangan/rab", icon: FolderKanban, roles: ["admin", "finance"] },
         ],
       },
       {
         label: "Pengawas Lapangan",
         href: "/supervisor",
         icon: HardHat,
+        roles: ["admin", "supervisor"],
       },
       {
         label: "Legal & Perizinan",
         href: "/legal",
         icon: FileCheck,
+        roles: ["admin", "legal"],
       },
       {
         label: "Monitoring Proyek",
         href: "/proyek",
         icon: Building2,
+        roles: ["admin", "supervisor", "inventory"],
         children: [
-          { label: "Daftar Proyek", href: "/proyek", icon: Building2 },
+          { label: "Daftar Proyek", href: "/proyek", icon: Building2, roles: ["admin", "supervisor", "inventory"] },
         ],
       },
     ],
@@ -99,18 +110,68 @@ interface SidebarProps {
 
 export default function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(() => {
-    // Auto-expand if on a child route
+  const [currentRole, setCurrentRole] = useState<RoleWithGuest>("guest");
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+
+  useEffect(() => {
+    const readStoredRole = (): RoleWithGuest => {
+      try {
+        const localAuth = localStorage.getItem("simdp_auth");
+        const sessionAuth = sessionStorage.getItem("simdp_auth");
+        const authRaw = localAuth ?? sessionAuth;
+
+        if (!authRaw) {
+          return "guest";
+        }
+
+        const parsed = JSON.parse(authRaw) as { role?: string };
+        const role = parsed.role;
+        if (role && ALL_ROLES.includes(role as UserRole)) {
+          return role as UserRole;
+        }
+      } catch {
+        return "guest";
+      }
+
+      return "guest";
+    };
+
+    setCurrentRole(readStoredRole());
+  }, []);
+
+  const filteredMenuItems = useMemo(() => {
+    if (currentRole === "guest") {
+      return [] as MenuGroup[];
+    }
+
+    return menuItems
+      .map((group) => {
+        const items = group.items
+          .filter((item) => item.roles.includes(currentRole))
+          .map((item) => ({
+            ...item,
+            children: item.children?.filter((child) => child.roles.includes(currentRole)),
+          }));
+
+        return {
+          ...group,
+          items,
+        };
+      })
+      .filter((group) => group.items.length > 0);
+  }, [currentRole]);
+
+  useEffect(() => {
     const expanded: string[] = [];
-    menuItems.forEach((group) =>
+    filteredMenuItems.forEach((group) =>
       group.items.forEach((item) => {
         if (item.children?.some((c) => pathname.startsWith(c.href))) {
           expanded.push(item.href);
         }
       })
     );
-    return expanded;
-  });
+    setExpandedMenus(expanded);
+  }, [pathname, filteredMenuItems]);
 
   const toggleExpand = (href: string) => {
     setExpandedMenus((prev) =>
@@ -149,7 +210,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-        {menuItems.map((group) => (
+        {filteredMenuItems.map((group) => (
           <div key={group.group}>
             <p className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
               {group.group}
