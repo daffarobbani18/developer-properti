@@ -59,13 +59,13 @@ export default function LegalPage() {
               Monitoring Dokumen dan Perizinan Proyek
             </h1>
             <p className="text-sm md:text-base text-slate-600 leading-relaxed">
-              Halaman ini memantau status perizinan utama proyek dengan visual yang seragam terhadap login dan dashboard baru.
+              Kelola dokumen hukum (KTP/NPWP pelanggan), proses dokumen PPJB (Perjanjian Pengikatan Jual Beli), AJB, dan urusan balik nama sertifikat unit.
             </p>
           </div>
 
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs uppercase tracking-[0.2em] text-slate-700 transition-colors hover:bg-slate-100 hover:text-amber-600"
+            className="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs uppercase tracking-[0.2em] text-amber-600 transition-colors hover:bg-amber-100"
           >
             <ShieldCheck size={14} className="text-amber-600" /> Ringkasan Proyek
           </Link>

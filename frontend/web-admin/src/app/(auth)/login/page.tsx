@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CheckCircle2, Eye, EyeOff, Lock, Mail, ShieldAlert } from "lucide-react";
+import { ArrowRight, CheckCircle2, Eye, EyeOff, Lock, Mail, ShieldAlert, Code2 } from "lucide-react";
+
+const DEV_ACCOUNTS = [
+  { label: "Admin / Direktur", email: "admin@simdp.dev", password: "Admin@123" },
+  { label: "Admin Inventory", email: "inventory@simdp.dev", password: "Inventory@123" },
+  { label: "Sales & Marketing", email: "sales@simdp.dev", password: "Sales@123" },
+  { label: "Finance & Accounting", email: "finance@simdp.dev", password: "Finance@123" },
+  { label: "Tim Legal", email: "legal@simdp.dev", password: "Legal@123" },
+  { label: "Pengawas Lapangan", email: "supervisor@simdp.dev", password: "Supervisor@123" },
+];
 
 export default function App() {
   const router = useRouter();
@@ -12,6 +21,7 @@ export default function App() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberSession, setRememberSession] = useState(false);
+  const [showDevMode, setShowDevMode] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -25,7 +35,7 @@ export default function App() {
       setLoginState("success");
 
       window.setTimeout(() => {
-        router.push("/");
+        router.push("/crm");
         setLoginState("idle");
       }, 1800);
     }, 2200);
@@ -118,9 +128,13 @@ export default function App() {
                 </div>
                 <span className="text-xs text-slate-600 font-light">Ingat Sesi Ini</span>
               </label>
-              <a href="/lupa-password" className="text-xs text-slate-600 hover:text-amber-600 font-light transition-colors">
-                Butuh Bantuan?
-              </a>
+              <button
+                type="button"
+                onClick={() => setShowDevMode(!showDevMode)}
+                className="text-[10px] inline-flex items-center gap-1 px-2 py-1 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded transition-colors"
+              >
+                <Code2 size={12} /> Dev
+              </button>
             </div>
 
             <button
@@ -153,6 +167,28 @@ export default function App() {
               )}
             </button>
           </form>
+
+          {showDevMode && (
+            <div className="mt-6 p-3 rounded-xl border border-amber-200 bg-amber-50">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-900 mb-2">Dev Mode - Cepat Login</p>
+              <div className="grid grid-cols-2 gap-2">
+                {DEV_ACCOUNTS.map((account) => (
+                  <button
+                    key={account.email}
+                    type="button"
+                    onClick={() => {
+                      setEmail(account.email);
+                      setPassword(account.password);
+                      setShowDevMode(false);
+                    }}
+                    className="text-[11px] px-2 py-1.5 rounded border border-amber-300 bg-white text-amber-900 hover:bg-amber-100 transition-colors truncate"
+                  >
+                    {account.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-8 flex items-center justify-center gap-2 text-slate-600 text-xs font-light px-2 text-center">

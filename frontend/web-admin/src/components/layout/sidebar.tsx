@@ -44,8 +44,13 @@ const menuItems: MenuGroup[] = [
     group: "Operasional",
     items: [
       {
-        label: "CRM & Sales",
-        href: "/crm",
+        label: "Admin Inventory",
+        href: "/inventory",
+        icon: Building2,
+      },
+      {
+        label: "Sales & Marketing",
+        href: "/sales",
         icon: Users,
         children: [
           { label: "Leads", href: "/crm/leads", icon: Users },
@@ -56,8 +61,8 @@ const menuItems: MenuGroup[] = [
         ],
       },
       {
-        label: "Keuangan",
-        href: "/keuangan",
+        label: "Finance & Accounting",
+        href: "/finance",
         icon: Banknote,
         children: [
           { label: "Cashflow", href: "/keuangan/cashflow", icon: Activity },
@@ -67,6 +72,16 @@ const menuItems: MenuGroup[] = [
         ],
       },
       {
+        label: "Pengawas Lapangan",
+        href: "/supervisor",
+        icon: HardHat,
+      },
+      {
+        label: "Legal & Perizinan",
+        href: "/legal",
+        icon: FileCheck,
+      },
+      {
         label: "Monitoring Proyek",
         href: "/proyek",
         icon: Building2,
@@ -74,8 +89,6 @@ const menuItems: MenuGroup[] = [
           { label: "Daftar Proyek", href: "/proyek", icon: Building2 },
         ],
       },
-      { label: "Pengeluaran & Vendor", href: "/vendor", icon: HardHat },
-      { label: "Legal & Perizinan", href: "/legal", icon: FileCheck },
     ],
   },
 ];
