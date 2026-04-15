@@ -36,12 +36,12 @@ type RoleWithGuest = UserRole | "guest";
 
 const ALL_ROLES: UserRole[] = ["admin", "inventory", "sales", "finance", "legal", "supervisor"];
 const ROLE_HOME: Record<UserRole, string> = {
-  admin: "/crm",
-  inventory: "/inventory",
-  sales: "/sales",
-  finance: "/finance",
-  legal: "/legal",
-  supervisor: "/supervisor",
+  admin: "/dashboard/admin",
+  inventory: "/dashboard/inventory",
+  sales: "/dashboard/sales",
+  finance: "/dashboard/finance",
+  legal: "/dashboard/legal",
+  supervisor: "/dashboard/supervisor",
 };
 
 interface MenuItem {

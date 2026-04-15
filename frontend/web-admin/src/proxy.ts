@@ -7,21 +7,21 @@ const VALID_ROLES: UserRole[] = ["admin", "inventory", "sales", "finance", "lega
 const PUBLIC_PATHS = ["/login", "/lupa-password"];
 
 const ROLE_HOME: Record<UserRole, string> = {
-  admin: "/crm",
-  inventory: "/inventory",
-  sales: "/sales",
-  finance: "/finance",
-  legal: "/legal",
-  supervisor: "/supervisor",
+  admin: "/dashboard/admin",
+  inventory: "/dashboard/inventory",
+  sales: "/dashboard/sales",
+  finance: "/dashboard/finance",
+  legal: "/dashboard/legal",
+  supervisor: "/dashboard/supervisor",
 };
 
 const ROLE_ALLOWED_PREFIXES: Record<UserRole, string[]> = {
-  admin: ["/crm", "/finance", "/inventory", "/keuangan", "/legal", "/proyek", "/sales", "/supervisor"],
-  inventory: ["/inventory", "/proyek"],
-  sales: ["/sales", "/crm"],
-  finance: ["/finance", "/keuangan"],
-  legal: ["/legal"],
-  supervisor: ["/supervisor", "/proyek"],
+  admin: ["/dashboard", "/crm", "/finance", "/inventory", "/keuangan", "/legal", "/proyek", "/sales", "/supervisor"],
+  inventory: ["/dashboard/inventory", "/inventory", "/proyek"],
+  sales: ["/dashboard/sales", "/sales", "/crm"],
+  finance: ["/dashboard/finance", "/finance", "/keuangan"],
+  legal: ["/dashboard/legal", "/legal"],
+  supervisor: ["/dashboard/supervisor", "/supervisor", "/proyek"],
 };
 
 const isPublicPath = (pathname: string) => {

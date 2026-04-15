@@ -7,15 +7,15 @@ import { ArrowRight, CheckCircle2, Eye, EyeOff, Lock, Mail, ShieldAlert, Code2 }
 type UserRole = "admin" | "inventory" | "sales" | "finance" | "legal" | "supervisor";
 
 const DEV_ACCOUNTS = [
-  { label: "Admin / Direktur", email: "admin@simdp.dev", password: "Admin@123", role: "admin" as UserRole, redirectTo: "/crm" },
-  { label: "Admin Inventory", email: "inventory@simdp.dev", password: "Inventory@123", role: "inventory" as UserRole, redirectTo: "/inventory" },
-  { label: "Sales & Marketing", email: "sales@simdp.dev", password: "Sales@123", role: "sales" as UserRole, redirectTo: "/sales" },
-  { label: "Finance & Accounting", email: "finance@simdp.dev", password: "Finance@123", role: "finance" as UserRole, redirectTo: "/finance" },
-  { label: "Tim Legal", email: "legal@simdp.dev", password: "Legal@123", role: "legal" as UserRole, redirectTo: "/legal" },
-  { label: "Pengawas Lapangan", email: "supervisor@simdp.dev", password: "Supervisor@123", role: "supervisor" as UserRole, redirectTo: "/supervisor" },
+  { label: "Admin / Direktur", email: "admin@simdp.dev", password: "Admin@123", role: "admin" as UserRole, redirectTo: "/dashboard/admin" },
+  { label: "Admin Inventory", email: "inventory@simdp.dev", password: "Inventory@123", role: "inventory" as UserRole, redirectTo: "/dashboard/inventory" },
+  { label: "Sales & Marketing", email: "sales@simdp.dev", password: "Sales@123", role: "sales" as UserRole, redirectTo: "/dashboard/sales" },
+  { label: "Finance & Accounting", email: "finance@simdp.dev", password: "Finance@123", role: "finance" as UserRole, redirectTo: "/dashboard/finance" },
+  { label: "Tim Legal", email: "legal@simdp.dev", password: "Legal@123", role: "legal" as UserRole, redirectTo: "/dashboard/legal" },
+  { label: "Pengawas Lapangan", email: "supervisor@simdp.dev", password: "Supervisor@123", role: "supervisor" as UserRole, redirectTo: "/dashboard/supervisor" },
 ];
 
-const DEFAULT_REDIRECT = "/crm";
+const DEFAULT_REDIRECT = "/dashboard/admin";
 const DEFAULT_ROLE: UserRole = "admin";
 
 export default function App() {
