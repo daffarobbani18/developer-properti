@@ -35,6 +35,14 @@ type UserRole = "admin" | "inventory" | "sales" | "finance" | "legal" | "supervi
 type RoleWithGuest = UserRole | "guest";
 
 const ALL_ROLES: UserRole[] = ["admin", "inventory", "sales", "finance", "legal", "supervisor"];
+const ROLE_HOME: Record<UserRole, string> = {
+  admin: "/crm",
+  inventory: "/inventory",
+  sales: "/sales",
+  finance: "/finance",
+  legal: "/legal",
+  supervisor: "/supervisor",
+};
 
 interface MenuItem {
   label: string;
@@ -161,6 +169,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           .filter((item) => item.roles.includes(currentRole))
           .map((item) => ({
             ...item,
+            href: item.label === "Dashboard" ? ROLE_HOME[currentRole] : item.href,
             children: item.children?.filter((child) => child.roles.includes(currentRole)),
           }));
 

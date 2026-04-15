@@ -38,7 +38,10 @@ export function proxy(request: NextRequest) {
   const role = VALID_ROLES.includes(roleCookie as UserRole) ? (roleCookie as UserRole) : null;
 
   if (pathname === "/") {
-    return NextResponse.redirect(new URL("/login", request.url));
+    if (!role) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+    return NextResponse.redirect(new URL(ROLE_HOME[role], request.url));
   }
 
   if (isPublicPath(pathname)) {
