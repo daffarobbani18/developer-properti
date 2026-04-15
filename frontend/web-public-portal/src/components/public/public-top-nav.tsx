@@ -12,8 +12,9 @@ const links = [
   { label: "Beranda", href: "/" },
   { label: "Unit", href: "/unit" },
   { label: "Lokasi", href: "/lokasi" },
+  { label: "Tentang", href: "/tentang" },
+  { label: "FAQ", href: "/faq" },
   { label: "Kontak", href: "/kontak" },
-  { label: "FAQ", href: "/#faq" },
 ];
 
 export function PublicTopNav({ theme = "light" }: PublicTopNavProps) {

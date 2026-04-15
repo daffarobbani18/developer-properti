@@ -186,6 +186,8 @@ export default function HomePage() {
               { label: "Katalog", href: "#katalog" },
               { label: "Fasilitas", href: "#fasilitas" },
               { label: "Site Plan", href: "#siteplan" },
+              { label: "Tentang", href: "/tentang" },
+              { label: "FAQ", href: "/faq" },
               { label: "Unit", href: "/unit" },
               { label: "Kontak", href: "/kontak" },
             ].map((item) => (
@@ -225,9 +227,10 @@ export default function HomePage() {
                 { label: "Fasilitas", target: "#fasilitas" },
                 { label: "Site Plan", target: "#siteplan" },
                 { label: "Lokasi", target: "/lokasi" },
+                { label: "Tentang", target: "/tentang" },
                 { label: "Unit", target: "/unit" },
                 { label: "Kontak", target: "/kontak" },
-                { label: "FAQ", target: "#faq" },
+                { label: "FAQ", target: "/faq" },
                 { label: "VIP Access", target: "#vip" },
               ].map((item) => (
                 <Link
@@ -768,6 +771,14 @@ export default function HomePage() {
               <h3 className="text-4xl md:text-5xl font-serif text-white leading-tight">
                 Pertanyaan yang Sering Muncul
               </h3>
+              <div className="mt-6">
+                <Link
+                  href="/faq"
+                  className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-zinc-300 hover:text-amber-400 transition-colors"
+                >
+                  Lihat Halaman FAQ Lengkap <ArrowRight size={14} />
+                </Link>
+              </div>
             </div>
           </Reveal>
 
@@ -912,6 +923,16 @@ export default function HomePage() {
               <li>
                 <Link href="/lokasi" className="hover:text-amber-500 transition-colors">
                   Lokasi
+                </Link>
+              </li>
+              <li>
+                <Link href="/tentang" className="hover:text-amber-500 transition-colors">
+                  Tentang
+                </Link>
+              </li>
+              <li>
+                <Link href="/faq" className="hover:text-amber-500 transition-colors">
+                  FAQ
                 </Link>
               </li>
               <li>

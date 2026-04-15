@@ -42,6 +42,16 @@ export function PublicFooter() {
               </Link>
             </li>
             <li>
+              <Link href="/tentang" className="hover:text-amber-500 transition-colors">
+                Tentang
+              </Link>
+            </li>
+            <li>
+              <Link href="/faq" className="hover:text-amber-500 transition-colors">
+                FAQ
+              </Link>
+            </li>
+            <li>
               <Link href="/kontak" className="hover:text-amber-500 transition-colors">
                 Kontak
               </Link>
