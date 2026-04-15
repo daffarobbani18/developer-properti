@@ -4,6 +4,7 @@ export type PublicUnit = {
   badge: string;
   status: "Tersedia" | "Terbatas";
   price: string;
+  shortPriceNote: string;
   buildingArea: string;
   landArea: string;
   bedroom: string;
@@ -12,6 +13,9 @@ export type PublicUnit = {
   description: string;
   images: string[];
   specs: Array<{ label: string; value: string }>;
+  facilities: string[];
+  points: string[];
+  delivery: string;
 };
 
 export const PUBLIC_UNITS: PublicUnit[] = [
@@ -21,6 +25,7 @@ export const PUBLIC_UNITS: PublicUnit[] = [
     badge: "Tipe Signature",
     status: "Tersedia",
     price: "Rp 2.8 M",
+    shortPriceNote: "Harga awal untuk preview marketing.",
     buildingArea: "150m2",
     landArea: "200m2",
     bedroom: "4 Bedroom",
@@ -39,6 +44,13 @@ export const PUBLIC_UNITS: PublicUnit[] = [
       { label: "Listrik", value: "3500 VA" },
       { label: "Smart Home", value: "Basic Pack" },
     ],
+    facilities: ["One gate system", "Clubhouse akses privat", "Taman keluarga", "Ruang kerja fleksibel"],
+    points: [
+      "Tata ruang terbuka dengan pencahayaan alami.",
+      "Cocok untuk keluarga muda yang butuh ruang tumbuh.",
+      "Efisien untuk aktivitas harian dan menerima tamu.",
+    ],
+    delivery: "Tahap 2 pengembangan, estimasi serah terima Q4 2026.",
   },
   {
     slug: "bvlgari",
@@ -46,6 +58,7 @@ export const PUBLIC_UNITS: PublicUnit[] = [
     badge: "Paling Diminati",
     status: "Terbatas",
     price: "Rp 4.5 M",
+    shortPriceNote: "Unit premium dengan ketersediaan terbatas.",
     buildingArea: "210m2",
     landArea: "250m2",
     bedroom: "5 Bedroom",
@@ -64,6 +77,13 @@ export const PUBLIC_UNITS: PublicUnit[] = [
       { label: "Listrik", value: "4400 VA" },
       { label: "Smart Home", value: "Premium Pack" },
     ],
+    facilities: ["Private pool", "Courtyard eksklusif", "Ruang keluarga ganda", "Parkir tamu lebih luas"],
+    points: [
+      "Dirancang untuk pengalaman tinggal yang lebih representatif.",
+      "Cocok untuk keluarga besar atau kebutuhan entertaining.",
+      "Memberi privasi lebih tinggi dibanding tipe standar.",
+    ],
+    delivery: "Tersedia terbatas pada cluster premium fase awal.",
   },
 ];
 
