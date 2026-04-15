@@ -3,8 +3,44 @@ import { notFound } from "next/navigation";
 import { ArrowUpRight, BadgeCheck, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { dummyAktivitas, dummyLeads, dummyTransaksi, dummyUnits } from "@/lib/crm-data";
+import { dummyCashflow, dummyPengeluaran, dummyTagihan } from "@/lib/keuangan-data";
+import { dummyKendala, dummyProyek, dummyUnit } from "@/lib/proyek-data";
 
 type Role = "admin" | "inventory" | "sales" | "finance" | "legal" | "supervisor";
+
+const formatCurrencyCompact = (value: number) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+};
+
+const totalLeads = dummyLeads.length;
+const newLeads = dummyLeads.filter((lead) => lead.status === "baru").length;
+const leadsFollowUp = dummyLeads.filter((lead) => lead.status === "follow-up").length;
+const leadsSurvey = dummyLeads.filter((lead) => lead.status === "survey").length;
+
+const totalTransaksi = dummyTransaksi.length;
+const totalNilaiTransaksi = dummyTransaksi.reduce((sum, trx) => sum + trx.nilaiTransaksi, 0);
+
+const totalUnits = dummyUnits.length;
+const bookedUnits = dummyUnits.filter((unit) => unit.status === "booked").length;
+const soldUnits = dummyUnits.filter((unit) => unit.status === "terjual").length;
+
+const latestCashflow = dummyCashflow[dummyCashflow.length - 1];
+const pendingTagihan = dummyTagihan.filter((item) => item.status === "belum_bayar" || item.status === "terlambat").length;
+const overdueTagihan = dummyTagihan.filter((item) => item.status === "terlambat").length;
+const totalPengeluaran = dummyPengeluaran.reduce((sum, item) => sum + item.nominal, 0);
+
+const totalProyek = dummyProyek.length;
+const avgProgressProyek = Math.round(
+  dummyProyek.reduce((sum, proyek) => sum + proyek.persentaseSelesai, 0) / Math.max(dummyProyek.length, 1)
+);
+const totalKendalaAktif = dummyKendala.filter((item) => item.status !== "selesai").length;
+const totalUnitProyek = dummyUnit.length;
 
 const ROLE_DASHBOARD: Record<
   Role,
@@ -21,9 +57,9 @@ const ROLE_DASHBOARD: Record<
     subtitle: "Ringkasan operasional lintas divisi untuk keputusan cepat.",
     tone: "text-amber-600",
     stats: [
-      { label: "Leads Aktif", value: "24", note: "8 baru hari ini" },
-      { label: "Cashflow", value: "Rp 4,8 M", note: "naik 12%" },
-      { label: "Unit Terjual", value: "32", note: "dari 60 unit" },
+      { label: "Leads Aktif", value: String(totalLeads), note: `${newLeads} leads status baru` },
+      { label: "Cashflow Terakhir", value: formatCurrencyCompact(latestCashflow.saldo), note: `${latestCashflow.bulan} saldo bersih` },
+      { label: "Unit Terjual", value: String(soldUnits), note: `dari ${totalUnits} total unit` },
     ],
     quickLinks: [
       { label: "Masuk CRM", href: "/crm", desc: "Kelola pipeline dan follow-up" },
@@ -36,14 +72,14 @@ const ROLE_DASHBOARD: Record<
     subtitle: "Kontrol data lahan, unit kavling, dan site plan.",
     tone: "text-blue-600",
     stats: [
-      { label: "Lahan Aktif", value: "3", note: "siap dipasarkan" },
-      { label: "Unit Terdaftar", value: "60", note: "5 unit baru" },
-      { label: "Sertifikat", value: "2/3", note: "1 proses notaris" },
+      { label: "Proyek Aktif", value: String(totalProyek), note: "terdaftar di modul proyek" },
+      { label: "Unit Terdaftar", value: String(totalUnits), note: `${bookedUnits} unit status booked` },
+      { label: "Progress Proyek", value: `${avgProgressProyek}%`, note: "rata-rata penyelesaian proyek" },
     ],
     quickLinks: [
       { label: "Kelola Inventory", href: "/inventory", desc: "Update unit dan harga" },
       { label: "Monitoring Proyek", href: "/proyek", desc: "Sinkronisasi data unit" },
-      { label: "Lihat Legal", href: "/legal", desc: "Cek status dokumen" },
+      { label: "Unit Proyek", href: "/proyek/PRJ001/unit", desc: "Lihat detail progres unit" },
     ],
   },
   sales: {
@@ -51,9 +87,9 @@ const ROLE_DASHBOARD: Record<
     subtitle: "Fokus ke leads, booking unit, dan jadwal site visit.",
     tone: "text-emerald-600",
     stats: [
-      { label: "Leads Baru", value: "10", note: "hari ini" },
-      { label: "Follow Up", value: "12", note: "6 selesai" },
-      { label: "Booking", value: "8", note: "status kuning" },
+      { label: "Leads Baru", value: String(newLeads), note: `dari total ${totalLeads} leads` },
+      { label: "Follow Up", value: String(leadsFollowUp), note: `${leadsSurvey} leads siap survey` },
+      { label: "Booking", value: String(bookedUnits), note: `${totalTransaksi} transaksi aktif` },
     ],
     quickLinks: [
       { label: "Buka CRM", href: "/crm", desc: "Kelola semua calon pembeli" },
@@ -66,9 +102,9 @@ const ROLE_DASHBOARD: Record<
     subtitle: "Verifikasi transaksi dan kontrol arus kas proyek.",
     tone: "text-cyan-600",
     stats: [
-      { label: "Pending Verifikasi", value: "8", note: "bukti transfer" },
-      { label: "Tagihan Jatuh Tempo", value: "5", note: "perlu follow-up" },
-      { label: "Kas Bersih", value: "Rp 2,1 M", note: "bulan berjalan" },
+      { label: "Pending Verifikasi", value: String(pendingTagihan), note: "tagihan belum lunas/terlambat" },
+      { label: "Tagihan Terlambat", value: String(overdueTagihan), note: "perlu follow-up segera" },
+      { label: "Kas Bersih", value: formatCurrencyCompact(latestCashflow.saldo), note: `${latestCashflow.bulan} bulan berjalan` },
     ],
     quickLinks: [
       { label: "Buka Finance", href: "/finance", desc: "Verifikasi & kuitansi" },
@@ -81,14 +117,14 @@ const ROLE_DASHBOARD: Record<
     subtitle: "Monitoring legalitas dokumen pelanggan dan proyek.",
     tone: "text-violet-600",
     stats: [
-      { label: "PPJB Proses", value: "7", note: "siap tanda tangan" },
-      { label: "AJB Aktif", value: "4", note: "menunggu notaris" },
-      { label: "Dokumen Lengkap", value: "82%", note: "minggu ini" },
+      { label: "Transaksi Proses", value: String(totalTransaksi), note: "berpotensi masuk proses legal" },
+      { label: "Unit Terjual", value: String(soldUnits), note: "butuh dokumen lanjutan" },
+      { label: "Kendala Legal", value: String(totalKendalaAktif), note: "issue proyek belum selesai" },
     ],
     quickLinks: [
       { label: "Buka Legal", href: "/legal", desc: "Kelola dokumen legal" },
       { label: "Monitoring Proyek", href: "/proyek", desc: "Sinkronisasi status unit" },
-      { label: "Dashboard Admin", href: "/dashboard/admin", desc: "Ringkasan lintas divisi" },
+      { label: "Unit Proyek", href: "/proyek/PRJ001/unit", desc: "Lihat unit yang butuh follow-up legal" },
     ],
   },
   supervisor: {
@@ -96,14 +132,14 @@ const ROLE_DASHBOARD: Record<
     subtitle: "Pantau progres pembangunan fisik dan kendala lapangan.",
     tone: "text-rose-600",
     stats: [
-      { label: "Progress Rata-rata", value: "62%", note: "fase konstruksi" },
-      { label: "Kendala Aktif", value: "3", note: "butuh tindakan" },
-      { label: "Laporan Mingguan", value: "11", note: "sudah diunggah" },
+      { label: "Progress Rata-rata", value: `${avgProgressProyek}%`, note: "fase konstruksi aktif" },
+      { label: "Kendala Aktif", value: String(totalKendalaAktif), note: "butuh tindakan lapangan" },
+      { label: "Unit Dipantau", value: String(totalUnitProyek), note: `${totalProyek} proyek berjalan` },
     ],
     quickLinks: [
       { label: "Buka Supervisor", href: "/supervisor", desc: "Kelola laporan lapangan" },
       { label: "Monitoring Proyek", href: "/proyek", desc: "Cek milestone proyek" },
-      { label: "Unit Proyek", href: "/proyek/1/unit", desc: "Lihat status unit" },
+      { label: "Unit Proyek", href: "/proyek/PRJ001/unit", desc: "Lihat status unit" },
     ],
   },
 };
