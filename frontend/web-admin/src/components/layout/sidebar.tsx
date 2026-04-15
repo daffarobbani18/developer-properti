@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
@@ -17,10 +17,19 @@ import {
   Receipt,
   Activity,
   Building2,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type UserRole = "admin" | "inventory" | "sales" | "finance" | "legal" | "supervisor";
 type RoleWithGuest = UserRole | "guest";
@@ -110,8 +119,10 @@ interface SidebarProps {
 
 export default function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [currentRole, setCurrentRole] = useState<RoleWithGuest>("guest");
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     const readStoredRole = (): RoleWithGuest => {
@@ -179,6 +190,21 @@ export default function Sidebar({ onClose }: SidebarProps) {
         ? prev.filter((h) => h !== href)
         : [...prev, href]
     );
+  };
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem("simdp_auth");
+      sessionStorage.removeItem("simdp_auth");
+      document.cookie = "simdp_role=; path=/; max-age=0; samesite=lax";
+      document.cookie = "simdp_email=; path=/; max-age=0; samesite=lax";
+    } catch {
+      // Ignore storage/cookie errors and continue redirect.
+    }
+
+    onClose?.();
+    setShowLogoutConfirm(false);
+    router.replace("/login");
   };
 
   return (
@@ -315,10 +341,37 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
       {/* Footer */}
       <div className="border-t border-slate-200 p-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setShowLogoutConfirm(true)}
+          className="mb-3 h-9 w-full justify-center gap-2 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 hover:text-rose-600"
+        >
+          <LogOut className="h-4 w-4" /> Keluar
+        </Button>
         <p className="text-[11px] text-slate-500 text-center">
           SIMDP v1.0 &copy; 2026
         </p>
       </div>
+
+      <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Keluar dari sesi?</DialogTitle>
+            <DialogDescription>
+              Anda akan keluar dari portal ERP dan perlu login ulang untuk melanjutkan.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setShowLogoutConfirm(false)}>
+              Batal
+            </Button>
+            <Button type="button" variant="destructive" onClick={handleLogout}>
+              Ya, Keluar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </aside>
   );
 }
