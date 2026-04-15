@@ -50,6 +50,27 @@ const faqs = [
   },
 ];
 
+const testimonials = [
+  {
+    name: "Andi Rahman",
+    role: "Calon Pembeli",
+    quote:
+      "Presentasi website-nya jelas, saya langsung paham tipe unit dan posisi kavling yang masih tersedia.",
+  },
+  {
+    name: "Nadia Putri",
+    role: "Investor Properti",
+    quote:
+      "Desain halaman terasa premium dan alur informasinya rapi. Sangat membantu untuk screening awal sebelum survey lokasi.",
+  },
+  {
+    name: "Rizki Maulana",
+    role: "Konsultan Marketing",
+    quote:
+      "Untuk versi preview frontend, ini sudah siap dipakai sebagai materi promosi digital dan presentasi ke klien.",
+  },
+];
+
 function Reveal({
   children,
   delay = 0,
@@ -161,16 +182,22 @@ export default function HomePage() {
           </div>
 
           <div className="hidden md:flex space-x-10 items-center">
-            {["Katalog", "Fasilitas", "Site Plan", "Lokasi", "FAQ"].map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase().replace(" ", "")}`}
+            {[
+              { label: "Katalog", href: "#katalog" },
+              { label: "Fasilitas", href: "#fasilitas" },
+              { label: "Site Plan", href: "#siteplan" },
+              { label: "Unit", href: "/unit" },
+              { label: "Kontak", href: "/kontak" },
+            ].map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
                 className={`text-xs uppercase tracking-[0.2em] font-medium hover:text-amber-500 transition-colors ${
                   isScrolled ? "text-zinc-600" : "text-zinc-300"
                 }`}
               >
-                {item}
-              </a>
+                {item.label}
+              </Link>
             ))}
             <a
               href="#vip"
@@ -197,18 +224,20 @@ export default function HomePage() {
                 { label: "Katalog", target: "#katalog" },
                 { label: "Fasilitas", target: "#fasilitas" },
                 { label: "Site Plan", target: "#siteplan" },
-                { label: "Lokasi", target: "#lokasi" },
+                { label: "Lokasi", target: "/lokasi" },
+                { label: "Unit", target: "/unit" },
+                { label: "Kontak", target: "/kontak" },
                 { label: "FAQ", target: "#faq" },
                 { label: "VIP Access", target: "#vip" },
               ].map((item) => (
-                <a
+                <Link
                   key={item.label}
                   href={item.target}
                   onClick={() => setMobileMenuOpen(false)}
                   className="text-xs uppercase tracking-[0.2em] text-zinc-700 font-medium"
                 >
                   {item.label}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -700,6 +729,35 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section id="testimoni" className="py-20 md:py-24 lg:py-28 bg-[#F7F4EE] border-y border-zinc-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
+          <Reveal>
+            <div className="text-center mb-12">
+              <h2 className="text-xs text-amber-700 font-bold uppercase tracking-[0.3em] mb-4">
+                Testimoni Preview
+              </h2>
+              <h3 className="text-4xl md:text-5xl font-serif text-zinc-900 leading-tight">
+                Kesan Awal dari Pengunjung
+              </h3>
+            </div>
+          </Reveal>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {testimonials.map((item, idx) => (
+              <Reveal key={item.name} delay={idx * 120}>
+                <article className="h-full bg-white border border-zinc-200 rounded-sm p-7">
+                  <p className="text-zinc-700 font-light leading-relaxed mb-7">&ldquo;{item.quote}&rdquo;</p>
+                  <div>
+                    <p className="text-zinc-900 font-medium">{item.name}</p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-zinc-500 mt-2">{item.role}</p>
+                  </div>
+                </article>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id="faq" className="py-20 md:py-24 lg:py-28 bg-zinc-950 border-t border-zinc-900">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-12">
           <Reveal>
@@ -842,9 +900,9 @@ export default function HomePage() {
             <h4 className="text-white text-xs font-bold uppercase tracking-widest mb-6">Navigasi</h4>
             <ul className="space-y-4 text-sm font-light">
               <li>
-                <a href="#katalog" className="hover:text-amber-500 transition-colors">
+                <Link href="/unit" className="hover:text-amber-500 transition-colors">
                   The Collection
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#fasilitas" className="hover:text-amber-500 transition-colors">
@@ -852,9 +910,14 @@ export default function HomePage() {
                 </a>
               </li>
               <li>
-                <a href="#siteplan" className="hover:text-amber-500 transition-colors">
-                  Peta Masterplan
-                </a>
+                <Link href="/lokasi" className="hover:text-amber-500 transition-colors">
+                  Lokasi
+                </Link>
+              </li>
+              <li>
+                <Link href="/kontak" className="hover:text-amber-500 transition-colors">
+                  Kontak
+                </Link>
               </li>
             </ul>
           </div>
