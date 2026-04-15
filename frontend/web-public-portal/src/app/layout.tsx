@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Web Public + Portal",
-  description: "Ekosistem Digital Properti Terpadu",
+  title: "SIMDP | Web Publik & Portal Customer",
+  description: "Landing marketing dan portal customer untuk Ekosistem Digital Properti Terpadu",
 };
 
 export default function RootLayout({
