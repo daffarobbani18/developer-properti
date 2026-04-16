@@ -288,4 +288,118 @@ Penjelasan singkat:
 
 ---
 
+## 12. Kronologi Eksekusi Harian (Ringkas)
+
+Kronologi ini menggambarkan bahwa minggu ke-5 tidak hanya berisi delivery fitur baru, tetapi juga kombinasi implementasi cepat, iterasi desain ketat, dan incident handling route pada runtime aktual.
+
+### Hari 1 - Finalisasi Scope Simulasi KPR
+
+1. Menutup ruang lingkup fitur KPR real-time untuk website publik.
+2. Menetapkan parameter input utama: DP, bunga, tenor.
+3. Menyepakati output utama: estimasi cicilan bulanan dan komponen pembiayaan.
+4. Menetapkan standar bahwa hasil simulasi harus berubah instan saat input berubah.
+
+### Hari 2 - Implementasi Komponen Kalkulator
+
+1. Mengembangkan komponen kalkulator dengan perhitungan anuitas.
+2. Menambahkan format angka agar hasil mudah dipahami user non-teknis.
+3. Menyelesaikan versi awal simulasi pada halaman khusus.
+4. Menjalankan validasi awal terhadap perubahan slider input.
+
+### Hari 3 - Integrasi ke Detail Unit dan Refactor Route
+
+1. Memindahkan kalkulator ke halaman detail unit sesuai arahan prioritas.
+2. Menyambungkan harga unit agar otomatis menjadi input kalkulator.
+3. Melakukan penyesuaian server-client boundary pada route detail unit.
+4. Menstabilkan pembacaan dynamic params agar route tetap valid.
+
+### Hari 4 - Revisi Desain Intensif dan Perapian CSS
+
+1. Menyesuaikan struktur visual detail unit agar mendekati referensi pengguna.
+2. Menyusun ulang komposisi galeri, metadata, dan panel kalkulator sticky.
+3. Menangani ketidakseimbangan layout akibat perubahan visual besar.
+4. Menjalankan uji responsif desktop-mobile setelah setiap patch utama.
+
+### Hari 5 - Incident Closure Route 404 dan Build Final
+
+1. Mengidentifikasi proses server lama yang masih aktif di port target.
+2. Menutup proses stale dan menjalankan ulang server dengan artifact terbaru.
+3. Memverifikasi route penting (termasuk unit detail) melalui cek endpoint langsung.
+4. Menutup sprint setelah build pass dan tampilan stabil.
+
+---
+
+## 13. Quality Gate dan Acceptance Criteria
+
+### A. Functional Gate
+
+1. Simulasi KPR merespons perubahan DP, bunga, dan tenor secara real-time.
+2. Harga properti otomatis terhubung dari data unit aktif.
+3. Halaman detail unit dapat diakses untuk slug yang valid.
+4. Panel simulasi tampil konsisten sebagai bagian dari alur evaluasi unit.
+
+### B. Technical Gate
+
+1. Build website publik harus lulus setelah perubahan besar.
+2. Dynamic params pada route detail unit tervalidasi dan tidak menimbulkan 404 palsu.
+3. Tidak ada error TypeScript baru pada komponen kalkulator/detail unit.
+4. Parsing harga unit menangani format angka yang digunakan pada data saat ini.
+
+### C. UX Gate
+
+1. Struktur visual detail unit selaras dengan referensi prioritas user.
+2. Komposisi konten tetap seimbang pada desktop dan mobile.
+3. Interaksi slider tetap nyaman dan tidak mengganggu fokus konten utama.
+4. Sticky panel tidak menutupi area penting konten pada viewport besar.
+
+### D. Incident Closure Gate
+
+1. Route detail unit yang sebelumnya bermasalah sudah terverifikasi kembali normal.
+2. Endpoint check menunjukkan status respons sukses pada route kunci.
+3. Tidak ada gejala kembali ke artifact lama setelah restart terkontrol.
+
+---
+
+## 14. Dampak Operasional dan Nilai Bisnis
+
+1. Dampak ke Conversion Funnel:
+   - User dapat mengukur kemampuan cicilan langsung saat melihat unit.
+   - Friction keputusan awal menurun karena simulasi tidak perlu pindah halaman.
+2. Dampak ke Kualitas Demo Marketing:
+   - Tim dapat mendemokan journey yang lebih realistis: lihat unit -> simulasi -> pertimbangan lanjut.
+   - Ini meningkatkan kredibilitas alur produk pada stakeholder non-teknis.
+3. Dampak ke Stabilitas Delivery:
+   - Praktik endpoint check setelah incident 404 meningkatkan kualitas penutupan bug.
+   - Tim memiliki pola penanganan yang lebih cepat untuk kasus server stale process.
+4. Dampak ke Sprint Selanjutnya:
+   - Baseline UI detail unit dan kalkulator sudah siap untuk perluasan fitur konversi berikutnya.
+   - Tim dapat fokus ke refinement tanpa perlu mengulang fondasi teknis dari nol.
+
+---
+
+## 15. Handoff Sprint Minggu Ke-5
+
+### A. Artefak yang Dihandoff
+
+1. Komponen simulasi KPR real-time yang reusable.
+2. Integrasi kalkulator pada halaman detail unit dengan harga otomatis.
+3. Patch stabilisasi route detail unit dan incident note 404.
+4. Patch final perapian layout/CSS untuk desktop dan mobile.
+5. Bukti build pass dan endpoint check pada route penting.
+
+### B. Pengetahuan yang Diteruskan
+
+1. Integrasi fitur finansial paling efektif saat berada di konteks produk langsung.
+2. Pada kasus route anomali, validasi proses runtime sama penting dengan validasi source code.
+3. Perubahan desain besar wajib disertai regresi visual bertahap antar breakpoint.
+
+### C. Checklist Penutupan
+
+1. Scope utama minggu ke-5 selesai.
+2. Build final dan smoke test route lulus.
+3. Incident 404 ditutup dengan verifikasi objektif.
+4. Dokumen proses sprint diperbarui dan siap dijadikan referensi tim.
+
+---
+
 **Catatan:** Dokumen ini hanya memuat proses yang benar-benar sudah terjadi pada minggu ke-5.

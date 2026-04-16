@@ -271,4 +271,108 @@ Penjelasan singkat:
 
 ---
 
+## 12. Kronologi Eksekusi Harian (Ringkas)
+
+Dokumentasi kronologi ditambahkan agar progres minggu ke-2 dapat ditelusuri secara berurutan, terutama saat tim melakukan evaluasi penyebab bug pada alur login dan navigasi role.
+
+### Hari 1 - Rekonsolidasi Kebutuhan Login dan Role
+
+1. Menutup daftar kebutuhan minimum untuk login flow role-based.
+2. Menentukan bahwa fokus minggu ini adalah UX login, role redirect, dan sidebar relevan.
+3. Menetapkan data akun dev sebagai sumber uji lintas role.
+4. Menentukan batasan bahwa backend auth real belum menjadi scope.
+
+### Hari 2 - Rework Login UI dan Mapping Role
+
+1. Menyesuaikan kembali tampilan login agar konsisten dengan referensi visual.
+2. Menyusun relasi eksplisit akun -> role -> dashboard tujuan.
+3. Menambahkan validasi dasar agar route redirect lebih deterministik.
+4. Menyelaraskan copy/teks input agar alur masuk user lebih jelas.
+
+### Hari 3 - Session State dan Redirect Flow
+
+1. Menambahkan penyimpanan session role/email untuk persistensi state.
+2. Menetapkan perilaku sesi (remember vs non-remember) secara konsisten.
+3. Menutup potensi mismatch redirect saat refresh halaman.
+4. Menguji alur login berulang untuk beberapa role berbeda.
+
+### Hari 4 - Sidebar Role Filtering
+
+1. Menambahkan filter item menu berdasarkan role aktif.
+2. Menyesuaikan route dashboard default pada item menu utama.
+3. Menjaga agar menu hanya menampilkan area kerja yang relevan.
+4. Menyelesaikan perapian struktur agar mudah dipakai minggu berikutnya.
+
+### Hari 5 - Regression Check dan Sprint Closure
+
+1. Menjalankan uji manual lintas role untuk login-redirect-menu.
+2. Menjalankan build check lokal untuk memastikan tidak ada error kompilasi.
+3. Menutup catatan risiko untuk transisi ke route guard minggu ke-3.
+4. Menyepakati keputusan sprint dengan fokus keamanan route pada pekan berikutnya.
+
+---
+
+## 13. Quality Gate dan Acceptance Criteria
+
+### A. Functional Gate
+
+1. User berhasil login menggunakan akun dev yang tersedia.
+2. Setiap role diarahkan ke dashboard role yang benar.
+3. Sidebar hanya menampilkan menu yang sesuai role aktif.
+4. State role tetap terbaca setelah reload halaman.
+
+### B. Technical Gate
+
+1. Tidak ada error TypeScript baru akibat perubahan login/sidebar.
+2. Session key yang dipakai login dan layout konsisten.
+3. Role mapping terpusat dan tidak tersebar acak di banyak komponen.
+4. Build lokal lulus sebagai syarat penutupan sprint.
+
+### C. UX Gate
+
+1. Tampilan login kembali sejalan dengan konsep visual referensi.
+2. Alur input sampai redirect tidak menimbulkan kebingungan user.
+3. Menu role-based tidak menampilkan opsi yang tidak relevan.
+4. Pergantian role antar sesi tidak menimbulkan artefak tampilan.
+
+---
+
+## 14. Dampak Operasional Minggu Ini
+
+1. Dampak ke Stabilitas Alur Masuk:
+	- Tim memiliki alur login yang dapat diuji berulang dengan hasil konsisten.
+	- Ini menurunkan risiko bug saat route guard diperkenalkan pada minggu berikutnya.
+2. Dampak ke Produktivitas Tim:
+	- Sidebar yang relevan per role mempercepat simulasi use-case internal.
+	- Reviewer tidak perlu menelusuri menu yang tidak berkaitan saat demo.
+3. Dampak ke Kualitas Integrasi Lanjutan:
+	- State role yang stabil menjadi fondasi penting bagi pengamanan route server-side.
+	- Biaya refactor di minggu berikutnya menjadi lebih rendah.
+
+---
+
+## 15. Handoff Sprint Minggu Ke-2
+
+### A. Artefak yang Dihandoff
+
+1. Login page hasil rework sesuai baseline visual.
+2. Role mapping akun dev dan dashboard tujuan.
+3. Sidebar filtering berbasis role aktif.
+4. Catatan pengujian manual lintas role.
+
+### B. Pengetahuan yang Diteruskan ke Minggu Ke-3
+
+1. UI-level restriction belum cukup tanpa route-level guard.
+2. Key session harus dipertahankan konsisten antar komponen.
+3. Redirect root dan fallback unauthorized harus didesain sebagai satu paket.
+
+### C. Checklist Penutupan
+
+1. Scope minggu ke-2 selesai sesuai target.
+2. Testing inti login-redirect-menu lulus.
+3. Build lokal tervalidasi.
+4. Prioritas minggu ke-3 telah disepakati.
+
+---
+
 **Catatan:** Dokumen ini hanya memuat proses yang benar-benar sudah terjadi pada minggu ke-2.

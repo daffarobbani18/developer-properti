@@ -270,4 +270,122 @@ Penjelasan singkat:
 
 ---
 
+## 12. Kronologi Eksekusi Harian (Ringkas)
+
+Bagian ini ditambahkan agar proses engineering minggu ke-4 tidak hanya terlihat sebagai daftar hasil, tetapi juga memiliki alur waktu kerja yang jelas dan dapat diaudit kembali saat retrospective sprint.
+
+### Hari 1 - Finalisasi Scope Dashboard Role-Based
+
+1. Menutup daftar kebutuhan minimum dashboard untuk 6 role.
+2. Menetapkan struktur data konfigurasi yang akan dipakai bersama oleh seluruh role.
+3. Menentukan baseline tampilan: KPI cards, quick links, dan snapshot prioritas.
+4. Menetapkan bahwa seluruh data minggu ini masih menggunakan dummy dataset lintas modul.
+
+### Hari 2 - Implementasi Route Dinamis dan Mapping Role
+
+1. Menyusun route dinamis dashboard berbasis parameter role.
+2. Menyelaraskan validasi role terhadap konfigurasi internal agar role invalid langsung ditolak.
+3. Menambahkan static params untuk memastikan semua route role ikut diproses saat build.
+4. Memastikan struktur route kompatibel dengan guard role yang sudah stabil pada minggu sebelumnya.
+
+### Hari 3 - Integrasi Data KPI dari Modul CRM/Keuangan/Proyek
+
+1. Menghubungkan nilai KPI ke data dummy yang sudah tersedia di masing-masing modul.
+2. Menata ulang urutan KPI agar metrik penting tampil lebih dulu untuk setiap role.
+3. Menyesuaikan format angka/ringkasan agar konsisten antar role dashboard.
+4. Melakukan validasi tampilan ketika data berubah agar layout tidak rusak.
+
+### Hari 4 - Penyusunan Snapshot Prioritas dan Polishing UI
+
+1. Menambahkan section snapshot per role untuk mempercepat pembacaan item prioritas.
+2. Menyesuaikan copy dan metadata ringkas agar konteks kerja role lebih jelas.
+3. Melakukan penyempurnaan visual (kontras, spasi, keterbacaan komponen statistik).
+4. Menjalankan uji mobile-desktop untuk menjaga konsistensi pengalaman pengguna.
+
+### Hari 5 - Validasi Build, Pemeriksaan Route, dan Penutupan Sprint
+
+1. Menjalankan build produksi pada direktori aplikasi yang benar.
+2. Memastikan seluruh route dashboard role berhasil diprerender tanpa error.
+3. Mencatat temuan deployment (root directory dan DEPLOYMENT_NOT_FOUND) sebagai risk register.
+4. Menyusun keputusan sprint bahwa fokus minggu berikutnya bergeser ke website publik.
+
+---
+
+## 13. Quality Gate dan Acceptance Criteria
+
+Untuk memastikan hasil sprint tidak hanya "selesai dikerjakan" tetapi juga "layak dipakai", tim menggunakan quality gate berikut pada minggu ke-4.
+
+### A. Functional Acceptance
+
+1. Semua role yang terdaftar dapat membuka dashboard role masing-masing.
+2. Role tidak dapat mengakses dashboard role lain melalui navigasi normal.
+3. KPI cards tampil lengkap tanpa komponen kosong pada data dummy saat ini.
+4. Snapshot prioritas muncul sesuai konteks role dan tidak salah mapping data.
+
+### B. Technical Acceptance
+
+1. Build produksi aplikasi web admin harus lulus tanpa error kompilasi.
+2. Dynamic role route harus tervalidasi dan ikut static generation.
+3. Tidak ada error TypeScript baru akibat perubahan minggu ini.
+4. Struktur konfigurasi dashboard tetap terpusat agar mudah dirawat.
+
+### C. UX Acceptance
+
+1. Informasi utama harus dapat dipahami maksimal dalam beberapa detik pertama.
+2. Kontras teks pada kartu statistik memenuhi standar keterbacaan internal tim.
+3. Komponen tetap stabil pada viewport desktop dan mobile.
+4. Layout tidak menimbulkan pergeseran elemen mencolok saat data berubah.
+
+### D. Operasional Acceptance
+
+1. Tim dapat mengulangi build check dari environment lokal tanpa prosedur khusus tambahan.
+2. Dokumen root directory deployment telah diperbarui agar tidak salah target artifact.
+3. Hasil sprint dapat dipresentasikan lintas tim tanpa perubahan kode tambahan.
+
+---
+
+## 14. Dampak Operasional dan Nilai Bisnis
+
+Walaupun minggu ini berfokus pada dashboard internal, dampak yang dihasilkan langsung terasa pada kesiapan operasional dan kualitas pengambilan keputusan harian.
+
+1. Dampak ke Kecepatan Monitoring:
+   - Pengguna internal tidak perlu membuka banyak halaman hanya untuk membaca status umum.
+   - Ringkasan KPI dan snapshot mempercepat identifikasi prioritas kerja per role.
+2. Dampak ke Konsistensi Data Demo:
+   - Seluruh role melihat dashboard dari sumber dataset yang sama, sehingga narasi operasional lebih konsisten.
+   - Ini penting untuk sinkronisasi komunikasi antar divisi saat review mingguan.
+3. Dampak ke Risiko Deployment:
+   - Temuan root directory pada minggu ini menurunkan risiko salah deploy pada sprint berikutnya.
+   - Tim memiliki prosedur yang lebih jelas untuk memastikan artifact yang dirilis benar.
+4. Dampak ke Roadmap Sprint:
+   - Karena dashboard role-based sudah stabil, tim dapat mengalihkan fokus dengan percaya diri ke fitur conversion website publik pada minggu ke-5.
+
+---
+
+## 15. Handoff dan Kesiapan Sprint Berikutnya
+
+Agar transisi antar sprint berjalan rapi, minggu ke-4 ditutup dengan paket handoff teknis berikut.
+
+### A. Handoff Artefak
+
+1. Struktur konfigurasi role dashboard yang sudah distandarkan.
+2. Daftar KPI dan snapshot per role yang telah tervalidasi.
+3. Catatan build dan route prerender sebagai bukti readiness.
+4. Catatan deployment issue dan tindakan korektif untuk rilis berikutnya.
+
+### B. Handoff Pengetahuan
+
+1. Tim memahami pola pengembangan route dinamis berbasis role yang aman.
+2. Tim memahami titik sensitif deployment pada monorepo multi-aplikasi.
+3. Tim memahami pola integrasi data dummy lintas modul sebagai baseline sebelum API real aktif.
+
+### C. Checklist Penutupan Sprint
+
+1. Scope utama minggu ke-4 selesai sesuai target.
+2. Pengujian inti functional dan build telah lulus.
+3. Dokumen proses sudah diperbarui dan siap dipakai untuk audit internal.
+4. Prioritas sprint berikutnya telah disepakati dan terdokumentasi.
+
+---
+
 **Catatan:** Dokumen ini hanya memuat proses yang benar-benar sudah terjadi pada minggu ke-4.

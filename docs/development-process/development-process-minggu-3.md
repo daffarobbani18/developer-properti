@@ -260,4 +260,108 @@ Penjelasan singkat:
 
 ---
 
+## 12. Kronologi Eksekusi Harian (Ringkas)
+
+Kronologi ini mendokumentasikan bagaimana tim mengeksekusi transisi dari pembatasan level UI ke pembatasan level route secara bertahap dan terukur.
+
+### Hari 1 - Finalisasi Desain Guard
+
+1. Menutup diskusi pola guard yang akan dipakai (proxy-based guard).
+2. Menetapkan daftar route public dan route protected.
+3. Menyepakati fallback redirect saat role tidak valid atau akses tidak diizinkan.
+4. Menetapkan role home sebagai destinasi tunggal fallback.
+
+### Hari 2 - Implementasi Matrix Prefix per Role
+
+1. Menyusun daftar prefix akses untuk setiap role secara eksplisit.
+2. Menambahkan validasi role dari cookie request.
+3. Menutup celah bypass URL langsung untuk route yang tidak sesuai role.
+4. Menyesuaikan pengecekan prefix agar tetap mudah dipelihara.
+
+### Hari 3 - Sinkronisasi Root Redirect dan Unauthorized Redirect
+
+1. Menstabilkan perilaku saat user mengakses root route.
+2. Menjamin user tanpa role selalu diarahkan ke login.
+3. Menjamin user dengan role selalu diarahkan ke role home.
+4. Mengurangi risiko loop redirect antara root, login, dan dashboard.
+
+### Hari 4 - Implementasi Logout Aman
+
+1. Menambahkan dialog konfirmasi logout di sidebar.
+2. Menjalankan cleanup session lintas storage dan cookie.
+3. Menutup kemungkinan session lama masih terbaca setelah logout.
+4. Menstabilkan transisi UI setelah logout agar tidak ada state ghost.
+
+### Hari 5 - Regression Test Lintas Role dan Penutupan Sprint
+
+1. Menjalankan uji direct URL untuk setiap role.
+2. Menjalankan uji akses ulang route protected setelah logout.
+3. Menjalankan build verification untuk memastikan perubahan aman.
+4. Menutup sprint dengan keputusan siap lanjut ke dashboard role-based minggu ke-4.
+
+---
+
+## 13. Quality Gate dan Acceptance Criteria
+
+### A. Functional Gate
+
+1. Route protected tidak dapat diakses tanpa role valid.
+2. Role hanya dapat membuka area route sesuai matrix prefix.
+3. Root route mengarahkan user secara benar berdasarkan status autentikasi.
+4. Logout memutus akses route protected secara langsung.
+
+### B. Technical Gate
+
+1. Logika allow/deny route berasal dari matrix terpusat.
+2. Tidak ada warning kritis dari pola guard yang dipakai.
+3. Build lokal lulus setelah perubahan guard.
+4. Tidak ada error TypeScript baru dari patch sprint ini.
+
+### C. UX Gate
+
+1. Pengguna tidak mengalami loop redirect saat navigasi.
+2. Alur logout dapat dipahami dan tidak menimbulkan kebingungan.
+3. Fallback unauthorized tetap membawa user ke halaman yang relevan.
+4. Navigasi dashboard tetap terasa stabil setelah guard aktif.
+
+---
+
+## 14. Dampak Operasional Minggu Ini
+
+1. Dampak ke Keamanan Navigasi:
+	- Celah bypass URL manual tertutup pada level route.
+	- Hak akses user menjadi lebih terkontrol secara sistemik.
+2. Dampak ke Stabilitas Session:
+	- Logout cleanup menyeluruh menurunkan risiko phantom session.
+	- Tim QA dapat mereproduksi skenario logout/login dengan hasil konsisten.
+3. Dampak ke Pengembangan Lanjutan:
+	- Dashboard role-based minggu ke-4 bisa dibangun di atas guard yang sudah stabil.
+	- Risiko refactor akses route pada sprint berikutnya berkurang signifikan.
+
+---
+
+## 15. Handoff Sprint Minggu Ke-3
+
+### A. Artefak yang Dihandoff
+
+1. Proxy guard role-based yang aktif pada route protected.
+2. Matrix role home dan allowed prefix per role.
+3. Dialog logout + cleanup session lintas media penyimpanan.
+4. Catatan hasil pengujian direct URL lintas role.
+
+### B. Pengetahuan yang Diteruskan
+
+1. Guard yang baik harus terpusat, eksplisit, dan mudah diuji ulang.
+2. Redirect root perlu dirancang bersama fallback unauthorized, tidak terpisah.
+3. Logout wajib diperlakukan sebagai proses keamanan, bukan sekadar aksi navigasi.
+
+### C. Checklist Penutupan
+
+1. Scope minggu ke-3 selesai sesuai target.
+2. Uji lintas role terhadap route protection lulus.
+3. Build verifikasi berhasil.
+4. Baseline siap dipakai untuk sprint dashboard role-based minggu ke-4.
+
+---
+
 **Catatan:** Dokumen ini hanya memuat proses yang benar-benar sudah terjadi pada minggu ke-3.
