@@ -375,4 +375,50 @@ Dokumentasi kronologi ditambahkan agar progres minggu ke-2 dapat ditelusuri seca
 
 ---
 
+## 16. Analisis Efektivitas Proses Minggu Ke-2
+
+Analisis ini menilai efektivitas pendekatan sprint minggu ke-2 setelah fokus dipusatkan pada login flow dan role-based navigation.
+
+1. Efektivitas fokus sprint tunggal:
+	- Tinggi, karena tim berhasil menuntaskan alur login-redirect-menu tanpa scope creep.
+	- Dampak langsung: fondasi akses user siap dinaikkan ke level route guard.
+2. Efektivitas urutan implementasi:
+	- Baik, karena perbaikan visual login dilakukan bersamaan dengan penataan state role.
+	- Tim menghindari refactor ganda antara aspek UI dan state management.
+3. Efektivitas pengujian lintas role:
+	- Baik, skenario login/redirect/refresh sudah mencakup role utama.
+	- Pengujian ini menurunkan risiko bug saat memasuki sprint guard.
+4. Area yang masih perlu diperkuat:
+	- Belum ada validasi route-level authorization pada minggu ini.
+	- Checklist pengujian direct URL perlu dijadikan standar pada minggu ke-3.
+
+---
+
+## 17. Risk Register Transisi ke Minggu Ke-3
+
+1. Risiko bypass akses melalui URL manual:
+	- Dampak: user bisa mencoba masuk ke area role lain meski menu UI sudah dibatasi.
+	- Strategi: implementasi guard route server-side sebagai prioritas utama.
+2. Risiko ketidaksinkronan sumber role (cookie vs storage):
+	- Dampak: redirect tidak konsisten, potensi loop routing.
+	- Strategi: menetapkan sumber role utama dan fallback tunggal untuk redirect.
+3. Risiko logout belum memutus akses sepenuhnya:
+	- Dampak: session residual menimbulkan false authentication state.
+	- Strategi: menambahkan cleanup lintas media penyimpanan dan verifikasi pasca-logout.
+4. Risiko regresi setelah guard aktif:
+	- Dampak: route valid ikut terblokir jika matrix akses tidak tepat.
+	- Strategi: uji matrix lintas role dengan skenario allow/deny eksplisit.
+
+---
+
+## 18. Rencana Hardening Proses Minggu Ke-3
+
+1. Menetapkan desain authorization matrix sebelum coding guard.
+2. Menyatukan aturan redirect root, unauthorized fallback, dan role home dalam satu keputusan arsitektur.
+3. Menambahkan regression checklist khusus akses URL manual.
+4. Menutup task logout flow bersamaan dengan implementasi guard agar session lifecycle konsisten.
+5. Menyiapkan bukti pengujian terstruktur untuk mempermudah review lintas tim.
+
+---
+
 **Catatan:** Dokumen ini hanya memuat proses yang benar-benar sudah terjadi pada minggu ke-2.

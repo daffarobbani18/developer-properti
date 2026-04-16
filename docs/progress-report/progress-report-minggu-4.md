@@ -209,4 +209,67 @@ Checklist verifikasi yang dijalankan:
 
 ---
 
+## 12. Analisis Capaian vs Komitmen Sprint
+
+1. Komitmen utama sprint:
+   - Menyelesaikan dashboard berbasis role untuk seluruh role utama.
+   - Menghubungkan KPI dashboard ke data dummy modul operasional.
+   - Menjalankan build produksi dan memvalidasi readiness rilis.
+2. Capaian aktual:
+   - Dashboard 6 role selesai sesuai target.
+   - KPI dan snapshot per role sudah menggunakan sumber data lintas modul.
+   - Build produksi berhasil dan route penting tervalidasi.
+3. Deviasi yang tercatat:
+   - Tidak ada deviasi kritikal pada scope inti.
+   - Fokus mobile tetap ditunda karena prioritas sprint dipusatkan ke readiness web admin.
+4. Evaluasi umum:
+   - Sprint ini menutup kebutuhan visibilitas operasional per role.
+   - Tim berhasil menurunkan risiko rilis melalui identifikasi dini isu deployment.
+
+---
+
+## 13. Metrik Operasional Mingguan
+
+1. Indikator Cakupan Role Dashboard:
+   - Seluruh role utama memiliki halaman dashboard yang dapat diakses.
+   - Tidak ada role inti yang tertinggal dari baseline fitur.
+2. Indikator Relevansi Informasi:
+   - KPI tidak lagi generik dan sudah terhubung ke konteks data modul.
+   - Snapshot prioritas membantu pembacaan status kerja tanpa navigasi panjang.
+3. Indikator Kesiapan Produksi:
+   - Build aplikasi berhasil diselesaikan hingga tahap prerender route.
+   - Temuan deployment terdokumentasi sebagai bahan perbaikan proses rilis.
+4. Indikator Stabilitas Arsitektur:
+   - Integrasi dashboard tetap kompatibel dengan guard role yang sudah stabil.
+   - Tidak muncul error TypeScript baru dari perubahan sprint ini.
+
+---
+
+## 14. Risiko Lanjutan dan Mitigasi Minggu Ke-5
+
+1. Risiko pergeseran fokus dari web admin ke web publik menyebabkan context switching tinggi:
+   - Mitigasi: dokumentasi handoff dashboard diselesaikan sebelum pindah fokus sprint.
+2. Risiko perubahan visual besar di website publik memicu regresi layout:
+   - Mitigasi: pendekatan iteratif dengan build + smoke test setelah patch besar.
+3. Risiko route publik bermasalah saat integrasi fitur baru:
+   - Mitigasi: validasi route kunci sebagai bagian wajib penutupan task.
+4. Risiko timeline mobile makin tertinggal:
+   - Mitigasi: menjaga backlog mobile tetap terpetakan agar mudah diaktifkan kembali pada fase berikutnya.
+
+---
+
+## 15. Keputusan Sprint dan Dukungan Lintas Tim
+
+1. Keputusan teknis:
+   - Dashboard role-based ditetapkan sebagai baseline operasional web admin.
+   - Root directory deployment diperlakukan sebagai parameter wajib pada checklist rilis.
+2. Keputusan operasional:
+   - Sprint berikutnya diprioritaskan untuk fitur conversion website publik.
+   - Verifikasi build dan route menjadi quality gate minimum sebelum demonstrasi.
+3. Dukungan yang dibutuhkan:
+   - Sinkronisasi cepat antar tim saat peralihan domain kerja ke website publik.
+   - Penyelarasan ekspektasi visual referensi agar revisi UI tidak berulang panjang.
+
+---
+
 **Catatan:** Laporan ini hanya memuat pekerjaan yang sudah selesai dikerjakan pada minggu ke-4.

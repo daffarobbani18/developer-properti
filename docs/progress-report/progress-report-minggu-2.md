@@ -209,4 +209,71 @@ Checklist berikut digunakan untuk memastikan pekerjaan minggu ini benar-benar si
 
 ---
 
+## 12. Analisis Capaian vs Komitmen Sprint
+
+Untuk memastikan laporan tidak berhenti di level checklist, minggu ke-2 juga dievaluasi dari sisi akurasi komitmen awal sprint terhadap hasil aktual.
+
+1. Komitmen utama sprint:
+   - Menuntaskan login flow role-based pada level frontend.
+   - Menjaga keselarasan visual login dengan referensi desain.
+   - Menyusun fondasi menu role-aware untuk alur kerja harian.
+2. Capaian aktual:
+   - Seluruh komitmen utama tercapai tanpa carry-over task kritikal.
+   - Alur login, redirect, dan pembatasan menu berjalan end-to-end.
+   - Validasi lintas role berhasil menunjukkan konsistensi perilaku aplikasi.
+3. Deviasi yang tercatat:
+   - Area website publik dan mobile tidak menerima perluasan scope pada minggu ini.
+   - Deviasi bersifat terencana karena fokus sprint dipusatkan pada stabilitas alur role web admin.
+4. Evaluasi umum:
+   - Strategi fokus tunggal terbukti efektif menutup isu prioritas tinggi.
+   - Keputusan menahan scope tambahan menurunkan risiko bug lintas domain.
+
+---
+
+## 13. Metrik Operasional Mingguan
+
+Metrik berikut disusun dalam bentuk indikator proses untuk membaca kualitas delivery sprint.
+
+1. Indikator Kestabilan Login Flow:
+   - Login lintas role berhasil diuji berulang tanpa anomali mayor.
+   - Redirect pasca-login konsisten menuju dashboard role yang tepat.
+2. Indikator Kesesuaian UI:
+   - Halaman login kembali ke baseline visual yang disepakati.
+   - Perubahan style tidak memicu error build atau regression fungsional.
+3. Indikator Relevansi Navigasi:
+   - Sidebar role-based mengurangi menu tidak relevan bagi user.
+   - Waktu orientasi user baru ke area kerja utama menurun secara observasional.
+4. Indikator Kesiapan Sprint Lanjutan:
+   - Struktur state role sudah cukup stabil untuk dipakai pada route guard server-side.
+   - Risiko refactor besar di minggu berikutnya berada pada level terkendali.
+
+---
+
+## 14. Risiko Lanjutan dan Mitigasi Minggu Ke-3
+
+1. Risiko inkonsistensi role saat akses URL langsung:
+   - Mitigasi: implementasi guard route server-side berbasis role sebagai prioritas pertama minggu ke-3.
+2. Risiko session residual saat logout:
+   - Mitigasi: penambahan proses cleanup storage dan cookie secara menyeluruh.
+3. Risiko user terpental ke halaman login akibat routing root yang belum role-aware:
+   - Mitigasi: menetapkan root redirect berbasis role home secara eksplisit.
+4. Risiko regresi dari perubahan guard:
+   - Mitigasi: regression test manual lintas role setelah setiap patch guard utama.
+
+---
+
+## 15. Keputusan Sprint dan Dukungan Lintas Tim
+
+1. Keputusan teknis:
+   - Minggu ke-3 difokuskan penuh pada hardening akses route dan logout flow.
+   - Tidak menambah fitur bisnis baru sebelum keamanan navigasi stabil.
+2. Keputusan operasional:
+   - QA internal tetap menggunakan akun dev role-based sebagai baseline pengujian.
+   - Review mingguan difokuskan pada bukti skenario direct URL dan fallback redirect.
+3. Dukungan yang dibutuhkan:
+   - Konsistensi data akun uji lintas role agar pengujian bisa direplikasi.
+   - Sinkronisasi cepat antar engineer saat ada perubahan key session.
+
+---
+
 **Catatan:** Laporan ini hanya memuat pekerjaan yang sudah selesai dikerjakan pada sprint berjalan.

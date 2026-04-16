@@ -199,4 +199,69 @@ Checklist quality gate yang dipakai sebelum penutupan sprint:
 
 ---
 
+## 12. Analisis Capaian vs Komitmen Sprint
+
+Analisis ini menilai tingkat ketercapaian komitmen sprint minggu ke-3 dari sudut pandang keamanan navigasi dan kestabilan session.
+
+1. Komitmen utama sprint:
+   - Menutup celah akses URL langsung lintas role.
+   - Menstabilkan redirect root agar tidak memicu loop.
+   - Menyelesaikan alur logout yang aman.
+2. Capaian aktual:
+   - Guard route role-based selesai dan tervalidasi.
+   - Root route sudah role-aware redirect.
+   - Logout membersihkan session lintas storage dan cookie.
+3. Deviasi yang tercatat:
+   - Tidak ada deviasi mayor pada target domain web admin.
+   - Scope publik dan mobile tetap ditahan sesuai prioritas sprint.
+4. Evaluasi umum:
+   - Sprint ini berhasil menutup risiko akses terbesar sebelum dashboard diperdalam.
+   - Keputusan fokus keamanan lebih dulu terbukti menurunkan risiko bug di sprint lanjutan.
+
+---
+
+## 13. Metrik Operasional Mingguan
+
+1. Indikator Keamanan Akses:
+   - Skenario direct URL lintas role menghasilkan fallback/penolakan sesuai desain.
+   - Route protected tidak lagi dapat diakses tanpa role valid.
+2. Indikator Stabilitas Routing:
+   - Perilaku root route konsisten setelah login.
+   - Bug menu dashboard kembali ke login tidak muncul pada retest akhir.
+3. Indikator Kebersihan Session:
+   - Logout flow menutup sesi aktif tanpa residu state.
+   - Akses ulang route protected pasca-logout berhasil ditolak.
+4. Indikator Kesiapan Sprint Lanjutan:
+   - Fondasi akses route siap dipakai untuk ekspansi dashboard role-based.
+   - Risiko refactor access control pada minggu ke-4 menurun signifikan.
+
+---
+
+## 14. Risiko Lanjutan dan Mitigasi Minggu Ke-4
+
+1. Risiko ketidakkonsistenan konten dashboard antar role:
+   - Mitigasi: struktur konfigurasi dashboard dipusatkan dalam satu mapping role.
+2. Risiko KPI sulit diverifikasi saat data terlalu statis:
+   - Mitigasi: menghubungkan dashboard ke dataset dummy lintas modul agar angka lebih realistis.
+3. Risiko build/deploy mismatch pada monorepo:
+   - Mitigasi: validasi build per direktori aplikasi sebelum proses deployment.
+4. Risiko regresi setelah penambahan route dashboard baru:
+   - Mitigasi: pengujian lintas role terhadap guard + dashboard setelah implementasi selesai.
+
+---
+
+## 15. Keputusan Sprint dan Dukungan Lintas Tim
+
+1. Keputusan teknis:
+   - Guard proxy role-based ditetapkan sebagai baseline keamanan navigasi.
+   - Root redirect role-aware dijadikan pola standar untuk semua role.
+2. Keputusan operasional:
+   - QA lintas role menjadi langkah wajib sebelum penutupan sprint.
+   - Logout verification dimasukkan ke checklist regresi dasar.
+3. Dukungan yang dibutuhkan:
+   - Konsistensi data role di sisi frontend agar dashboard minggu ke-4 mudah ditautkan.
+   - Sinkronisasi cepat antar tim untuk review mapping dashboard per role.
+
+---
+
 **Catatan:** Laporan ini hanya memuat pekerjaan yang sudah selesai dikerjakan pada minggu ke-3.

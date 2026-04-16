@@ -1,9 +1,9 @@
 # PROGRESS REPORT MINGGU KE-1
 
 **Project:** Ekosistem Digital Properti Terpadu
-**Periode:** [tanggal mulai] - [tanggal selesai]
+**Periode:** 2026-04-03 - 2026-04-09
 **Minggu ke:** 1
-**PIC:** [nama PIC]
+**PIC:** Tim Inisiasi Platform (Lintas Aplikasi)
 
 ---
 
@@ -11,7 +11,7 @@
 
 Pada minggu pertama, fokus utama tim adalah memulai struktur dasar proyek, menyiapkan environment kerja, dan membangun pondasi awal untuk masing-masing sistem. Tahap ini masih berada di level inisialisasi, sehingga tujuan utamanya bukan menyelesaikan fitur besar, tetapi memastikan semua tim dapat bekerja dengan struktur folder, port, akses project, dan alur kerja yang sama. Dengan fondasi yang rapi sejak awal, proses pengembangan minggu-minggu berikutnya akan lebih stabil dan tidak banyak terhambat oleh masalah setup.
 
-**Status umum minggu ini:** [Hijau / Kuning / Merah]
+**Status umum minggu ini:** Kuning
 
 **Ringkasan singkat:**
 Web internal dan backend sudah mulai disiapkan sebagai pusat data dan operasional utama. Website publik juga mulai diarahkan sebagai media marketing sekaligus jalur masuk leads. Sementara itu, mobile masih berada pada tahap awal dan belum selesai di minggu pertama, sehingga perlu dilanjutkan pada minggu berikutnya.
@@ -104,9 +104,9 @@ Untuk minggu ke-1, mobile masih belum selesai dan akan dilanjutkan pada minggu b
 
 | Area | Target Minggu 1 | Realisasi | Status |
 |------|------------------|-----------|--------|
-| Web Internal + Backend | Setup awal dan struktur dasar | Selesai / sebagian selesai | [isi] |
-| Website Publik + Portal Customer | Setup awal dan route dasar | Selesai / sebagian selesai | [isi] |
-| Mobile | Setup awal aplikasi | Belum selesai / sebagian selesai | [isi] |
+| Web Internal + Backend | Setup awal dan struktur dasar | Selesai | On Track |
+| Website Publik + Portal Customer | Setup awal dan route dasar | Selesai | On Track |
+| Mobile | Setup awal aplikasi | Sebagian selesai | Delayed |
 
 **Penjelasan target:**
 Tabel di atas menunjukkan bahwa target minggu pertama lebih menekankan pada kesiapan pondasi. Untuk dua sistem utama, hasil yang dicapai sudah masuk kategori baik karena struktur awal telah terbentuk. Mobile masih tertinggal karena memang belum selesai, sehingga pada minggu berikutnya perlu diberi perhatian lebih agar ritme pengembangannya tidak tertinggal jauh.
@@ -117,9 +117,9 @@ Tabel di atas menunjukkan bahwa target minggu pertama lebih menekankan pada kesi
 
 Pada minggu pertama, kendala yang muncul umumnya masih berkaitan dengan tahap setup. Beberapa hal seperti penyesuaian folder, konfigurasi environment, dan sinkronisasi alur kerja antar anggota tim biasanya memang muncul di awal proyek.
 
-1. [isi kendala jika ada]
-2. [isi kendala jika ada]
-3. [isi kendala jika ada]
+1. Sinkronisasi struktur folder dan naming antar aplikasi belum sepenuhnya seragam pada awal minggu.
+2. Penyesuaian environment lintas mesin anggota tim memerlukan iterasi agar command berjalan konsisten.
+3. Mobile belum menembus tahap implementasi fitur karena waktu minggu pertama terserap untuk setup pondasi.
 
 **Penjelasan:**
 Kendala pada minggu pertama umumnya masih bersifat setup awal, misalnya penyesuaian struktur folder, konfigurasi environment, atau sinkronisasi pembagian tugas antar anggota tim. Kendala seperti ini masih tergolong wajar karena proyek baru memasuki fase inisialisasi.
@@ -154,4 +154,80 @@ Screenshot yang bisa dilampirkan pada laporan ini antara lain:
 
 ---
 
-**Catatan:** Dokumen ini dapat langsung dicopy ke Word dan diisi sesuai hasil aktual minggu pertama.
+## 8. Rincian Aktivitas Mingguan (Kronologis)
+
+Bagian ini menambahkan jejak kerja harian agar laporan minggu pertama tidak hanya berisi hasil, tetapi juga urutan eksekusi yang benar-benar dilakukan tim.
+
+1. Hari 1:
+	- Menyepakati pembagian pilar kerja lintas aplikasi.
+	- Menentukan fokus minggu pertama pada fondasi teknis, bukan delivery fitur besar.
+	- Menyepakati aturan kolaborasi dan alur komunikasi antar anggota tim.
+2. Hari 2:
+	- Menyusun struktur monorepo dan pemetaan folder utama.
+	- Menyiapkan script dasar untuk menjalankan aplikasi per domain.
+	- Menyamakan ekspektasi terkait standar naming dan peletakan file.
+3. Hari 3:
+	- Menetapkan konfigurasi port agar runtime tidak bentrok.
+	- Menjalankan instalasi dependency awal pada backend, web, dan mobile.
+	- Melakukan smoke test awal bahwa service dapat dijalankan secara lokal.
+4. Hari 4:
+	- Menutup gap setup yang masih berbeda antar perangkat tim.
+	- Memastikan area website publik dan portal customer dipisahkan sejak awal.
+	- Menentukan baseline struktur mobile role-based untuk dilanjutkan minggu kedua.
+5. Hari 5:
+	- Menjalankan review lintas pilar untuk menilai kesiapan masuk sprint berikutnya.
+	- Menyusun daftar kendala setup dan mitigasi jangka pendek.
+	- Menetapkan prioritas minggu kedua dengan fokus pada implementasi nyata.
+
+---
+
+## 9. Rekap Deliverable Nyata Minggu Ke-1
+
+Walaupun masih fase inisiasi, minggu ini tetap menghasilkan deliverable yang dapat diverifikasi.
+
+1. Deliverable Fondasi Monorepo:
+	- Struktur folder lintas backend, web admin, web publik, dan mobile sudah terbentuk.
+	- Script dasar orkestrasi command sudah tersedia untuk memudahkan eksekusi tim.
+2. Deliverable Kesiapan Environment:
+	- Konvensi port per aplikasi sudah ditetapkan.
+	- Dependency dasar sudah terinstal pada domain aplikasi utama.
+3. Deliverable Struktur Produk:
+	- Website publik dan portal customer sudah dipisahkan secara struktur.
+	- Web internal dan backend sudah diposisikan sebagai pusat operasional/data.
+4. Deliverable Dokumentasi:
+	- Catatan setup, kendala awal, dan prioritas sprint lanjutan sudah terdokumentasi.
+	- Baseline proses tersedia untuk mengurangi trial-and-error pada minggu kedua.
+
+---
+
+## 10. Dampak Progres dan Pembelajaran Minggu Ke-1
+
+1. Dampak ke Kecepatan Mulai Sprint:
+	- Tim memiliki titik awal kerja yang sama sehingga onboarding task lebih cepat.
+	- Hambatan setup berulang dapat dikurangi sejak minggu awal.
+2. Dampak ke Kualitas Integrasi:
+	- Pemisahan pilar sistem dari awal menurunkan risiko benturan implementasi.
+	- Integrasi lintas aplikasi minggu berikutnya memiliki landasan yang lebih stabil.
+3. Dampak ke Manajemen Risiko:
+	- Risiko bentrok port dan ketidakkonsistenan environment sudah teridentifikasi dini.
+	- Potensi biaya refactor infrastruktur dasar menjadi lebih rendah.
+4. Pembelajaran Utama:
+	- Fase inisiasi harus diperlakukan sebagai deliverable penting, bukan sekadar persiapan.
+	- Dokumentasi setup yang rinci mempercepat debugging dan handoff lintas anggota tim.
+	- Pengujian sederhana di awal sprint mencegah akumulasi error teknis di fase fitur.
+
+---
+
+## 11. Rencana Mitigasi dan Fokus Minggu Ke-2
+
+Sebagai lanjutan langsung dari hasil minggu pertama, tim menetapkan fokus operasional berikut:
+
+1. Menstandarkan setup command lintas mesin agar tidak ada deviasi perilaku saat development.
+2. Menutup gap struktur yang masih ambigu pada area mobile agar implementasi screen lebih cepat.
+3. Memulai implementasi flow login role-based di web admin sebagai fitur nyata pertama.
+4. Menjaga area website publik tetap stabil sambil mempersiapkan peningkatan fitur marketing.
+5. Menetapkan checklist quality gate mingguan agar progress dapat diukur lebih objektif.
+
+---
+
+**Catatan:** Dokumen ini memuat progres aktual minggu ke-1 dan sudah diperluas untuk kebutuhan audit proses, handoff sprint, dan pelacakan risiko lanjutan.

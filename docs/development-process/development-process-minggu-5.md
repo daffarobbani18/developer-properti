@@ -402,4 +402,50 @@ Kronologi ini menggambarkan bahwa minggu ke-5 tidak hanya berisi delivery fitur 
 
 ---
 
+## 16. Analisis Efektivitas Proses Minggu Ke-5
+
+Analisis ini menilai efektivitas sprint yang menggabungkan delivery fitur conversion dengan incident handling runtime dalam window waktu yang sama.
+
+1. Efektivitas prioritisasi fitur:
+   - Tinggi, karena fitur simulasi KPR ditempatkan langsung pada konteks detail unit.
+   - Dampak produk: alur keputusan user menjadi lebih natural dan berorientasi conversion.
+2. Efektivitas iterasi desain:
+   - Baik, revisi visual dilakukan bertahap hingga mendekati referensi prioritas.
+   - Perapian akhir berhasil menurunkan noise visual dan menstabilkan hierarki konten.
+3. Efektivitas incident handling:
+   - Baik, investigasi menggabungkan pemeriksaan kode dan proses runtime aktif.
+   - Isu 404 tidak hanya diperbaiki, tetapi juga divalidasi ulang dengan endpoint check objektif.
+4. Area yang perlu dijaga:
+   - Perubahan layout besar tetap berisiko menimbulkan regresi visual tersembunyi.
+   - Perlu disiplin regression check antar breakpoint pada iterasi selanjutnya.
+
+---
+
+## 17. Risk Register Residual Pasca Sprint
+
+1. Risiko regresi visual saat fitur conversion berikutnya ditambahkan:
+   - Dampak: komposisi detail unit kembali tidak seimbang.
+   - Strategi: tetapkan baseline visual snapshot desktop/mobile sebelum patch baru.
+2. Risiko mismatch antara artifact build dan server runtime:
+   - Dampak: tim salah membaca status perbaikan bug.
+   - Strategi: jalankan prosedur validasi process aktif sebelum dan sesudah restart service.
+3. Risiko asumsi hasil simulasi dianggap angka final pembiayaan:
+   - Dampak: ekspektasi user tidak sesuai kondisi nyata bank.
+   - Strategi: pertahankan disclaimers simulasi dan copy edukatif yang jelas.
+4. Risiko akumulasi technical debt pada halaman detail unit:
+   - Dampak: revisi berikutnya makin sulit dan rawan regressions.
+   - Strategi: lakukan refactor ringan berkala pada komponen yang sering berubah.
+
+---
+
+## 18. Rekomendasi Stabilisasi Lanjutan
+
+1. Menjadikan endpoint smoke test route kritikal sebagai langkah wajib setiap selesai patch utama.
+2. Menyusun checklist visual QA tetap untuk detail unit dan panel simulasi.
+3. Memisahkan checklist feature validation dan incident validation agar akar masalah lebih cepat dipastikan.
+4. Menambahkan dokumentasi short-runbook untuk penanganan kasus port/process stale.
+5. Menjaga pola integrasi fitur finansial tetap kontekstual pada halaman unit agar nilai bisnisnya maksimal.
+
+---
+
 **Catatan:** Dokumen ini hanya memuat proses yang benar-benar sudah terjadi pada minggu ke-5.

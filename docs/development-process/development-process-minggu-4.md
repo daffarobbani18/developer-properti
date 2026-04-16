@@ -388,4 +388,50 @@ Agar transisi antar sprint berjalan rapi, minggu ke-4 ditutup dengan paket hando
 
 ---
 
+## 16. Analisis Efektivitas Proses Minggu Ke-4
+
+Analisis ini menilai efektivitas sprint saat tim menyelesaikan dashboard role-based sekaligus menutup isu kesiapan deployment.
+
+1. Efektivitas struktur konfigurasi role:
+   - Tinggi, karena pendekatan konfiguratif mempercepat delivery untuk banyak role.
+   - Biaya perubahan konten dashboard antar role menjadi lebih rendah.
+2. Efektivitas integrasi dataset dummy:
+   - Baik, KPI dashboard menjadi lebih representatif dibanding nilai statis murni.
+   - Tim dapat melakukan demo operasional dengan konteks data yang konsisten.
+3. Efektivitas quality gate build:
+   - Baik, build produksi dijalankan sebagai langkah wajib sebelum sprint ditutup.
+   - Temuan lingkungan deployment bisa teridentifikasi sebelum menjadi insiden rilis.
+4. Area yang perlu dijaga:
+   - Peralihan fokus sprint ke website publik berisiko menurunkan perhatian pada regresi dashboard.
+   - Diperlukan checklist regression ringan untuk menjaga baseline web admin tetap stabil.
+
+---
+
+## 17. Risk Register Transisi ke Minggu Ke-5
+
+1. Risiko deployment salah target project pada monorepo:
+   - Dampak: artifact tidak sesuai aplikasi, potensi error saat validasi URL.
+   - Strategi: verifikasi root directory wajib sebelum build/deploy.
+2. Risiko route guard tidak selaras dengan route dashboard baru:
+   - Dampak: akses role valid terganggu.
+   - Strategi: retest lintas role setelah setiap penambahan route dashboard.
+3. Risiko context switching tim saat pindah domain ke website publik:
+   - Dampak: waktu adaptasi meningkat dan ritme sprint melambat.
+   - Strategi: menyiapkan handoff artefak yang ringkas namun lengkap.
+4. Risiko quality drift pada UI role dashboard setelah tim fokus ke domain lain:
+   - Dampak: regressions minor terlambat terdeteksi.
+   - Strategi: jadwalkan health check periodik web admin meski bukan fokus sprint.
+
+---
+
+## 18. Rekomendasi Hardening Proses Pasca Sprint
+
+1. Menetapkan template deployment checklist lintas aplikasi pada monorepo.
+2. Menambahkan verifikasi route kunci pasca build sebagai prosedur standar.
+3. Menjaga dokumentasi mapping role dashboard tetap hidup agar onboarding task baru lebih cepat.
+4. Menyediakan baseline regression mini untuk web admin saat tim fokus di website publik.
+5. Menggunakan pola konfiguratif yang sama untuk fitur role-based berikutnya agar biaya maintenance tetap rendah.
+
+---
+
 **Catatan:** Dokumen ini hanya memuat proses yang benar-benar sudah terjadi pada minggu ke-4.

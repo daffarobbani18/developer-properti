@@ -364,4 +364,50 @@ Kronologi ini mendokumentasikan bagaimana tim mengeksekusi transisi dari pembata
 
 ---
 
+## 16. Analisis Efektivitas Proses Minggu Ke-3
+
+Analisis ini menilai seberapa efektif sprint keamanan route menutup celah akses yang sebelumnya masih terbuka.
+
+1. Efektivitas strategi hardening:
+	- Tinggi, karena kontrol akses berpindah dari level UI ke level route request.
+	- Dampak: bypass URL langsung dapat ditangani secara sistemik.
+2. Efektivitas desain matrix role:
+	- Baik, aturan allow/deny menjadi eksplisit dan mudah diuji.
+	- Matrix terpusat memudahkan tim melakukan audit hak akses.
+3. Efektivitas sinkronisasi logout:
+	- Baik, session dibersihkan menyeluruh sehingga risiko state phantom menurun.
+	- Alur ini memberi baseline aman untuk perpindahan user antar role/test case.
+4. Area yang masih perlu dijaga:
+	- Penambahan route dashboard baru pada minggu ke-4 berpotensi memerlukan penyesuaian matrix.
+	- QA lintas role perlu tetap dijalankan setelah setiap perubahan route besar.
+
+---
+
+## 17. Risk Register Transisi ke Minggu Ke-4
+
+1. Risiko dashboard role baru tidak sinkron dengan guard matrix:
+	- Dampak: user valid terblokir atau user tidak valid lolos ke route tertentu.
+	- Strategi: review matrix bersamaan dengan implementasi route dashboard.
+2. Risiko root redirect dan dashboard redirect saling bertabrakan:
+	- Dampak: navigasi loop dan user experience buruk.
+	- Strategi: validasi skenario root, login, dan unauthorized secara terpisah sebelum merge.
+3. Risiko peningkatan kompleksitas konfigurasi role:
+	- Dampak: maintenance lambat jika konfigurasi tersebar.
+	- Strategi: menjaga konfigurasi dashboard role pada struktur terpusat.
+4. Risiko regresi saat build akhir sprint:
+	- Dampak: route baru gagal diprerender.
+	- Strategi: build check penuh dijalankan sebagai quality gate penutupan sprint.
+
+---
+
+## 18. Rencana Operasional Minggu Ke-4
+
+1. Menyusun template dashboard role yang konsisten agar implementasi 6 role lebih cepat.
+2. Menghubungkan KPI ke dataset dummy lintas modul untuk meningkatkan realisme data.
+3. Menambahkan snapshot prioritas per role agar dashboard punya nilai operasional langsung.
+4. Menjalankan pengujian kombinasi guard + dashboard secara lintas role.
+5. Menyiapkan checklist deployment readiness sebelum fokus berpindah ke website publik.
+
+---
+
 **Catatan:** Dokumen ini hanya memuat proses yang benar-benar sudah terjadi pada minggu ke-3.

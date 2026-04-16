@@ -222,4 +222,67 @@ Checklist validasi akhir minggu:
 
 ---
 
+## 12. Analisis Capaian vs Komitmen Sprint
+
+1. Komitmen utama sprint:
+   - Menyelesaikan fitur simulasi KPR real-time pada website publik.
+   - Menempatkan kalkulator pada konteks detail unit dengan harga otomatis.
+   - Menutup isu route 404 dan merapikan CSS pascarevisi desain besar.
+2. Capaian aktual:
+   - Fitur simulasi KPR selesai dan interaksi slider berjalan real-time.
+   - Integrasi ke detail unit berhasil dengan pembacaan harga otomatis.
+   - Isu 404 dan ketidakseimbangan layout berhasil ditutup dalam sprint yang sama.
+3. Deviasi yang tercatat:
+   - Tidak ada deviasi mayor terhadap target inti minggu ke-5.
+   - Fokus tim sengaja dipusatkan pada domain web publik sehingga area lain bersifat maintenance.
+4. Evaluasi umum:
+   - Sprint ini menghasilkan dampak conversion paling nyata dibanding sprint sebelumnya.
+   - Kombinasi delivery fitur dan incident closure berjalan efektif karena validasi build/endpoint dilakukan disiplin.
+
+---
+
+## 13. Metrik Operasional Mingguan
+
+1. Indikator Kematangan Fitur:
+   - Simulasi merespons perubahan parameter tanpa perlu refresh halaman.
+   - Input harga properti terisi otomatis sehingga mengurangi langkah manual user.
+2. Indikator Stabilitas Route:
+   - Route unit detail penting dapat diakses kembali setelah perbaikan.
+   - Verifikasi endpoint dipakai sebagai bukti objektif penutupan isu routing.
+3. Indikator Kualitas Visual:
+   - Perapian CSS menormalkan kembali komposisi layout desktop dan mobile.
+   - Elemen visual pengganggu yang menurunkan hierarki informasi telah dihilangkan.
+4. Indikator Readiness Produk:
+   - Build website publik lulus setelah perubahan fitur dan desain.
+   - Hasil sprint siap dipakai untuk demo alur conversion berbasis detail unit.
+
+---
+
+## 14. Risiko Lanjutan dan Mitigasi Pasca Sprint
+
+1. Risiko regresi visual saat ada revisi lanjutan pada detail unit:
+   - Mitigasi: melakukan visual regression check bertahap pada breakpoint utama.
+2. Risiko perhitungan simulasi disalahartikan sebagai angka final bank:
+   - Mitigasi: mempertahankan disclaimer estimasi pada panel simulasi.
+3. Risiko incident server stale terulang saat validasi lokal:
+   - Mitigasi: checklist kill/start process sebelum melakukan verifikasi endpoint penting.
+4. Risiko scope conversion berikutnya meluas tanpa baseline performa:
+   - Mitigasi: menetapkan baseline metrik interaksi halaman sebelum menambah fitur baru.
+
+---
+
+## 15. Keputusan Sprint dan Arah Lanjutan
+
+1. Keputusan teknis:
+   - Integrasi simulasi KPR pada detail unit dipertahankan sebagai pendekatan utama.
+   - Endpoint check dijadikan prosedur wajib untuk menutup bug route publik.
+2. Keputusan produk:
+   - Fitur simulasi diposisikan sebagai komponen conversion inti pada website marketing.
+   - Konsistensi visual detail unit tetap diprioritaskan agar trust pengguna terjaga.
+3. Arah lanjutan:
+   - Sprint berikutnya dapat difokuskan pada refinement conversion funnel tanpa mengulang fondasi yang sudah stabil.
+   - Dokumentasi pengujian route dan visual perlu terus diperbarui setiap iterasi besar.
+
+---
+
 **Catatan:** Laporan ini hanya memuat pekerjaan yang sudah selesai dikerjakan pada minggu ke-5.
