@@ -5,13 +5,21 @@
 
 ## Gambaran Umum
 
-Customer Portal adalah aplikasi khusus untuk **pembeli rumah** agar mereka bisa memantau progres pembangunan, melihat tagihan, mengunduh dokumen, dan mengajukan komplain — semua dari satu tempat tanpa harus menghubungi developer setiap saat.
+Customer Portal adalah area khusus untuk **pembeli rumah** agar mereka bisa memantau progres pembangunan, melihat tagihan, mengunduh dokumen, dan mengajukan komplain — semua dari satu tempat tanpa harus menghubungi developer setiap saat.
 
 - **Teknologi**: Next.js (Web) + React Native (Mobile iOS & Android)
 - **Target pengguna**: Pembeli / pemilik unit (publik terdaftar)
 - **Tujuan utama**: Transparansi progres unit, self-service dokumen & tagihan
 - **Akses**: Login dengan akun yang dibuat setelah akad jual beli
 - **Lingkup dokumen ini**: Versi **Web** dan **Mobile** dibahas bersama karena fiturnya identik
+
+### Catatan Arsitektur
+
+Customer Portal berada dalam website yang sama dengan area marketing, namun dipisah lewat route yang dilindungi autentikasi:
+- Area publik (marketing): route umum tanpa login
+- Area customer portal: `/portal/*` dengan login wajib
+
+Model ini menjaga pengalaman pengguna tetap menyatu, tetapi tetap aman karena area customer diproteksi.
 
 ---
 
@@ -36,7 +44,7 @@ Membangun kerangka portal dan sistem login khusus pembeli.
 ### Pekerjaan
 
 #### 1.1 Setup Proyek Web
-- [ ] Inisialisasi Next.js (berbeda repo dari Web Admin)
+- [ ] Inisialisasi area portal customer pada codebase website utama (berbeda repo dari Web Admin)
 - [ ] Setup Tailwind CSS — tema warna perumahan (bukan tone corporate)
 - [ ] Struktur folder: `/app`, `/components`, `/lib`, `/styles`
 - [ ] Setup environment variables
@@ -48,13 +56,13 @@ Membangun kerangka portal dan sistem login khusus pembeli.
 - [ ] `PortalLayout` — wrapper setelah login
 
 #### 1.3 Autentikasi
-- [ ] Halaman Login (`/login`) — email + password
+- [ ] Halaman Login (`/portal/login`) — email + password
 - [ ] Halaman pertama kali masuk — ganti password sementara
-- [ ] Forgot password (`/lupa-password`)
+- [ ] Forgot password (`/portal/lupa-password`)
 - [ ] Guard route — pembeli hanya bisa akses data unit milik sendiri
 - [ ] Logout
 
-#### 1.4 Halaman Beranda (`/`)
+#### 1.4 Halaman Beranda (`/portal`)
 - [ ] Sambutan dengan nama pembeli
 - [ ] Ringkasan unit: nama unit, blok, tipe, status konstruksi saat ini
 - [ ] Kartu cepat: progres %, tagihan berikutnya, notifikasi terbaru
