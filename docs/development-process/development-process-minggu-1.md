@@ -233,4 +233,78 @@ Target minggu berikutnya sebaiknya tetap dibagi per sistem supaya progress mudah
 
 ---
 
+## 8. Cuplikan Source Code Penting Minggu Ini
+
+Berikut cuplikan source code yang merepresentasikan hasil setup fondasi minggu pertama (orkestrasi command dan pemisahan port per aplikasi):
+
+### A. Orkestrasi Monorepo dari Root Project
+
+File: `package.json`
+
+```json
+{
+	"scripts": {
+		"dev:web-admin": "npm --prefix frontend/web-admin run dev",
+		"dev:web-public": "npm --prefix frontend/web-public-portal run dev",
+		"dev:backend": "npm --prefix backend run dev",
+		"dev:mobile": "npm --prefix mobile run dev",
+		"install:all": "npm run install:web-admin && npm run install:web-public && npm run install:backend && npm run install:mobile"
+	}
+}
+```
+
+Penjelasan singkat:
+1. Script root ini menjadi pintu tunggal untuk menjalankan tiap pilar sistem.
+2. Tim tidak perlu berpindah-pindah manual ke folder aplikasi hanya untuk menjalankan command dasar.
+
+### B. Port Service per Aplikasi
+
+File: `frontend/web-admin/package.json`
+
+```json
+{
+	"scripts": {
+		"dev": "next dev -p 3001",
+		"start": "next start -p 3001"
+	}
+}
+```
+
+File: `frontend/web-public-portal/package.json`
+
+```json
+{
+	"scripts": {
+		"dev": "next dev -p 3002",
+		"start": "next start -p 3002"
+	}
+}
+```
+
+File: `backend/package.json`
+
+```json
+{
+	"scripts": {
+		"dev": "tsx watch src/index.ts"
+	}
+}
+```
+
+File: `mobile/package.json`
+
+```json
+{
+	"scripts": {
+		"dev": "expo start --port 8082"
+	}
+}
+```
+
+Penjelasan singkat:
+1. Pemisahan port sejak awal mencegah konflik runtime antar aplikasi.
+2. Setup ini menjadi fondasi lintas tim untuk debugging dan integrasi minggu berikutnya.
+
+---
+
 **Catatan:** Dokumen ini dapat langsung dicopy ke Word dan diisi sesuai hasil aktual minggu pertama.
