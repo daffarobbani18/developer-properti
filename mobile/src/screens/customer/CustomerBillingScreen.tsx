@@ -8,13 +8,23 @@ import {
   EmptyState,
   LabeledInput,
   PrimaryButton,
+  SecondaryButton,
   ScreenShell,
   SectionTitle,
+  StatusBanner,
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { getCustomerBillingData, submitPaymentProof } from "../../services/api";
+import { capturePhoto, pickImages } from "../../services/media";
 import { BillingSummary, InvoiceItem, PaymentItem } from "../../types";
-import { formatCurrency, formatDate, formatDateTime } from "../../utils/format";
+import {
+  formatCurrency,
+  formatDate,
+  formatDateTime,
+  formatInvoiceStatusLabel,
+  formatPaymentStatusLabel,
+  inferBannerTone,
+} from "../../utils/format";
 
 function toneByInvoiceStatus(
   status: InvoiceItem["status"]
@@ -31,6 +41,10 @@ function toneByInvoiceStatus(
   return "neutral";
 }
 
+function toneByPaymentStatus(status: PaymentItem["status"]): "warning" | "success" {
+  return status === "DIKONFIRMASI" ? "success" : "warning";
+}
+
 export function CustomerBillingScreen(): React.JSX.Element {
   const { auth } = useAuth();
 
@@ -43,6 +57,7 @@ export function CustomerBillingScreen(): React.JSX.Element {
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string>("");
   const [amountInput, setAmountInput] = useState("");
   const [proofUrl, setProofUrl] = useState("");
+  const [selectedProofPhotoUri, setSelectedProofPhotoUri] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -101,9 +116,16 @@ export function CustomerBillingScreen(): React.JSX.Element {
     [invoices]
   );
 
+  const selectedInvoice = useMemo(
+    () => invoices.find((item) => item.id === selectedInvoiceId) ?? null,
+    [invoices, selectedInvoiceId]
+  );
+
   const submitProof = useCallback(async () => {
-    if (!auth || !selectedInvoiceId || !proofUrl.trim()) {
-      setBanner("Pilih invoice dan isi URL bukti pembayaran.");
+    const resolvedProofUrl = selectedProofPhotoUri ?? proofUrl.trim();
+
+    if (!auth || !selectedInvoiceId || !resolvedProofUrl) {
+      setBanner("Pilih invoice dan lampirkan bukti pembayaran (kamera/galeri/URL).");
       return;
     }
 
@@ -120,10 +142,11 @@ export function CustomerBillingScreen(): React.JSX.Element {
       await submitPaymentProof(auth, {
         invoiceId: selectedInvoiceId,
         amount,
-        proofUrl: proofUrl.trim(),
+        proofUrl: resolvedProofUrl,
       });
 
       setProofUrl("");
+      setSelectedProofPhotoUri(null);
       await loadData();
       setBanner("Bukti pembayaran berhasil dikirim.");
     } catch (error) {
@@ -131,25 +154,67 @@ export function CustomerBillingScreen(): React.JSX.Element {
     } finally {
       setIsSubmitting(false);
     }
-  }, [amountInput, auth, loadData, proofUrl, selectedInvoiceId]);
+  }, [amountInput, auth, loadData, proofUrl, selectedInvoiceId, selectedProofPhotoUri]);
+
+  const takeProofPhoto = useCallback(async () => {
+    try {
+      const uri = await capturePhoto();
+      if (uri) {
+        setSelectedProofPhotoUri(uri);
+      }
+    } catch (error) {
+      setBanner(error instanceof Error ? error.message : "Gagal mengambil foto bukti pembayaran.");
+    }
+  }, []);
+
+  const pickProofPhoto = useCallback(async () => {
+    try {
+      const uris = await pickImages({ selectionLimit: 1 });
+      if (uris[0]) {
+        setSelectedProofPhotoUri(uris[0]);
+      }
+    } catch (error) {
+      setBanner(error instanceof Error ? error.message : "Gagal memilih foto bukti pembayaran.");
+    }
+  }, []);
 
   return (
     <ScreenShell title="Tagihan & Pembayaran" subtitle="Pantau invoice dan kirim bukti transfer">
       {summary ? (
         <Card>
-          <SectionTitle title="Ringkasan Pembayaran" />
-          <Text style={styles.summaryText}>Skema: {summary.paymentScheme}</Text>
-          <Text style={styles.summaryText}>Total harga: {formatCurrency(summary.totalPrice)}</Text>
-          <Text style={styles.summaryText}>Sudah dibayar: {formatCurrency(summary.paid)}</Text>
-          <Text style={styles.summaryText}>Sisa tagihan: {formatCurrency(summary.outstanding)}</Text>
-          <Text style={styles.summaryText}>
-            Estimasi cicilan bulanan: {formatCurrency(summary.monthlyInstallment)}
-          </Text>
+          <SectionTitle
+            title="Ringkasan Pembayaran"
+            caption={`Skema pembayaran aktif: ${summary.paymentScheme}`}
+          />
+          <View style={styles.metricGrid}>
+            <View style={styles.metricCard}>
+              <Text style={styles.metricLabel}>Total Harga</Text>
+              <Text style={styles.metricValue}>{formatCurrency(summary.totalPrice)}</Text>
+            </View>
+
+            <View style={styles.metricCard}>
+              <Text style={styles.metricLabel}>Sudah Dibayar</Text>
+              <Text style={styles.metricValue}>{formatCurrency(summary.paid)}</Text>
+            </View>
+
+            <View style={styles.metricCard}>
+              <Text style={styles.metricLabel}>Sisa Tagihan</Text>
+              <Text style={styles.metricValue}>{formatCurrency(summary.outstanding)}</Text>
+            </View>
+
+            <View style={styles.metricCard}>
+              <Text style={styles.metricLabel}>Cicilan Bulanan</Text>
+              <Text style={styles.metricValue}>{formatCurrency(summary.monthlyInstallment)}</Text>
+            </View>
+          </View>
         </Card>
       ) : null}
 
       <Card>
-        <SectionTitle title="Unggah Bukti Pembayaran" />
+        <SectionTitle
+          title="Unggah Bukti Pembayaran"
+          caption="Pilih invoice aktif lalu kirim bukti transfer"
+        />
 
         {payableInvoices.length === 0 ? (
           <EmptyState message="Semua invoice sudah lunas." />
@@ -179,6 +244,19 @@ export function CustomerBillingScreen(): React.JSX.Element {
               ))}
             </View>
 
+            {selectedInvoice ? (
+              <View style={styles.selectedInvoiceCard}>
+                <View style={styles.listItemTop}>
+                  <Text style={styles.invoiceName}>{selectedInvoice.name}</Text>
+                  <Badge
+                    label={formatInvoiceStatusLabel(selectedInvoice.status)}
+                    tone={toneByInvoiceStatus(selectedInvoice.status)}
+                  />
+                </View>
+                <Text style={styles.invoiceMeta}>Jatuh tempo: {formatDate(selectedInvoice.dueDate)}</Text>
+              </View>
+            ) : null}
+
             <LabeledInput
               label="Nominal Transfer"
               keyboardType="numeric"
@@ -193,6 +271,25 @@ export function CustomerBillingScreen(): React.JSX.Element {
               onChangeText={setProofUrl}
             />
 
+            <Text style={styles.helperText}>Anda dapat menggunakan URL atau lampiran foto dari kamera/galeri.</Text>
+
+            <View style={styles.photoActionRow}>
+              <SecondaryButton label="Ambil Foto Bukti" onPress={() => void takeProofPhoto()} />
+              <SecondaryButton label="Pilih dari Galeri" onPress={() => void pickProofPhoto()} />
+            </View>
+
+            {selectedProofPhotoUri ? (
+              <View style={styles.photoItemRow}>
+                <Text style={styles.photoItemText}>{selectedProofPhotoUri}</Text>
+                <Pressable
+                  onPress={() => setSelectedProofPhotoUri(null)}
+                  style={({ pressed }) => [styles.pill, pressed && styles.pillPressed]}
+                >
+                  <Text style={styles.pillText}>Hapus</Text>
+                </Pressable>
+              </View>
+            ) : null}
+
             <PrimaryButton
               label={isSubmitting ? "Mengirim..." : "Kirim Bukti Pembayaran"}
               onPress={() => void submitProof()}
@@ -202,11 +299,7 @@ export function CustomerBillingScreen(): React.JSX.Element {
         )}
       </Card>
 
-      {banner ? (
-        <Card>
-          <Text style={styles.bannerText}>{banner}</Text>
-        </Card>
-      ) : null}
+      {banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
 
       {isLoading ? (
         <Card>
@@ -225,7 +318,7 @@ export function CustomerBillingScreen(): React.JSX.Element {
                     <View style={styles.listItemTop}>
                       <Text style={styles.invoiceName}>{invoice.name}</Text>
                       <Badge
-                        label={invoice.status}
+                        label={formatInvoiceStatusLabel(invoice.status)}
                         tone={toneByInvoiceStatus(invoice.status)}
                       />
                     </View>
@@ -245,10 +338,16 @@ export function CustomerBillingScreen(): React.JSX.Element {
               <View style={styles.listWrap}>
                 {payments.map((item) => (
                   <View key={item.id} style={styles.listItem}>
-                    <Text style={styles.invoiceName}>{item.invoiceId}</Text>
+                    <View style={styles.listItemTop}>
+                      <Text style={styles.invoiceName}>{item.invoiceId}</Text>
+                      <Badge
+                        label={formatPaymentStatusLabel(item.status)}
+                        tone={toneByPaymentStatus(item.status)}
+                      />
+                    </View>
                     <Text style={styles.invoiceMeta}>{formatCurrency(item.amount)}</Text>
                     <Text style={styles.invoiceMeta}>Metode: {item.method}</Text>
-                    <Text style={styles.invoiceMeta}>Status: {item.status}</Text>
+                    {item.proofUrl ? <Text style={styles.invoiceMeta}>Bukti: {item.proofUrl}</Text> : null}
                     <Text style={styles.invoiceMeta}>{formatDateTime(item.paidAt)}</Text>
                   </View>
                 ))}
@@ -262,10 +361,34 @@ export function CustomerBillingScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  summaryText: {
-    color: "#305b65",
-    fontSize: 13,
+  metricGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  metricCard: {
+    flexGrow: 1,
+    flexBasis: "48%",
+    minHeight: 72,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#cae0e4",
+    backgroundColor: "#f4fbfc",
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    justifyContent: "center",
+    gap: 2,
+  },
+  metricLabel: {
+    color: "#4a6f78",
+    fontSize: 11,
     fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  metricValue: {
+    color: "#184b55",
+    fontSize: 14,
+    fontWeight: "800",
   },
   label: {
     color: "#1f4f5a",
@@ -303,10 +426,39 @@ const styles = StyleSheet.create({
   pillTextActive: {
     color: "#114a53",
   },
-  bannerText: {
-    color: "#1f5661",
-    fontSize: 13,
-    fontWeight: "700",
+  selectedInvoiceCard: {
+    borderWidth: 1,
+    borderColor: "#c6dbde",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: "#f7fcfd",
+    gap: 2,
+  },
+  helperText: {
+    color: "#486f78",
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "600",
+  },
+  photoActionRow: {
+    gap: 8,
+  },
+  photoItemRow: {
+    borderWidth: 1,
+    borderColor: "#c6dbde",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    backgroundColor: "#f7fcfd",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  photoItemText: {
+    flex: 1,
+    color: "#3a646d",
+    fontSize: 12,
   },
   loadingText: {
     color: "#4f6f77",

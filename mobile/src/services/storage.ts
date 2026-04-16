@@ -4,6 +4,7 @@ import { AuthState, PendingQueueItem } from "../types";
 
 const AUTH_STORAGE_KEY = "simdp-mobile-auth";
 const OFFLINE_QUEUE_KEY = "simdp-mobile-offline-queue";
+const AUTH_INACTIVE_AT_KEY = "simdp-mobile-auth-inactive-at";
 
 export async function getStoredAuth(): Promise<AuthState | null> {
   const raw = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
@@ -25,6 +26,24 @@ export async function setStoredAuth(value: AuthState): Promise<void> {
 
 export async function clearStoredAuth(): Promise<void> {
   await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+}
+
+export async function setAuthInactiveAt(value: number): Promise<void> {
+  await AsyncStorage.setItem(AUTH_INACTIVE_AT_KEY, String(value));
+}
+
+export async function getAuthInactiveAt(): Promise<number | null> {
+  const raw = await AsyncStorage.getItem(AUTH_INACTIVE_AT_KEY);
+  if (!raw) {
+    return null;
+  }
+
+  const parsed = Number(raw);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+export async function clearAuthInactiveAt(): Promise<void> {
+  await AsyncStorage.removeItem(AUTH_INACTIVE_AT_KEY);
 }
 
 export async function getOfflineQueue(): Promise<PendingQueueItem[]> {

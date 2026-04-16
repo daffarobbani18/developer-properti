@@ -2,10 +2,19 @@ import React, { useCallback, useState } from "react";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
-import { Badge, Card, EmptyState, ScreenShell, SectionTitle } from "../../components/ui";
+import {
+  Badge,
+  Card,
+  EmptyState,
+  ScreenShell,
+  SecondaryButton,
+  SectionTitle,
+  StatusBanner,
+} from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { getCustomerDocuments } from "../../services/api";
 import { DocumentItem } from "../../types";
+import { formatDocumentStatusLabel, inferBannerTone } from "../../utils/format";
 
 function statusTone(status: DocumentItem["status"]): "neutral" | "warning" | "success" {
   if (status === "TERSEDIA") {
@@ -32,6 +41,19 @@ export function CustomerDocumentsScreen(): React.JSX.Element {
     const data = await getCustomerDocuments(auth);
     setDocuments(data);
   }, [auth]);
+
+  const handleReload = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      await loadData();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Gagal memuat dokumen");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [loadData]);
 
   useFocusEffect(
     useCallback(() => {
@@ -67,14 +89,14 @@ export function CustomerDocumentsScreen(): React.JSX.Element {
         <Text style={styles.summaryText}>Total dokumen: {documents.length}</Text>
       </Card>
 
+      <SecondaryButton label="Muat Ulang Dokumen" onPress={() => void handleReload()} disabled={isLoading} />
+
       {isLoading ? (
         <Card>
           <Text style={styles.loadingText}>Memuat dokumen...</Text>
         </Card>
       ) : errorMessage ? (
-        <Card>
-          <Text style={styles.errorText}>{errorMessage}</Text>
-        </Card>
+        <StatusBanner message={errorMessage} tone={inferBannerTone(errorMessage)} />
       ) : documents.length === 0 ? (
         <EmptyState message="Belum ada dokumen untuk unit Anda." />
       ) : (
@@ -83,7 +105,7 @@ export function CustomerDocumentsScreen(): React.JSX.Element {
             <Card key={item.id}>
               <View style={styles.topRow}>
                 <Text style={styles.title}>{item.title}</Text>
-                <Badge label={item.status} tone={statusTone(item.status)} />
+                <Badge label={formatDocumentStatusLabel(item.status)} tone={statusTone(item.status)} />
               </View>
               <Text style={styles.category}>Kategori: {item.category}</Text>
               {item.url ? (
@@ -115,11 +137,6 @@ const styles = StyleSheet.create({
   loadingText: {
     color: "#4f6f77",
     fontSize: 14,
-  },
-  errorText: {
-    color: "#a41f26",
-    fontSize: 13,
-    fontWeight: "700",
   },
   listWrap: {
     gap: 9,

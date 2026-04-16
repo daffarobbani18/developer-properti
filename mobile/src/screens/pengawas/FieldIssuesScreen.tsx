@@ -9,7 +9,9 @@ import {
   LabeledInput,
   PrimaryButton,
   ScreenShell,
+  SecondaryButton,
   SectionTitle,
+  StatusBanner,
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import {
@@ -18,8 +20,14 @@ import {
   getFieldIssues,
   getProjectOptions,
 } from "../../services/api";
+import { capturePhoto, pickImages } from "../../services/media";
 import { IssueItem } from "../../types";
-import { formatDateTime } from "../../utils/format";
+import {
+  formatDateTime,
+  formatIssueStatusLabel,
+  formatIssueUrgencyLabel,
+  inferBannerTone,
+} from "../../utils/format";
 
 const ISSUE_CATEGORIES: IssueItem["category"][] = [
   "Kualitas Pekerjaan",
@@ -65,7 +73,13 @@ export function FieldIssuesScreen(): React.JSX.Element {
   const [category, setCategory] = useState<IssueItem["category"]>("Kualitas Pekerjaan");
   const [urgency, setUrgency] = useState<IssueItem["urgency"]>("SEDANG");
   const [recommendation, setRecommendation] = useState("");
+  const [selectedPhotoUris, setSelectedPhotoUris] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const activeIssues = issues.filter((issue) => issue.status !== "SELESAI").length;
+  const criticalIssues = issues.filter(
+    (issue) => issue.urgency === "KRITIS" || issue.urgency === "TINGGI"
+  ).length;
 
   const loadData = useCallback(async () => {
     if (!auth) {
@@ -130,6 +144,7 @@ export function FieldIssuesScreen(): React.JSX.Element {
         urgency,
         reporterName: auth.user.fullName,
         recommendation: recommendation.trim() || undefined,
+        photoUrls: selectedPhotoUris,
       });
 
       setTitle("");
@@ -137,6 +152,7 @@ export function FieldIssuesScreen(): React.JSX.Element {
       setRecommendation("");
       setCategory("Kualitas Pekerjaan");
       setUrgency("SEDANG");
+      setSelectedPhotoUris([]);
 
       await loadData();
       setBanner("Kendala berhasil dibuat.");
@@ -145,7 +161,37 @@ export function FieldIssuesScreen(): React.JSX.Element {
     } finally {
       setIsSubmitting(false);
     }
-  }, [auth, category, description, loadData, projectId, recommendation, title, urgency]);
+  }, [
+    auth,
+    category,
+    description,
+    loadData,
+    projectId,
+    recommendation,
+    selectedPhotoUris,
+    title,
+    urgency,
+  ]);
+
+  const takeIssuePhoto = useCallback(async () => {
+    try {
+      const uri = await capturePhoto();
+      if (uri) {
+        setSelectedPhotoUris((prev) => [...new Set([...prev, uri])].slice(0, 3));
+      }
+    } catch (error) {
+      setBanner(error instanceof Error ? error.message : "Gagal mengambil foto kendala.");
+    }
+  }, []);
+
+  const pickIssuePhotoFromGallery = useCallback(async () => {
+    try {
+      const uris = await pickImages({ selectionLimit: 3 });
+      setSelectedPhotoUris((prev) => [...new Set([...prev, ...uris])].slice(0, 3));
+    } catch (error) {
+      setBanner(error instanceof Error ? error.message : "Gagal memilih foto kendala.");
+    }
+  }, []);
 
   const changeStatus = useCallback(
     async (issueId: string, status: IssueItem["status"]) => {
@@ -166,7 +212,29 @@ export function FieldIssuesScreen(): React.JSX.Element {
   return (
     <ScreenShell title="Kendala Lapangan" subtitle="Catat hambatan dan tindak lanjut tim">
       <Card>
-        <SectionTitle title="Buat Kendala Baru" />
+        <SectionTitle title="Ringkasan Kendala" caption="Pantau isu aktif sebelum membuat laporan baru" />
+        <View style={styles.metricRow}>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricLabel}>Total Kendala</Text>
+            <Text style={styles.metricValue}>{issues.length}</Text>
+          </View>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricLabel}>Aktif</Text>
+            <Text style={styles.metricValue}>{activeIssues}</Text>
+          </View>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricLabel}>Prioritas Tinggi</Text>
+            <Text style={styles.metricValue}>{criticalIssues}</Text>
+          </View>
+        </View>
+        <SecondaryButton label="Muat Ulang Kendala" onPress={() => void loadData()} />
+      </Card>
+
+      <Card>
+        <SectionTitle
+          title="Buat Kendala Baru"
+          caption="Isi data inti dan lampirkan bukti foto bila diperlukan"
+        />
 
         <Text style={styles.label}>Proyek</Text>
         <View style={styles.pillRow}>
@@ -233,7 +301,9 @@ export function FieldIssuesScreen(): React.JSX.Element {
                 pressed && styles.pillPressed,
               ]}
             >
-              <Text style={[styles.pillText, urgency === item && styles.pillTextActive]}>{item}</Text>
+              <Text style={[styles.pillText, urgency === item && styles.pillTextActive]}>
+                {formatIssueUrgencyLabel(item)}
+              </Text>
             </Pressable>
           ))}
         </View>
@@ -245,6 +315,31 @@ export function FieldIssuesScreen(): React.JSX.Element {
           onChangeText={setRecommendation}
         />
 
+        <Text style={styles.label}>Lampiran Foto Kendala</Text>
+        <Text style={styles.helperText}>Maksimal 3 foto agar proses upload tetap cepat.</Text>
+        <View style={styles.photoActionRow}>
+          <SecondaryButton label="Ambil Foto" onPress={() => void takeIssuePhoto()} />
+          <SecondaryButton label="Pilih Galeri" onPress={() => void pickIssuePhotoFromGallery()} />
+        </View>
+        <Text style={styles.photoMetaText}>Foto dipilih: {selectedPhotoUris.length}/3</Text>
+        {selectedPhotoUris.length > 0 ? (
+          <View style={styles.photoListWrap}>
+            {selectedPhotoUris.map((uri, index) => (
+              <View key={`${uri}-${index}`} style={styles.photoItemRow}>
+                <Text style={styles.photoItemText}>{uri}</Text>
+                <Pressable
+                  onPress={() => {
+                    setSelectedPhotoUris((prev) => prev.filter((_, idx) => idx !== index));
+                  }}
+                  style={({ pressed }) => [styles.statusActionBtn, pressed && styles.pillPressed]}
+                >
+                  <Text style={styles.statusActionText}>Hapus</Text>
+                </Pressable>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
         <PrimaryButton
           label={isSubmitting ? "Menyimpan..." : "Simpan Kendala"}
           onPress={() => void submitIssue()}
@@ -252,11 +347,7 @@ export function FieldIssuesScreen(): React.JSX.Element {
         />
       </Card>
 
-      {banner ? (
-        <Card>
-          <Text style={styles.bannerText}>{banner}</Text>
-        </Card>
-      ) : null}
+      {banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
 
       {isLoading ? (
         <Card>
@@ -270,17 +361,18 @@ export function FieldIssuesScreen(): React.JSX.Element {
             <Card key={issue.id}>
               <View style={styles.issueTopRow}>
                 <Text style={styles.issueTitle}>{issue.title}</Text>
-                <Badge label={issue.urgency} tone={urgencyTone(issue.urgency)} />
+                <Badge label={formatIssueUrgencyLabel(issue.urgency)} tone={urgencyTone(issue.urgency)} />
               </View>
               <Text style={styles.issueMeta}>Kategori: {issue.category}</Text>
               <Text style={styles.issueMeta}>Pelapor: {issue.reporterName}</Text>
               <Text style={styles.issueMeta}>{formatDateTime(issue.createdAt)}</Text>
+              <Text style={styles.issueMeta}>Lampiran foto: {issue.photoUrls?.length ?? 0}</Text>
               <Text style={styles.issueDescription}>{issue.description}</Text>
               {issue.recommendation ? (
                 <Text style={styles.issueRecommendation}>Rekomendasi: {issue.recommendation}</Text>
               ) : null}
               <View style={styles.issueBottomRow}>
-                <Badge label={issue.status} tone={statusTone(issue.status)} />
+                <Badge label={formatIssueStatusLabel(issue.status)} tone={statusTone(issue.status)} />
                 {auth?.user.role === "PROJECT_MANAGER" && issue.status !== "SELESAI" ? (
                   <View style={styles.statusActions}>
                     <Pressable
@@ -307,6 +399,33 @@ export function FieldIssuesScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
+  metricRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  metricPill: {
+    flexGrow: 1,
+    minWidth: 108,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#cae0e4",
+    backgroundColor: "#f4fbfc",
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    gap: 2,
+  },
+  metricLabel: {
+    color: "#4a6f78",
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  metricValue: {
+    color: "#184b55",
+    fontSize: 18,
+    fontWeight: "800",
+  },
   label: {
     color: "#1f4f5a",
     fontSize: 12,
@@ -344,10 +463,38 @@ const styles = StyleSheet.create({
   pillTextActive: {
     color: "#114a53",
   },
-  bannerText: {
-    color: "#1f5661",
-    fontSize: 13,
+  helperText: {
+    color: "#486f78",
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "600",
+  },
+  photoActionRow: {
+    gap: 8,
+  },
+  photoMetaText: {
+    color: "#355f68",
+    fontSize: 12,
     fontWeight: "700",
+  },
+  photoListWrap: {
+    gap: 6,
+  },
+  photoItemRow: {
+    borderWidth: 1,
+    borderColor: "#c6dbde",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    backgroundColor: "#f7fcfd",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  photoItemText: {
+    flex: 1,
+    color: "#3a646d",
+    fontSize: 12,
   },
   loadingText: {
     color: "#4f6f77",

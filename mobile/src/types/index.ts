@@ -59,6 +59,7 @@ export type IssueItem = {
   status: "BARU" | "SEDANG_DITANGANI" | "SELESAI";
   reporterName: string;
   recommendation?: string;
+  photoUrls?: string[];
   createdAt: string;
 };
 
@@ -85,6 +86,7 @@ export type PaymentItem = {
   amount: number;
   method: "TRANSFER" | "VA" | "QRIS";
   status: "DIKONFIRMASI" | "MENUNGGU_VERIFIKASI";
+  proofUrl?: string;
   paidAt: string;
 };
 
@@ -110,6 +112,7 @@ export type TicketItem = {
   subject: string;
   description: string;
   status: "BARU" | "SEDANG_DITANGANI" | "SELESAI" | "DITUTUP";
+  photoUrls?: string[];
   createdAt: string;
 };
 
@@ -133,6 +136,7 @@ export type PendingQueueItem = {
     status: Milestone["status"];
     note?: string;
     photoUrl?: string;
+    photoUrls?: string[];
   };
   createdAt: string;
 };

@@ -1,15 +1,41 @@
 import React, { useCallback, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
-import { Badge, Card, EmptyState, ScreenShell, SecondaryButton, SectionTitle } from "../../components/ui";
+import {
+  Badge,
+  Card,
+  EmptyState,
+  ScreenShell,
+  SecondaryButton,
+  SectionTitle,
+  StatusBanner,
+} from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { getCustomerOverviewData } from "../../services/api";
 import { CustomerOverview } from "../../types";
-import { formatCurrency, formatDate } from "../../utils/format";
+import {
+  formatCurrency,
+  formatDate,
+  formatUnitStatusLabel,
+  inferBannerTone,
+} from "../../utils/format";
 
-export function CustomerHomeScreen(): React.JSX.Element {
+function toneByUnitStatus(
+  status: CustomerOverview["unit"]["status"]
+): "neutral" | "warning" | "success" {
+  if (status === "DONE") {
+    return "success";
+  }
+  if (status === "IN_PROGRESS") {
+    return "warning";
+  }
+  return "neutral";
+}
+
+export function CustomerHomeScreen({ globalBanner }: { globalBanner?: string | null }): React.JSX.Element {
   const { auth, signOut } = useAuth();
+  const navigation = useNavigation();
 
   const [overview, setOverview] = useState<CustomerOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,6 +49,13 @@ export function CustomerHomeScreen(): React.JSX.Element {
     const result = await getCustomerOverviewData(auth);
     setOverview(result);
   }, [auth]);
+
+  const goToTab = useCallback(
+    (tabName: "Progres" | "Tagihan" | "Dokumen" | "Bantuan") => {
+      (navigation as { navigate: (routeName: string) => void }).navigate(tabName);
+    },
+    [navigation]
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -57,14 +90,53 @@ export function CustomerHomeScreen(): React.JSX.Element {
       subtitle={auth ? `${auth.user.fullName} • ${auth.user.email}` : ""}
       rightAction={<SecondaryButton label="Logout" onPress={() => void signOut()} />}
     >
+      {globalBanner ? <StatusBanner message={globalBanner} tone={inferBannerTone(globalBanner)} /> : null}
+
+      <Card>
+        <SectionTitle title="Aksi Cepat" caption="Navigasi cepat untuk kebutuhan harian" />
+        <View style={styles.quickActionGrid}>
+          <Pressable
+            onPress={() => goToTab("Progres")}
+            style={({ pressed }) => [styles.quickActionBtn, pressed && styles.quickActionBtnPressed]}
+          >
+            <Text style={styles.quickActionTitle}>Lihat Progres</Text>
+            <Text style={styles.quickActionCaption}>Pantau pembangunan unit</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => goToTab("Tagihan")}
+            style={({ pressed }) => [styles.quickActionBtn, pressed && styles.quickActionBtnPressed]}
+          >
+            <Text style={styles.quickActionTitle}>Tagihan</Text>
+            <Text style={styles.quickActionCaption}>Cek invoice & pembayaran</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => goToTab("Dokumen")}
+            style={({ pressed }) => [styles.quickActionBtn, pressed && styles.quickActionBtnPressed]}
+          >
+            <Text style={styles.quickActionTitle}>Dokumen</Text>
+            <Text style={styles.quickActionCaption}>Akses berkas legal</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => goToTab("Bantuan")}
+            style={({ pressed }) => [styles.quickActionBtn, pressed && styles.quickActionBtnPressed]}
+          >
+            <Text style={styles.quickActionTitle}>Bantuan</Text>
+            <Text style={styles.quickActionCaption}>Buat tiket atau FAQ</Text>
+          </Pressable>
+        </View>
+      </Card>
+
+      <SecondaryButton label="Muat Ulang Data" onPress={() => void loadData()} />
+
       {isLoading ? (
         <Card>
           <Text style={styles.loadingText}>Memuat data customer...</Text>
         </Card>
       ) : errorMessage ? (
-        <Card>
-          <Text style={styles.errorText}>{errorMessage}</Text>
-        </Card>
+        <StatusBanner message={errorMessage} tone={inferBannerTone(errorMessage)} />
       ) : !overview ? (
         <EmptyState message="Data unit customer belum tersedia." />
       ) : (
@@ -73,10 +145,7 @@ export function CustomerHomeScreen(): React.JSX.Element {
             <SectionTitle title="Unit Anda" />
             <View style={styles.unitRow}>
               <Text style={styles.unitCode}>{overview.unit.code}</Text>
-              <Badge
-                label={overview.unit.status === "DONE" ? "Selesai" : "Dalam Pembangunan"}
-                tone={overview.unit.status === "DONE" ? "success" : "warning"}
-              />
+              <Badge label={formatUnitStatusLabel(overview.unit.status)} tone={toneByUnitStatus(overview.unit.status)} />
             </View>
             <Text style={styles.unitType}>{overview.unit.typeName}</Text>
             <Text style={styles.unitMeta}>Progress pembangunan: {overview.unit.progress}%</Text>
@@ -108,11 +177,6 @@ const styles = StyleSheet.create({
   loadingText: {
     color: "#4f6f77",
     fontSize: 14,
-  },
-  errorText: {
-    color: "#a41f26",
-    fontWeight: "700",
-    fontSize: 13,
   },
   unitRow: {
     flexDirection: "row",
@@ -147,6 +211,37 @@ const styles = StyleSheet.create({
   summaryText: {
     color: "#2b5962",
     fontSize: 13,
+    fontWeight: "600",
+  },
+  quickActionGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  quickActionBtn: {
+    flexGrow: 1,
+    flexBasis: "48%",
+    minHeight: 72,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#cae1e5",
+    backgroundColor: "#f4fbfc",
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    justifyContent: "center",
+    gap: 2,
+  },
+  quickActionBtnPressed: {
+    opacity: 0.86,
+  },
+  quickActionTitle: {
+    color: "#184a55",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  quickActionCaption: {
+    color: "#4a7078",
+    fontSize: 11,
     fontWeight: "600",
   },
 });

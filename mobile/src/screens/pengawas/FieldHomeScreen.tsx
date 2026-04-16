@@ -1,20 +1,31 @@
 import React, { useCallback, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
-import { Badge, Card, EmptyState, ScreenShell, SecondaryButton } from "../../components/ui";
+import {
+  Badge,
+  Card,
+  EmptyState,
+  ScreenShell,
+  SecondaryButton,
+  SectionTitle,
+  StatusBanner,
+} from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { useOfflineQueue } from "../../hooks/useOfflineQueue";
 import { getFieldProjects, getRoleNotifications } from "../../services/api";
 import { ProjectSummary } from "../../types";
+import { inferBannerTone } from "../../utils/format";
 
-export function FieldHomeScreen(): React.JSX.Element {
+export function FieldHomeScreen({ globalBanner }: { globalBanner?: string | null }): React.JSX.Element {
   const { auth, signOut } = useAuth();
+  const navigation = useNavigation();
   const { queueCount, refreshQueueCount } = useOfflineQueue();
 
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [banner, setBanner] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     if (!auth) {
@@ -31,6 +42,13 @@ export function FieldHomeScreen(): React.JSX.Element {
     setUnreadCount(notifications.filter((item) => !item.isRead).length);
   }, [auth, refreshQueueCount]);
 
+  const goToTab = useCallback(
+    (tabName: "Milestone" | "Unit" | "Kendala" | "Notifikasi") => {
+      (navigation as { navigate: (routeName: string) => void }).navigate(tabName);
+    },
+    [navigation]
+  );
+
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
@@ -39,6 +57,13 @@ export function FieldHomeScreen(): React.JSX.Element {
         setIsLoading(true);
         try {
           await loadData();
+          if (!cancelled) {
+            setBanner(null);
+          }
+        } catch (error) {
+          if (!cancelled) {
+            setBanner(error instanceof Error ? error.message : "Gagal memuat dashboard lapangan");
+          }
         } finally {
           if (!cancelled) {
             setIsLoading(false);
@@ -72,7 +97,64 @@ export function FieldHomeScreen(): React.JSX.Element {
         </Card>
       </View>
 
-      <SecondaryButton label="Muat Ulang Data" onPress={() => void loadData()} />
+      <Card>
+        <SectionTitle title="Aksi Cepat" caption="Akses fitur utama dengan satu tap" />
+        <View style={styles.quickActionGrid}>
+          <Pressable
+            onPress={() => goToTab("Milestone")}
+            style={({ pressed }) => [styles.quickActionBtn, pressed && styles.quickActionBtnPressed]}
+          >
+            <Text style={styles.quickActionTitle}>Update Milestone</Text>
+            <Text style={styles.quickActionCaption}>Laporkan progres unit</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => goToTab("Unit")}
+            style={({ pressed }) => [styles.quickActionBtn, pressed && styles.quickActionBtnPressed]}
+          >
+            <Text style={styles.quickActionTitle}>Daftar Unit</Text>
+            <Text style={styles.quickActionCaption}>Lihat status semua unit</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => goToTab("Kendala")}
+            style={({ pressed }) => [styles.quickActionBtn, pressed && styles.quickActionBtnPressed]}
+          >
+            <Text style={styles.quickActionTitle}>Laporan Kendala</Text>
+            <Text style={styles.quickActionCaption}>Buat laporan baru</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => goToTab("Notifikasi")}
+            style={({ pressed }) => [styles.quickActionBtn, pressed && styles.quickActionBtnPressed]}
+          >
+            <Text style={styles.quickActionTitle}>Notifikasi</Text>
+            <Text style={styles.quickActionCaption}>Cek update terbaru</Text>
+          </Pressable>
+        </View>
+      </Card>
+
+      <SecondaryButton
+        label="Muat Ulang Data"
+        onPress={() => {
+          void (async () => {
+            setIsLoading(true);
+            setBanner(null);
+
+            try {
+              await loadData();
+            } catch (error) {
+              setBanner(error instanceof Error ? error.message : "Gagal memuat dashboard lapangan");
+            } finally {
+              setIsLoading(false);
+            }
+          })();
+        }}
+      />
+
+      {banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
+
+      {globalBanner ? <StatusBanner message={globalBanner} tone={inferBannerTone(globalBanner)} /> : null}
 
       <Card>
         <Text style={styles.sectionTitle}>Ringkasan Proyek</Text>
@@ -112,10 +194,12 @@ export function FieldHomeScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   highlightRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 10,
   },
   highlightCard: {
     flex: 1,
+    minWidth: 148,
   },
   highlightLabel: {
     color: "#3a5f67",
@@ -136,6 +220,37 @@ const styles = StyleSheet.create({
   loadingText: {
     color: "#4f6f77",
     fontSize: 14,
+  },
+  quickActionGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  quickActionBtn: {
+    flexGrow: 1,
+    flexBasis: "48%",
+    minHeight: 72,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#cae1e5",
+    backgroundColor: "#f4fbfc",
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    justifyContent: "center",
+    gap: 2,
+  },
+  quickActionBtnPressed: {
+    opacity: 0.86,
+  },
+  quickActionTitle: {
+    color: "#184a55",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  quickActionCaption: {
+    color: "#4a7078",
+    fontSize: 11,
+    fontWeight: "600",
   },
   projectListWrap: {
     gap: 10,

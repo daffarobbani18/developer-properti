@@ -9,19 +9,28 @@ import {
   PrimaryButton,
   ScreenShell,
   SectionTitle,
+  StatusBanner,
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { getRoleNotifications, markNotificationsAsRead } from "../../services/api";
 import { NotificationItem } from "../../types";
-import { formatDateTime } from "../../utils/format";
+import { formatDateTime, inferBannerTone } from "../../utils/format";
 
-export function FieldNotificationsScreen(): React.JSX.Element {
+export function FieldNotificationsScreen({
+  globalBanner,
+}: {
+  globalBanner?: string | null;
+}): React.JSX.Element {
   const { auth } = useAuth();
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
+
+  const pushStatus = globalBanner
+    ? globalBanner
+    : "Push notification aktif jika izin diberikan dan aplikasi berjalan di perangkat fisik.";
 
   const loadData = useCallback(async () => {
     if (!auth) {
@@ -82,11 +91,18 @@ export function FieldNotificationsScreen(): React.JSX.Element {
   return (
     <ScreenShell title="Notifikasi" subtitle="Ringkasan pengingat dan update lapangan">
       <Card>
-        <SectionTitle title="Status Notifikasi" />
+        <SectionTitle title="Status Notifikasi" caption="Pantau ringkasan dan kanal push perangkat" />
         <View style={styles.topRow}>
-          <Text style={styles.topInfo}>Total: {notifications.length}</Text>
-          <Text style={styles.topInfo}>Belum dibaca: {unreadCount}</Text>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricLabel}>Total</Text>
+            <Text style={styles.metricValue}>{notifications.length}</Text>
+          </View>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricLabel}>Belum Dibaca</Text>
+            <Text style={styles.metricValue}>{unreadCount}</Text>
+          </View>
         </View>
+        <Text style={styles.pushStatusText}>{pushStatus}</Text>
         <PrimaryButton
           label={isSubmitting ? "Memproses..." : "Tandai Semua Dibaca"}
           onPress={() => void markAllRead()}
@@ -94,11 +110,9 @@ export function FieldNotificationsScreen(): React.JSX.Element {
         />
       </Card>
 
-      {banner ? (
-        <Card>
-          <Text style={styles.bannerText}>{banner}</Text>
-        </Card>
-      ) : null}
+      {banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
+
+      {globalBanner ? <StatusBanner message={globalBanner} tone={inferBannerTone(globalBanner)} /> : null}
 
       {isLoading ? (
         <Card>
@@ -126,17 +140,35 @@ export function FieldNotificationsScreen(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   topRow: {
-    gap: 3,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
   },
-  topInfo: {
+  metricPill: {
+    minWidth: 126,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#cde1e4",
+    backgroundColor: "#f6fbfc",
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  metricLabel: {
+    color: "#4f7078",
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  metricValue: {
+    color: "#1b4a53",
+    fontSize: 18,
+    fontWeight: "800",
+  },
+  pushStatusText: {
     color: "#315b64",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  bannerText: {
-    color: "#1f5661",
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: "600",
   },
   loadingText: {
     color: "#4f6f77",
@@ -153,7 +185,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 10,
-  },
+   },
   itemTitle: {
     flex: 1,
     color: "#143f49",

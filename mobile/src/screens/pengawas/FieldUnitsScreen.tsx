@@ -8,11 +8,14 @@ import {
   EmptyState,
   LabeledInput,
   ScreenShell,
+  SecondaryButton,
   SectionTitle,
+  StatusBanner,
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { getFieldUnits, getProjectOptions } from "../../services/api";
 import { Unit } from "../../types";
+import { formatUnitStatusLabel } from "../../utils/format";
 
 function toneByStatus(status: Unit["status"]): "success" | "warning" | "neutral" {
   if (status === "DONE") {
@@ -97,13 +100,17 @@ export function FieldUnitsScreen(): React.JSX.Element {
       done: units.filter((item) => item.status === "DONE").length,
       active: units.filter((item) => item.status === "IN_PROGRESS").length,
       pending: units.filter((item) => item.status === "NOT_STARTED").length,
+      completionRate:
+        units.length > 0
+          ? Math.round((units.filter((item) => item.status === "DONE").length / units.length) * 100)
+          : 0,
     };
   }, [units]);
 
   return (
     <ScreenShell title="Monitoring Unit" subtitle="Filter unit berdasarkan proyek dan progres">
       <Card>
-        <SectionTitle title="Filter" />
+        <SectionTitle title="Filter" caption="Pilih proyek lalu cari unit yang dibutuhkan" />
         <View style={styles.filterWrap}>
           <View style={styles.choiceWrap}>
             {projects.map((project) => (
@@ -129,24 +136,34 @@ export function FieldUnitsScreen(): React.JSX.Element {
             value={search}
             onChangeText={setSearch}
           />
+
+          <SecondaryButton label="Muat Ulang Unit" onPress={() => void loadUnits()} />
         </View>
       </Card>
 
       <Card>
-        <SectionTitle title="Statistik Unit" />
-        <View style={styles.statsRow}>
-          <Text style={styles.statsText}>Total: {stats.total}</Text>
-          <Text style={styles.statsText}>Selesai: {stats.done}</Text>
-          <Text style={styles.statsText}>Proses: {stats.active}</Text>
-          <Text style={styles.statsText}>Belum mulai: {stats.pending}</Text>
+        <SectionTitle title="Statistik Unit" caption="Ringkasan progres berdasarkan filter saat ini" />
+        <View style={styles.statsGrid}>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricLabel}>Total Unit</Text>
+            <Text style={styles.metricValue}>{stats.total}</Text>
+          </View>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricLabel}>Selesai</Text>
+            <Text style={styles.metricValue}>{stats.done}</Text>
+          </View>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricLabel}>Berjalan</Text>
+            <Text style={styles.metricValue}>{stats.active}</Text>
+          </View>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricLabel}>Completion</Text>
+            <Text style={styles.metricValue}>{stats.completionRate}%</Text>
+          </View>
         </View>
       </Card>
 
-      {errorMessage ? (
-        <Card>
-          <Text style={styles.errorText}>{errorMessage}</Text>
-        </Card>
-      ) : null}
+      {errorMessage ? <StatusBanner message={errorMessage} tone="danger" /> : null}
 
       {isLoading ? (
         <Card>
@@ -160,7 +177,7 @@ export function FieldUnitsScreen(): React.JSX.Element {
             <Card key={unit.id}>
               <View style={styles.rowTop}>
                 <Text style={styles.unitCode}>{unit.code}</Text>
-                <Badge label={unit.status} tone={toneByStatus(unit.status)} />
+                <Badge label={formatUnitStatusLabel(unit.status)} tone={toneByStatus(unit.status)} />
               </View>
               <Text style={styles.unitType}>{unit.typeName}</Text>
               <Text style={styles.unitMeta}>Progres konstruksi: {unit.progress}%</Text>
@@ -208,18 +225,32 @@ const styles = StyleSheet.create({
     color: "#134d57",
     fontWeight: "800",
   },
-  statsRow: {
-    gap: 4,
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
   },
-  statsText: {
-    color: "#2f5963",
-    fontSize: 13,
-    fontWeight: "700",
+  metricPill: {
+    flexGrow: 1,
+    minWidth: 112,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#cae0e4",
+    backgroundColor: "#f4fbfc",
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    gap: 2,
   },
-  errorText: {
-    color: "#a41f26",
+  metricLabel: {
+    color: "#4a6f78",
+    fontSize: 11,
     fontWeight: "700",
-    fontSize: 13,
+    textTransform: "uppercase",
+  },
+  metricValue: {
+    color: "#184b55",
+    fontSize: 18,
+    fontWeight: "800",
   },
   loadingText: {
     color: "#4f6f77",

@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { useNetInfo } from "@react-native-community/netinfo";
 
 import {
+  Badge,
   Card,
   EmptyState,
   LabeledInput,
@@ -10,6 +12,7 @@ import {
   ScreenShell,
   SecondaryButton,
   SectionTitle,
+  StatusBanner,
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { useOfflineQueue } from "../../hooks/useOfflineQueue";
@@ -19,13 +22,19 @@ import {
   getUnitMilestones,
   submitMilestoneUpdate,
 } from "../../services/api";
+import { capturePhoto, pickImages } from "../../services/media";
 import { Milestone, Unit } from "../../types";
-import { formatDate } from "../../utils/format";
+import {
+  formatDate,
+  formatMilestoneStatusLabel,
+  inferBannerTone,
+} from "../../utils/format";
 
 type MilestoneStatus = Milestone["status"];
 
 export function FieldMilestonesScreen(): React.JSX.Element {
   const { auth } = useAuth();
+  const netInfo = useNetInfo();
   const { queueCount, enqueueMilestone, flushQueue, refreshQueueCount } = useOfflineQueue();
 
   const [projects, setProjects] = useState<Array<{ id: string; name: string }>>([]);
@@ -38,15 +47,25 @@ export function FieldMilestonesScreen(): React.JSX.Element {
   const [statusDraft, setStatusDraft] = useState<MilestoneStatus>("IN_PROGRESS");
   const [noteDraft, setNoteDraft] = useState("");
   const [photoUrlDraft, setPhotoUrlDraft] = useState("");
+  const [selectedPhotoUris, setSelectedPhotoUris] = useState<string[]>([]);
 
   const [isOfflineMode, setIsOfflineMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAutoSyncing, setIsAutoSyncing] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
+
+  const isNetworkOffline = netInfo.isConnected === false;
+  const effectiveOfflineMode = isNetworkOffline || isOfflineMode;
 
   const selectedMilestone = useMemo(
     () => milestones.find((item) => item.id === selectedMilestoneId) ?? null,
     [milestones, selectedMilestoneId]
+  );
+
+  const completedMilestonesCount = useMemo(
+    () => milestones.filter((item) => item.status === "COMPLETED").length,
+    [milestones]
   );
 
   const loadProjects = useCallback(async () => {
@@ -150,6 +169,75 @@ export function FieldMilestonesScreen(): React.JSX.Element {
     })();
   }, [loadMilestones, selectedUnitId]);
 
+  useEffect(() => {
+    if (isNetworkOffline) {
+      setIsOfflineMode(true);
+      setBanner("Anda sedang offline. Update akan masuk ke antrian lokal.");
+    }
+  }, [isNetworkOffline]);
+
+  useEffect(() => {
+    if (!auth || netInfo.isConnected !== true || queueCount === 0 || isAutoSyncing) {
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      setIsAutoSyncing(true);
+      try {
+        const result = await flushQueue(auth);
+        if (!cancelled) {
+          setBanner(`Sinkron otomatis selesai. Berhasil ${result.synced}, gagal ${result.failed}.`);
+          await loadMilestones();
+        }
+      } catch {
+        if (!cancelled) {
+          setBanner("Sinkron otomatis gagal. Silakan coba sinkron manual.");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsAutoSyncing(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [auth, flushQueue, isAutoSyncing, loadMilestones, netInfo.isConnected, queueCount]);
+
+  const appendPhotoUris = useCallback((uris: string[]) => {
+    if (uris.length === 0) {
+      return;
+    }
+
+    setSelectedPhotoUris((prev) => {
+      const merged = [...new Set([...prev, ...uris])].slice(0, 5);
+      return merged;
+    });
+  }, []);
+
+  const takeMilestonePhoto = useCallback(async () => {
+    try {
+      const uri = await capturePhoto();
+      if (uri) {
+        appendPhotoUris([uri]);
+      }
+    } catch (error) {
+      setBanner(error instanceof Error ? error.message : "Gagal mengambil foto.");
+    }
+  }, [appendPhotoUris]);
+
+  const pickMilestonePhotoFromGallery = useCallback(async () => {
+    try {
+      const uris = await pickImages({ selectionLimit: 5 });
+      appendPhotoUris(uris);
+    } catch (error) {
+      setBanner(error instanceof Error ? error.message : "Gagal memilih foto dari galeri.");
+    }
+  }, [appendPhotoUris]);
+
   const submitUpdate = useCallback(async () => {
     if (!auth || !selectedMilestone) {
       return;
@@ -159,14 +247,15 @@ export function FieldMilestonesScreen(): React.JSX.Element {
       milestoneId: selectedMilestone.id,
       status: statusDraft,
       note: noteDraft,
-      photoUrl: photoUrlDraft,
+      photoUrl: photoUrlDraft || selectedPhotoUris[0],
+      photoUrls: selectedPhotoUris,
     };
 
     setIsSubmitting(true);
     setBanner(null);
 
     try {
-      if (isOfflineMode) {
+      if (effectiveOfflineMode) {
         await enqueueMilestone(payload);
         setMilestones((prev) =>
           prev.map((item) =>
@@ -175,17 +264,20 @@ export function FieldMilestonesScreen(): React.JSX.Element {
                   ...item,
                   status: statusDraft,
                   note: noteDraft,
-                  photos: photoUrlDraft
-                    ? [
-                        ...item.photos,
-                        {
-                          id: `offline-${Date.now()}`,
-                          url: photoUrlDraft,
-                          caption: "Antrian offline",
-                          createdAt: new Date().toISOString(),
-                        },
-                      ]
-                    : item.photos,
+                  photos:
+                    photoUrlDraft || selectedPhotoUris.length > 0
+                      ? [
+                          ...item.photos,
+                          ...[photoUrlDraft, ...selectedPhotoUris]
+                            .filter((uri): uri is string => Boolean(uri))
+                            .map((uri) => ({
+                              id: `offline-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                              url: uri,
+                              caption: "Antrian offline",
+                              createdAt: new Date().toISOString(),
+                            })),
+                        ]
+                      : item.photos,
                 }
               : item
           )
@@ -197,6 +289,7 @@ export function FieldMilestonesScreen(): React.JSX.Element {
       }
 
       await loadMilestones();
+      setSelectedPhotoUris([]);
     } catch (error) {
       setBanner(error instanceof Error ? error.message : "Gagal menyimpan perubahan milestone");
     } finally {
@@ -206,9 +299,11 @@ export function FieldMilestonesScreen(): React.JSX.Element {
     auth,
     enqueueMilestone,
     isOfflineMode,
+    effectiveOfflineMode,
     loadMilestones,
     noteDraft,
     photoUrlDraft,
+    selectedPhotoUris,
     selectedMilestone,
     statusDraft,
   ]);
@@ -241,15 +336,40 @@ export function FieldMilestonesScreen(): React.JSX.Element {
         <SectionTitle title="Mode Operasi" caption="Queue offline berguna saat jaringan tidak stabil" />
         <View style={styles.modeRow}>
           <PrimaryButton
-            label={isOfflineMode ? "Mode Offline Aktif" : "Aktifkan Mode Offline"}
+            label={effectiveOfflineMode ? "Mode Offline Aktif" : "Aktifkan Mode Offline"}
             onPress={() => setIsOfflineMode((prev) => !prev)}
+            disabled={isNetworkOffline}
           />
           <SecondaryButton
             label={`Sinkron Queue (${queueCount})`}
             onPress={() => void syncQueueNow()}
-            disabled={queueCount === 0 || isSubmitting}
+            disabled={queueCount === 0 || isSubmitting || isNetworkOffline}
           />
         </View>
+        <Badge
+          label={isNetworkOffline ? "Offline" : "Online"}
+          tone={isNetworkOffline ? "warning" : "success"}
+        />
+        {isAutoSyncing ? <Badge label="Sinkron otomatis berjalan" tone="warning" /> : null}
+      </Card>
+
+      <Card>
+        <SectionTitle title="Ringkasan Milestone" caption="Pantau status update unit saat ini" />
+        <View style={styles.metricGrid}>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricLabel}>Total Milestone</Text>
+            <Text style={styles.metricValue}>{milestones.length}</Text>
+          </View>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricLabel}>Selesai</Text>
+            <Text style={styles.metricValue}>{completedMilestonesCount}</Text>
+          </View>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricLabel}>Queue Offline</Text>
+            <Text style={styles.metricValue}>{queueCount}</Text>
+          </View>
+        </View>
+        <SecondaryButton label="Muat Ulang Milestone" onPress={() => void loadMilestones()} />
       </Card>
 
       <Card>
@@ -308,7 +428,7 @@ export function FieldMilestonesScreen(): React.JSX.Element {
       ) : (
         <>
           <Card>
-            <SectionTitle title="Daftar Milestone" />
+            <SectionTitle title="Daftar Milestone" caption="Pilih item untuk diubah status dan lampirannya" />
             <View style={styles.milestoneListWrap}>
               {milestones.map((item) => (
                 <Pressable
@@ -318,6 +438,7 @@ export function FieldMilestonesScreen(): React.JSX.Element {
                     setStatusDraft(item.status);
                     setNoteDraft(item.note ?? "");
                     setPhotoUrlDraft("");
+                    setSelectedPhotoUris([]);
                   }}
                   style={({ pressed }) => [
                     styles.milestoneCard,
@@ -329,7 +450,7 @@ export function FieldMilestonesScreen(): React.JSX.Element {
                     {item.orderNo}. {item.name}
                   </Text>
                   <Text style={styles.milestoneMeta}>Target: {formatDate(item.targetDate)}</Text>
-                  <Text style={styles.milestoneMeta}>Status: {item.status}</Text>
+                  <Text style={styles.milestoneMeta}>Status: {formatMilestoneStatusLabel(item.status)}</Text>
                   <Text style={styles.milestoneMeta}>Foto: {item.photos.length} file</Text>
                 </Pressable>
               ))}
@@ -351,7 +472,7 @@ export function FieldMilestonesScreen(): React.JSX.Element {
                   ]}
                 >
                   <Text style={[styles.statusText, statusDraft === status && styles.statusTextActive]}>
-                    {status}
+                    {formatMilestoneStatusLabel(status)}
                   </Text>
                 </Pressable>
               ))}
@@ -372,8 +493,40 @@ export function FieldMilestonesScreen(): React.JSX.Element {
               placeholder="https://..."
               value={photoUrlDraft}
               onChangeText={setPhotoUrlDraft}
-              hint="Jika offline, URL akan masuk ke queue untuk dikirim saat sinkron"
+              hint="Opsional: gunakan jika ingin lampirkan URL manual"
             />
+
+            <View style={styles.photoActionRow}>
+              <SecondaryButton label="Ambil Foto" onPress={() => void takeMilestonePhoto()} />
+              <SecondaryButton
+                label="Pilih Galeri"
+                onPress={() => void pickMilestonePhotoFromGallery()}
+              />
+            </View>
+
+            <Text style={styles.helperText}>Lampiran foto opsional, maksimal 5 file per update.</Text>
+
+            <Text style={styles.photoMetaText}>
+              Lampiran foto terpilih: {selectedPhotoUris.length}/5
+            </Text>
+
+            {selectedPhotoUris.length > 0 ? (
+              <View style={styles.photoListWrap}>
+                {selectedPhotoUris.map((uri, index) => (
+                  <View key={`${uri}-${index}`} style={styles.photoItemRow}>
+                    <Text style={styles.photoItemText}>{uri}</Text>
+                    <Pressable
+                      onPress={() => {
+                        setSelectedPhotoUris((prev) => prev.filter((_, idx) => idx !== index));
+                      }}
+                      style={({ pressed }) => [styles.removePhotoBtn, pressed && styles.choicePillPressed]}
+                    >
+                      <Text style={styles.removePhotoText}>Hapus</Text>
+                    </Pressable>
+                  </View>
+                ))}
+              </View>
+            ) : null}
 
             <PrimaryButton
               label={isSubmitting ? "Menyimpan..." : "Simpan Update"}
@@ -384,11 +537,7 @@ export function FieldMilestonesScreen(): React.JSX.Element {
         </>
       )}
 
-      {banner ? (
-        <Card>
-          <Text style={styles.bannerText}>{banner}</Text>
-        </Card>
-      ) : null}
+      {banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
     </ScreenShell>
   );
 }
@@ -396,6 +545,33 @@ export function FieldMilestonesScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   modeRow: {
     gap: 8,
+  },
+  metricGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  metricPill: {
+    flexGrow: 1,
+    minWidth: 112,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#cae0e4",
+    backgroundColor: "#f4fbfc",
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    gap: 2,
+  },
+  metricLabel: {
+    color: "#4a6f78",
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  metricValue: {
+    color: "#184b55",
+    fontSize: 18,
+    fontWeight: "800",
   },
   choiceWrap: {
     flexDirection: "row",
@@ -478,9 +654,50 @@ const styles = StyleSheet.create({
   statusTextActive: {
     color: "#0f4852",
   },
-  bannerText: {
-    color: "#1e5661",
-    fontSize: 13,
+  helperText: {
+    color: "#486f78",
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "600",
+  },
+  photoActionRow: {
+    gap: 8,
+  },
+  photoMetaText: {
+    color: "#355f68",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  photoListWrap: {
+    gap: 6,
+  },
+  photoItemRow: {
+    borderWidth: 1,
+    borderColor: "#c6dbde",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    backgroundColor: "#f7fcfd",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  photoItemText: {
+    flex: 1,
+    color: "#3a646d",
+    fontSize: 12,
+  },
+  removePhotoBtn: {
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#d79b93",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: "#fff1ef",
+  },
+  removePhotoText: {
+    color: "#9d3428",
+    fontSize: 11,
     fontWeight: "700",
   },
 });

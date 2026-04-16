@@ -8,13 +8,16 @@ import {
   EmptyState,
   LabeledInput,
   PrimaryButton,
+  SecondaryButton,
   ScreenShell,
   SectionTitle,
+  StatusBanner,
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { createCustomerTicket, getCustomerSupportData } from "../../services/api";
+import { capturePhoto, pickImages } from "../../services/media";
 import { FaqItem, TicketItem } from "../../types";
-import { formatDateTime } from "../../utils/format";
+import { formatDateTime, formatTicketStatusLabel, inferBannerTone } from "../../utils/format";
 
 const TICKET_CATEGORIES: TicketItem["category"][] = [
   "Progres",
@@ -45,7 +48,16 @@ export function CustomerSupportScreen(): React.JSX.Element {
   const [category, setCategory] = useState<TicketItem["category"]>("Progres");
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
+  const [photoUris, setPhotoUris] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const openTicketsCount = tickets.filter(
+    (ticket) => ticket.status === "BARU" || ticket.status === "SEDANG_DITANGANI"
+  ).length;
+
+  const closedTicketsCount = tickets.filter(
+    (ticket) => ticket.status === "SELESAI" || ticket.status === "DITUTUP"
+  ).length;
 
   const loadData = useCallback(async () => {
     if (!auth) {
@@ -98,11 +110,13 @@ export function CustomerSupportScreen(): React.JSX.Element {
         category,
         subject: subject.trim(),
         description: description.trim(),
+        photoUrls: photoUris,
       });
 
       setSubject("");
       setDescription("");
       setCategory("Progres");
+      setPhotoUris([]);
       await loadData();
       setBanner("Tiket bantuan berhasil dibuat.");
     } catch (error) {
@@ -110,7 +124,35 @@ export function CustomerSupportScreen(): React.JSX.Element {
     } finally {
       setIsSubmitting(false);
     }
-  }, [auth, category, description, loadData, subject]);
+  }, [auth, category, description, loadData, photoUris, subject]);
+
+  const takePhoto = useCallback(async () => {
+    try {
+      const uri = await capturePhoto();
+      if (uri) {
+        setPhotoUris((previous) => [...previous, uri].slice(0, 3));
+      }
+    } catch (error) {
+      setBanner(error instanceof Error ? error.message : "Gagal mengambil foto dari kamera.");
+    }
+  }, []);
+
+  const pickPhotos = useCallback(async () => {
+    try {
+      const remaining = 3 - photoUris.length;
+      if (remaining <= 0) {
+        setBanner("Maksimal 3 foto lampiran.");
+        return;
+      }
+
+      const uris = await pickImages({ selectionLimit: remaining });
+      if (uris.length > 0) {
+        setPhotoUris((previous) => [...previous, ...uris].slice(0, 3));
+      }
+    } catch (error) {
+      setBanner(error instanceof Error ? error.message : "Gagal memilih foto dari galeri.");
+    }
+  }, [photoUris.length]);
 
   const contactWhatsApp = useCallback(() => {
     const raw = process.env.EXPO_PUBLIC_WHATSAPP_NUMBER ?? "628123456789";
@@ -122,12 +164,34 @@ export function CustomerSupportScreen(): React.JSX.Element {
   return (
     <ScreenShell title="Bantuan" subtitle="Buat tiket, cek status, dan akses FAQ">
       <Card>
-        <SectionTitle title="Kontak Cepat" />
+        <SectionTitle title="Kontak Cepat" caption="Gunakan kanal ini untuk respon lebih cepat" />
         <PrimaryButton label="Hubungi WhatsApp CS" onPress={contactWhatsApp} />
       </Card>
 
       <Card>
-        <SectionTitle title="Buat Tiket Baru" />
+        <SectionTitle title="Ringkasan Tiket" caption="Pantau jumlah tiket aktif dan selesai" />
+        <View style={styles.metricRow}>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricLabel}>Total Tiket</Text>
+            <Text style={styles.metricValue}>{tickets.length}</Text>
+          </View>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricLabel}>Aktif</Text>
+            <Text style={styles.metricValue}>{openTicketsCount}</Text>
+          </View>
+          <View style={styles.metricPill}>
+            <Text style={styles.metricLabel}>Selesai</Text>
+            <Text style={styles.metricValue}>{closedTicketsCount}</Text>
+          </View>
+        </View>
+        <SecondaryButton label="Muat Ulang Tiket" onPress={() => void loadData()} />
+      </Card>
+
+      <Card>
+        <SectionTitle
+          title="Buat Tiket Baru"
+          caption="Lengkapi detail agar tim dapat memproses lebih cepat"
+        />
 
         <Text style={styles.label}>Kategori</Text>
         <View style={styles.pillRow}>
@@ -163,6 +227,29 @@ export function CustomerSupportScreen(): React.JSX.Element {
           onChangeText={setDescription}
         />
 
+        <Text style={styles.helperText}>Lampiran foto opsional, maksimal 3 gambar per tiket.</Text>
+
+        <View style={styles.photoActionRow}>
+          <SecondaryButton label="Ambil Foto" onPress={() => void takePhoto()} />
+          <SecondaryButton label="Pilih dari Galeri" onPress={() => void pickPhotos()} />
+        </View>
+
+        {photoUris.length > 0 ? (
+          <View style={styles.photoListWrap}>
+            {photoUris.map((uri) => (
+              <View key={uri} style={styles.photoItemRow}>
+                <Text style={styles.photoItemText}>{uri}</Text>
+                <Pressable
+                  onPress={() => setPhotoUris((previous) => previous.filter((item) => item !== uri))}
+                  style={({ pressed }) => [styles.pill, pressed && styles.pillPressed]}
+                >
+                  <Text style={styles.pillText}>Hapus</Text>
+                </Pressable>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
         <PrimaryButton
           label={isSubmitting ? "Mengirim..." : "Kirim Tiket"}
           onPress={() => void submitTicket()}
@@ -170,11 +257,7 @@ export function CustomerSupportScreen(): React.JSX.Element {
         />
       </Card>
 
-      {banner ? (
-        <Card>
-          <Text style={styles.bannerText}>{banner}</Text>
-        </Card>
-      ) : null}
+      {banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
 
       {isLoading ? (
         <Card>
@@ -183,7 +266,7 @@ export function CustomerSupportScreen(): React.JSX.Element {
       ) : (
         <>
           <Card>
-            <SectionTitle title="Tiket Anda" />
+            <SectionTitle title="Tiket Anda" caption="Riwayat permintaan bantuan yang pernah diajukan" />
             {tickets.length === 0 ? (
               <EmptyState message="Belum ada tiket bantuan." />
             ) : (
@@ -192,10 +275,15 @@ export function CustomerSupportScreen(): React.JSX.Element {
                   <View key={ticket.id} style={styles.ticketItem}>
                     <View style={styles.ticketTopRow}>
                       <Text style={styles.ticketTitle}>{ticket.subject}</Text>
-                      <Badge label={ticket.status} tone={statusTone(ticket.status)} />
+                      <Badge label={formatTicketStatusLabel(ticket.status)} tone={statusTone(ticket.status)} />
                     </View>
-                    <Text style={styles.ticketMeta}>Kategori: {ticket.category}</Text>
-                    <Text style={styles.ticketMeta}>{formatDateTime(ticket.createdAt)}</Text>
+                    <View style={styles.ticketMetaRow}>
+                      <Badge label={ticket.category} tone="neutral" />
+                      <Text style={styles.ticketMeta}>{formatDateTime(ticket.createdAt)}</Text>
+                    </View>
+                    {ticket.photoUrls?.length ? (
+                      <Text style={styles.ticketMeta}>Lampiran: {ticket.photoUrls.length} foto</Text>
+                    ) : null}
                     <Text style={styles.ticketDesc}>{ticket.description}</Text>
                   </View>
                 ))}
@@ -204,7 +292,7 @@ export function CustomerSupportScreen(): React.JSX.Element {
           </Card>
 
           <Card>
-            <SectionTitle title="FAQ" />
+            <SectionTitle title="FAQ" caption="Jawaban cepat untuk pertanyaan paling sering" />
             {faq.length === 0 ? (
               <EmptyState message="FAQ belum tersedia." />
             ) : (
@@ -225,6 +313,33 @@ export function CustomerSupportScreen(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
+  metricRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  metricPill: {
+    flexGrow: 1,
+    minWidth: 100,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#cae0e4",
+    backgroundColor: "#f4fbfc",
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    gap: 2,
+  },
+  metricLabel: {
+    color: "#4a6f78",
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
+  metricValue: {
+    color: "#184b55",
+    fontSize: 18,
+    fontWeight: "800",
+  },
   label: {
     color: "#1f4f5a",
     fontSize: 12,
@@ -261,10 +376,33 @@ const styles = StyleSheet.create({
   pillTextActive: {
     color: "#114a53",
   },
-  bannerText: {
-    color: "#1f5661",
-    fontSize: 13,
-    fontWeight: "700",
+  photoActionRow: {
+    gap: 8,
+  },
+  helperText: {
+    color: "#486f78",
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "600",
+  },
+  photoListWrap: {
+    gap: 8,
+  },
+  photoItemRow: {
+    borderWidth: 1,
+    borderColor: "#c6dbde",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    backgroundColor: "#f7fcfd",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  photoItemText: {
+    flex: 1,
+    color: "#3a646d",
+    fontSize: 12,
   },
   loadingText: {
     color: "#4f6f77",
@@ -296,6 +434,12 @@ const styles = StyleSheet.create({
   ticketMeta: {
     color: "#3f6972",
     fontSize: 12,
+  },
+  ticketMetaRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 8,
   },
   ticketDesc: {
     color: "#2f5d66",

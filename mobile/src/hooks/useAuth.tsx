@@ -1,8 +1,18 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { AppState } from "react-native";
 
 import { login } from "../services/api";
-import { clearStoredAuth, getStoredAuth, setStoredAuth } from "../services/storage";
+import {
+  clearAuthInactiveAt,
+  clearStoredAuth,
+  getAuthInactiveAt,
+  getStoredAuth,
+  setAuthInactiveAt,
+  setStoredAuth,
+} from "../services/storage";
 import { AuthState } from "../types";
+
+const AUTO_LOCK_TIMEOUT_MS = 15 * 60 * 1000;
 
 type AuthContextValue = {
   auth: AuthState | null;
@@ -38,6 +48,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState === "background" || nextState === "inactive") {
+        void setAuthInactiveAt(Date.now());
+        return;
+      }
+
+      if (nextState === "active") {
+        void (async () => {
+          const timestamp = await getAuthInactiveAt();
+          if (!timestamp) {
+            return;
+          }
+
+          if (!auth) {
+            await clearAuthInactiveAt();
+            return;
+          }
+
+          if (Date.now() - timestamp >= AUTO_LOCK_TIMEOUT_MS) {
+            await clearStoredAuth();
+            setAuth(null);
+          }
+
+          await clearAuthInactiveAt();
+        })();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [auth]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

@@ -244,6 +244,7 @@ export async function submitMilestoneUpdate(
     status: Milestone["status"];
     note?: string;
     photoUrl?: string;
+    photoUrls?: string[];
   }
 ): Promise<Milestone> {
   const session = ensureAuth(auth);
@@ -287,6 +288,7 @@ export async function createFieldIssue(
     urgency: IssueItem["urgency"];
     reporterName: string;
     recommendation?: string;
+    photoUrls?: string[];
   }
 ): Promise<IssueItem> {
   const session = ensureAuth(auth);
@@ -359,6 +361,27 @@ export async function markNotificationsAsRead(
     return unwrapData(response);
   } catch {
     return markNotificationsRead(session.user.role);
+  }
+}
+
+export async function registerPushToken(
+  auth: AuthState | null,
+  payload: { expoPushToken: string; platform: "android" | "ios" | "web"; appVersion?: string }
+): Promise<void> {
+  const session = ensureAuth(auth);
+
+  try {
+    await requestJson<{ success: boolean } | { data: { success: boolean } }>(
+      "/mobile/notifications/push-token",
+      {
+        method: "POST",
+        token: session.token,
+        body: JSON.stringify(payload),
+      }
+    );
+  } catch {
+    // The upstream API may not expose push token registration yet.
+    // Keep this silent so local/mock workflow continues to work.
   }
 }
 
@@ -480,6 +503,7 @@ export async function createCustomerTicket(
     category: TicketItem["category"];
     subject: string;
     description: string;
+    photoUrls?: string[];
   }
 ): Promise<TicketItem> {
   const session = ensureAuth(auth);

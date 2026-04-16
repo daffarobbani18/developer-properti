@@ -2,11 +2,19 @@ import React, { useCallback, useMemo, useState } from "react";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
-import { Badge, Card, EmptyState, ScreenShell, SectionTitle } from "../../components/ui";
+import {
+  Badge,
+  Card,
+  EmptyState,
+  ScreenShell,
+  SecondaryButton,
+  SectionTitle,
+  StatusBanner,
+} from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { getCustomerProgressData } from "../../services/api";
 import { Milestone } from "../../types";
-import { formatDate } from "../../utils/format";
+import { formatDate, formatMilestoneStatusLabel, inferBannerTone } from "../../utils/format";
 
 function toneByStatus(status: Milestone["status"]): "neutral" | "warning" | "success" {
   if (status === "COMPLETED") {
@@ -33,6 +41,19 @@ export function CustomerProgressScreen(): React.JSX.Element {
     const data = await getCustomerProgressData(auth);
     setMilestones(data);
   }, [auth]);
+
+  const handleReload = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      await loadData();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Gagal memuat progres");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [loadData]);
 
   useFocusEffect(
     useCallback(() => {
@@ -77,14 +98,14 @@ export function CustomerProgressScreen(): React.JSX.Element {
         <Text style={styles.summaryText}>Sedang berjalan: {stats.active}</Text>
       </Card>
 
+      <SecondaryButton label="Muat Ulang Progres" onPress={() => void handleReload()} disabled={isLoading} />
+
       {isLoading ? (
         <Card>
           <Text style={styles.loadingText}>Memuat data progres...</Text>
         </Card>
       ) : errorMessage ? (
-        <Card>
-          <Text style={styles.errorText}>{errorMessage}</Text>
-        </Card>
+        <StatusBanner message={errorMessage} tone={inferBannerTone(errorMessage)} />
       ) : milestones.length === 0 ? (
         <EmptyState message="Belum ada data milestone untuk unit Anda." />
       ) : (
@@ -93,7 +114,7 @@ export function CustomerProgressScreen(): React.JSX.Element {
             <Card key={item.id}>
               <View style={styles.rowTop}>
                 <Text style={styles.title}>{item.orderNo}. {item.name}</Text>
-                <Badge label={item.status} tone={toneByStatus(item.status)} />
+                <Badge label={formatMilestoneStatusLabel(item.status)} tone={toneByStatus(item.status)} />
               </View>
               <Text style={styles.meta}>Target: {formatDate(item.targetDate)}</Text>
               <Text style={styles.meta}>Aktual: {item.actualDate ? formatDate(item.actualDate) : "-"}</Text>
@@ -135,11 +156,6 @@ const styles = StyleSheet.create({
   loadingText: {
     color: "#4f6f77",
     fontSize: 14,
-  },
-  errorText: {
-    color: "#a41f26",
-    fontSize: 13,
-    fontWeight: "700",
   },
   listWrap: {
     gap: 10,

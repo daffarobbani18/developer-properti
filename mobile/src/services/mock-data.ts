@@ -479,6 +479,7 @@ export function updateMilestone(params: {
   status: Milestone["status"];
   note?: string;
   photoUrl?: string;
+  photoUrls?: string[];
 }): Milestone {
   const target = milestones.find((item) => item.id === params.milestoneId);
 
@@ -500,6 +501,19 @@ export function updateMilestone(params: {
       caption: "Upload dari aplikasi mobile",
       createdAt: new Date().toISOString(),
     });
+  }
+
+  if (params.photoUrls?.length) {
+    params.photoUrls
+      .filter((item) => item.trim().length > 0)
+      .forEach((uri) => {
+        target.photos.push({
+          id: `photo-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          url: uri,
+          caption: "Upload multi-foto dari aplikasi mobile",
+          createdAt: new Date().toISOString(),
+        });
+      });
   }
 
   const unitMilestones = milestones.filter((item) => item.unitId === target.unitId);
@@ -531,6 +545,7 @@ export function addIssue(payload: {
   urgency: IssueItem["urgency"];
   reporterName: string;
   recommendation?: string;
+  photoUrls?: string[];
 }): IssueItem {
   const newIssue: IssueItem = {
     id: `issue-${Date.now()}`,
@@ -543,6 +558,7 @@ export function addIssue(payload: {
     status: "BARU",
     reporterName: payload.reporterName,
     recommendation: payload.recommendation,
+    photoUrls: payload.photoUrls,
     createdAt: new Date().toISOString(),
   };
 
@@ -625,6 +641,7 @@ export function uploadPaymentProof(payload: {
     amount: payload.amount,
     method: "TRANSFER",
     status: "MENUNGGU_VERIFIKASI",
+    proofUrl: payload.proofUrl,
     paidAt: new Date().toISOString(),
   };
 
@@ -657,6 +674,7 @@ export function createTicket(payload: {
   category: TicketItem["category"];
   subject: string;
   description: string;
+  photoUrls?: string[];
 }): TicketItem {
   const ticket: TicketItem = {
     id: `ticket-${Date.now()}`,
@@ -664,6 +682,7 @@ export function createTicket(payload: {
     subject: payload.subject,
     description: payload.description,
     status: "BARU",
+    photoUrls: payload.photoUrls,
     createdAt: new Date().toISOString(),
   };
 
