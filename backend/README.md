@@ -1,9 +1,9 @@
-# Backend — NestJS API
+# Backend — Express API
 
 Shared API server untuk semua aplikasi SIMDP.
 
 ## Tech Stack
-- NestJS + TypeScript
+- Express + TypeScript
 - Prisma ORM
 - PostgreSQL
 - JWT Authentication
@@ -27,5 +27,5 @@ npm install
 npx prisma migrate dev
 
 # Run development server
-npm run start:dev
+npm run dev
 ```
