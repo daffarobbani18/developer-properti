@@ -13,6 +13,7 @@ const links = [
   { label: "Unit", href: "/unit" },
   { label: "Lokasi", href: "/lokasi" },
   { label: "Tentang", href: "/tentang" },
+  { label: "Simulasi KPR", href: "/simulasi-kpr" },
   { label: "FAQ", href: "/faq" },
   { label: "Kontak", href: "/kontak" },
 ];
