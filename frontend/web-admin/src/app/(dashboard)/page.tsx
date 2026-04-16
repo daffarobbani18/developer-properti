@@ -126,7 +126,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-2">
-                <span className="font-[family-name:var(--font-heading)] text-2xl font-bold tracking-tight text-white">
+                <span className="font-[family-name:var(--font-heading)] text-2xl font-bold tracking-tight text-slate-900">
                   {stat.value}
                 </span>
               </div>

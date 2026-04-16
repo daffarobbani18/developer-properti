@@ -42,6 +42,113 @@ const avgProgressProyek = Math.round(
 const totalKendalaAktif = dummyKendala.filter((item) => item.status !== "selesai").length;
 const totalUnitProyek = dummyUnit.length;
 
+const currencyShort = (value: number) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+
+const roleSnapshots = {
+  admin: [
+    {
+      title: "Leads Perlu Follow-up",
+      items: dummyLeads.slice(0, 3).map((lead) => ({
+        label: lead.nama,
+        meta: `${lead.status} • ${lead.minatUnit}`,
+      })),
+    },
+    {
+      title: "Transaksi Terkini",
+      items: dummyTransaksi.slice(0, 3).map((trx) => ({
+        label: trx.namaPembeli,
+        meta: `${trx.nomorUnit} • ${currencyShort(trx.nilaiTransaksi)}`,
+      })),
+    },
+  ],
+  inventory: [
+    {
+      title: "Unit Terbaru",
+      items: dummyUnits.slice(0, 4).map((unit) => ({
+        label: unit.nomorUnit,
+        meta: `${unit.blok} • ${unit.tipe} • ${unit.status}`,
+      })),
+    },
+    {
+      title: "Proyek Aktif",
+      items: dummyProyek.map((proyek) => ({
+        label: proyek.nama,
+        meta: `${proyek.persentaseSelesai}% selesai • ${proyek.lokasi}`,
+      })),
+    },
+  ],
+  sales: [
+    {
+      title: "Hot Leads",
+      items: dummyLeads.filter((lead) => lead.status !== "baru").slice(0, 4).map((lead) => ({
+        label: lead.nama,
+        meta: `${lead.status} • PIC ${lead.salesPIC}`,
+      })),
+    },
+    {
+      title: "Aktivitas Terbaru",
+      items: dummyAktivitas.slice(0, 4).map((activity) => ({
+        label: activity.namaLead,
+        meta: `${activity.tipe} • ${activity.tanggal}`,
+      })),
+    },
+  ],
+  finance: [
+    {
+      title: "Tagihan Prioritas",
+      items: dummyTagihan.slice(0, 4).map((tagihan) => ({
+        label: `${tagihan.customerNama} • ${tagihan.unit}`,
+        meta: `${tagihan.status} • ${currencyShort(tagihan.nominal)}`,
+      })),
+    },
+    {
+      title: "Pengeluaran Terbaru",
+      items: dummyPengeluaran.slice(0, 4).map((item) => ({
+        label: item.keterangan,
+        meta: `${item.kategori} • ${currencyShort(item.nominal)}`,
+      })),
+    },
+  ],
+  legal: [
+    {
+      title: "Transaksi Perlu Dokumen",
+      items: dummyTransaksi.slice(0, 4).map((trx) => ({
+        label: trx.namaPembeli,
+        meta: `${trx.nomorUnit} • status ${trx.statusKPR}`,
+      })),
+    },
+    {
+      title: "Kendala Legal Terkini",
+      items: dummyKendala.slice(0, 4).map((item) => ({
+        label: item.judul,
+        meta: `${item.status} • ${item.prioritas} • ${item.kategori}`,
+      })),
+    },
+  ],
+  supervisor: [
+    {
+      title: "Kendala Lapangan",
+      items: dummyKendala.slice(0, 4).map((item) => ({
+        label: item.judul,
+        meta: `${item.status} • ${item.prioritas}`,
+      })),
+    },
+    {
+      title: "Unit Progres Terendah",
+      items: dummyUnit.slice(0, 4).map((unit) => ({
+        label: unit.nomorUnit,
+        meta: `${unit.persentaseSelesai}% selesai • ${unit.status}`,
+      })),
+    },
+  ],
+} as const;
+
 const ROLE_DASHBOARD: Record<
   Role,
   {
@@ -206,6 +313,30 @@ export default async function RoleDashboardPage({
                 </CardContent>
               </Card>
             </Link>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h2 className="mb-4 font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-slate-900">Snapshot Data</h2>
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          {roleSnapshots[role as Role].map((section) => (
+            <Card key={section.title} className="rounded-2xl border border-slate-200 bg-white shadow-[0_5px_15px_rgba(0,0,0,0.05)]">
+              <CardContent className="p-5 sm:p-6">
+                <h3 className="text-sm font-semibold text-slate-900">{section.title}</h3>
+                <div className="mt-4 space-y-3">
+                  {section.items.map((item) => (
+                    <div key={item.label} className="flex items-start justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">{item.label}</p>
+                        <p className="mt-1 text-xs text-slate-600">{item.meta}</p>
+                      </div>
+                      <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
