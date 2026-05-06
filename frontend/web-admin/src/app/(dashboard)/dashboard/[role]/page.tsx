@@ -270,73 +270,89 @@ export default async function RoleDashboardPage({
 
   return (
     <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.06)] backdrop-blur-2xl md:p-8">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.07),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.04),transparent_25%)]" />
-        <div className="relative space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-slate-600">
-            <Sparkles size={12} className={dashboard.tone} /> Role Dashboard
+      {/* Hero Section */}
+      <section className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
+        <div className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.06),transparent_40%)]" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-amber-700">
+              <Sparkles size={11} className="text-amber-500" /> Portal Manajemen
+            </div>
+            <h1 className="font-serif text-3xl font-semibold tracking-tight text-zinc-900 md:text-4xl">
+              {dashboard.title}
+            </h1>
+            <p className="max-w-2xl text-sm text-zinc-500 leading-relaxed">{dashboard.subtitle}</p>
           </div>
-          <h1 className="font-[family-name:var(--font-heading)] text-3xl md:text-5xl font-semibold tracking-tight text-slate-900 leading-tight">
-            {dashboard.title}
-          </h1>
-          <p className="max-w-2xl text-sm md:text-base text-slate-600 leading-relaxed">{dashboard.subtitle}</p>
+          <div className="shrink-0">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-200 bg-amber-50 shadow-sm">
+              <Sparkles size={28} className="text-amber-500" />
+            </div>
+          </div>
         </div>
       </section>
 
+      {/* Stat Cards */}
       <div id="dashboard-stats" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {dashboard.stats.map((stat) => (
-          <Card key={stat.label} className="rounded-2xl border border-slate-200 bg-white shadow-[0_5px_15px_rgba(0,0,0,0.05)]">
-            <CardContent className="p-5">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">{stat.label}</p>
-              <p className="mt-2 text-3xl font-[family-name:var(--font-heading)] font-semibold text-slate-900">{stat.value}</p>
-              <p className="mt-1 text-xs text-slate-600">{stat.note}</p>
-            </CardContent>
-          </Card>
+        {dashboard.stats.map((stat, idx) => (
+          <div key={stat.label} className="group rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+            <div className="mb-4 flex items-start justify-between">
+              <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${
+                idx === 0 ? "bg-amber-50" : idx === 1 ? "bg-blue-50" : "bg-emerald-50"
+              }`}>
+                <Sparkles size={20} className={
+                  idx === 0 ? "text-amber-500" : idx === 1 ? "text-blue-500" : "text-emerald-500"
+                } />
+              </div>
+            </div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{stat.label}</p>
+            <p className="mt-2 text-3xl font-bold text-zinc-900">{stat.value}</p>
+            <p className="mt-1 text-xs text-zinc-500">{stat.note}</p>
+          </div>
         ))}
       </div>
 
+      {/* Aksi Cepat */}
       <div id="aksi-cepat">
-        <h2 className="mb-4 font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-slate-900">Aksi Cepat</h2>
+        <h2 className="mb-4 text-lg font-bold text-zinc-900">Aksi Cepat</h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {dashboard.quickLinks.map((item) => (
             <Link key={item.href + item.label} href={item.href}>
-              <Card className="group h-full rounded-2xl border border-slate-200 bg-white shadow-[0_5px_15px_rgba(0,0,0,0.05)] transition-all duration-200 hover:-translate-y-1 hover:border-amber-300 hover:shadow-[0_8px_25px_rgba(0,0,0,0.08)]">
-                <CardContent className="p-5">
-                  <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
-                    <ArrowUpRight className="h-4 w-4 text-slate-600 group-hover:text-amber-600" />
-                  </div>
-                  <p className="text-sm font-semibold text-slate-900 group-hover:text-amber-600">{item.label}</p>
-                  <p className="mt-1 text-xs text-slate-600">{item.desc}</p>
-                  <Badge className="mt-3 rounded-md border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-100">
-                    <BadgeCheck className="mr-1 h-3.5 w-3.5" /> Buka Modul
-                  </Badge>
-                </CardContent>
-              </Card>
+              <div className="group flex h-full flex-col rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-200 hover:shadow-[0_8px_25px_rgba(245,158,11,0.12)]">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-50 transition-colors group-hover:border-amber-200 group-hover:bg-amber-50">
+                  <ArrowUpRight className="h-5 w-5 text-zinc-400 transition-colors group-hover:text-amber-500" />
+                </div>
+                <p className="text-sm font-semibold text-zinc-900 transition-colors group-hover:text-amber-600">{item.label}</p>
+                <p className="mt-1 flex-1 text-xs leading-relaxed text-zinc-500">{item.desc}</p>
+                <div className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-amber-200/60 bg-amber-50/60 px-3 py-1.5 text-[11px] font-medium text-amber-600 transition-colors group-hover:bg-amber-100">
+                  <BadgeCheck className="h-3.5 w-3.5" /> Buka Modul
+                </div>
+              </div>
             </Link>
           ))}
         </div>
       </div>
 
+      {/* Snapshot Data */}
       <div id="snapshot-data">
-        <h2 className="mb-4 font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-slate-900">Snapshot Data</h2>
+        <h2 className="mb-4 text-lg font-bold text-zinc-900">Snapshot Data</h2>
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
           {roleSnapshots[role as Role].map((section) => (
-            <Card key={section.title} className="rounded-2xl border border-slate-200 bg-white shadow-[0_5px_15px_rgba(0,0,0,0.05)]">
-              <CardContent className="p-5 sm:p-6">
-                <h3 className="text-sm font-semibold text-slate-900">{section.title}</h3>
-                <div className="mt-4 space-y-3">
-                  {section.items.map((item) => (
-                    <div key={item.label} className="flex items-start justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                      <div>
-                        <p className="text-sm font-medium text-slate-900">{item.label}</p>
-                        <p className="mt-1 text-xs text-slate-600">{item.meta}</p>
-                      </div>
-                      <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+            <div key={section.title} className="overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm">
+              <div className="border-b border-zinc-100 px-6 py-4">
+                <h3 className="text-sm font-bold text-zinc-900">{section.title}</h3>
+              </div>
+              <div className="divide-y divide-zinc-50 p-4">
+                {section.items.map((item) => (
+                  <div key={item.label} className="group flex items-start justify-between gap-4 rounded-xl px-3 py-3 transition-colors hover:bg-zinc-50">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-zinc-900">{item.label}</p>
+                      <p className="mt-0.5 truncate text-xs text-zinc-400">{item.meta}</p>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 text-zinc-300 transition-colors group-hover:text-amber-500" />
+                  </div>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>

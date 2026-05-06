@@ -1,48 +1,48 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Users,
   Phone,
   MapPin,
   DollarSign,
   TrendingUp,
-  Clock,
   CheckCircle2,
-  AlertTriangle,
   Plus,
-  Sparkles,
+  ArrowUpRight,
 } from "lucide-react";
 
 const salesStats = [
   {
     label: "Leads Bulan Ini",
     value: "24",
-    change: "+8 hari ini",
+    note: "+8 leads hari ini",
     icon: Users,
-    color: "bg-blue-50 text-blue-600",
+    bg: "bg-blue-50",
+    color: "text-blue-500",
   },
   {
     label: "Follow-up Hari Ini",
     value: "12",
-    change: "6 selesai",
+    note: "6 sudah selesai",
     icon: Phone,
-    color: "bg-emerald-50 text-emerald-600",
+    bg: "bg-emerald-50",
+    color: "text-emerald-500",
   },
   {
     label: "Unit Booking",
     value: "8",
-    change: "dari 60 total",
+    note: "dari 60 total unit",
     icon: MapPin,
-    color: "bg-amber-50 text-amber-600",
+    bg: "bg-amber-50",
+    color: "text-amber-500",
   },
   {
     label: "Target Penjualan",
     value: "Rp 2,4 M",
-    change: "40% terkumpul",
+    note: "40% sudah terkumpul",
     icon: DollarSign,
-    color: "bg-rose-50 text-rose-600",
+    bg: "bg-rose-50",
+    color: "text-rose-500",
   },
 ];
 
@@ -73,135 +73,177 @@ const leadsData = [
   },
 ];
 
+const actionCards = [
+  {
+    title: "Input Lead Baru",
+    desc: "Dari Website, WhatsApp, atau Walk-in",
+    icon: Users,
+    bg: "bg-blue-50",
+    color: "text-blue-500",
+  },
+  {
+    title: "Manage Site Visit",
+    desc: "Jadwalkan kunjungan lokasi pelanggan",
+    icon: MapPin,
+    bg: "bg-emerald-50",
+    color: "text-emerald-500",
+  },
+  {
+    title: "Booking & SPK",
+    desc: "Kunci unit dan buat surat perintah kerja",
+    icon: CheckCircle2,
+    bg: "bg-amber-50",
+    color: "text-amber-500",
+  },
+];
+
+const statusStyle: Record<string, string> = {
+  "Hot Lead": "bg-rose-100 text-rose-700",
+  "Warm Lead": "bg-amber-100 text-amber-700",
+  Negotiation: "bg-blue-100 text-blue-700",
+};
+
 export default function SalesAdminPage() {
   return (
     <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.06)] backdrop-blur-2xl md:p-8">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.06),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(16,185,129,0.03),transparent_25%)]" />
-        <div className="relative space-y-4">
-          <div className="flex items-start justify-between">
-            <div className="space-y-3 flex-1">
-              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-slate-600">
-                <Sparkles size={12} className="text-blue-600" /> Sales & Marketing
-              </div>
-              <h1 className="font-[family-name:var(--font-heading)] text-3xl md:text-5xl font-semibold tracking-tight text-slate-900 leading-tight">
-                Pipeline Penjualan & Manajemen Leads
-              </h1>
-              <p className="text-sm md:text-base text-slate-600 leading-relaxed max-w-2xl">
-                Kelola leads dari Website Marketing, booking unit, tracking site visit, dan progress menuju transaksi.
-              </p>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
+        <div className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.06),transparent_40%)]" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-blue-700">
+              <TrendingUp size={11} className="text-blue-500" /> Sales &amp;
+              Marketing
             </div>
-            <button className="shrink-0 inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs uppercase tracking-[0.2em] text-blue-600 transition-colors hover:bg-blue-100">
-              <Plus size={14} /> Input Lead
-            </button>
+            <h1 className="font-serif text-3xl font-semibold tracking-tight text-zinc-900 md:text-4xl">
+              Pipeline Penjualan &amp; Manajemen Leads
+            </h1>
+            <p className="max-w-2xl text-sm text-zinc-500 leading-relaxed">
+              Kelola leads dari Website Marketing, booking unit, tracking site
+              visit, dan progress menuju transaksi.
+            </p>
           </div>
+          <button className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-5 py-2.5 text-sm font-semibold text-blue-600 shadow-sm transition-all hover:bg-blue-100 hover:shadow-md">
+            <Plus size={16} /> Input Lead
+          </button>
         </div>
       </section>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {salesStats.map((stat) => (
-          <Card
+          <div
             key={stat.label}
-            className="group cursor-pointer border border-slate-200 bg-white shadow-[0_5px_15px_rgba(0,0,0,0.05)] rounded-2xl transition-all duration-200 ease-in-out hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_8px_25px_rgba(0,0,0,0.08)]"
+            className="group rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
           >
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">
-                {stat.label}
-              </CardTitle>
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${stat.color} shadow-sm`}>
-                <stat.icon className="h-5 w-5" />
+            <div className="mb-4 flex items-start justify-between">
+              <div
+                className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.bg}`}
+              >
+                <stat.icon className={`h-6 w-6 ${stat.color}`} />
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-baseline gap-2">
-                <span className="font-[family-name:var(--font-heading)] text-2xl font-bold tracking-tight text-slate-900">
-                  {stat.value}
-                </span>
-              </div>
-              <p className="mt-1.5 text-xs text-slate-500">{stat.change}</p>
-            </CardContent>
-          </Card>
+            </div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              {stat.label}
+            </p>
+            <p className="mt-2 text-3xl font-bold text-zinc-900">{stat.value}</p>
+            <p className="mt-1 text-xs text-zinc-500">{stat.note}</p>
+          </div>
         ))}
       </div>
 
       {/* Action Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {[
-          {
-            title: "Input Lead Baru",
-            desc: "Dari Website, WhatsApp, atau Walk-in",
-            icon: Users,
-            color: "bg-blue-50 text-blue-600",
-          },
-          {
-            title: "Manage Site Visit",
-            desc: "Jadwalkan kunjungan lokasi pelanggan",
-            icon: MapPin,
-            color: "bg-emerald-50 text-emerald-600",
-          },
-          {
-            title: "Booking & SPK",
-            desc: "Kunci unit dan buat surat perintah kerja",
-            icon: CheckCircle2,
-            color: "bg-amber-50 text-amber-600",
-          },
-        ].map((action) => (
-          <Card
+        {actionCards.map((action) => (
+          <div
             key={action.title}
-            className="group cursor-pointer border border-slate-200 bg-white shadow-[0_5px_15px_rgba(0,0,0,0.05)] rounded-2xl transition-all duration-200 ease-in-out hover:-translate-y-1 hover:border-blue-300 hover:shadow-[0_8px_25px_rgba(0,0,0,0.08)]"
+            className="group cursor-pointer rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-200 hover:shadow-[0_8px_25px_rgba(245,158,11,0.12)]"
           >
-            <CardContent className="p-5 sm:p-6">
-              <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${action.color} mb-4 shadow-sm transition-all duration-200 group-hover:scale-105`}>
-                <action.icon className="h-5 w-5" />
-              </div>
-              <h3 className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
-                {action.title}
-              </h3>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600">{action.desc}</p>
-            </CardContent>
-          </Card>
+            <div
+              className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${action.bg} transition-transform duration-300 group-hover:scale-105`}
+            >
+              <action.icon className={`h-6 w-6 ${action.color}`} />
+            </div>
+            <h3 className="text-sm font-bold text-zinc-900 transition-colors group-hover:text-amber-600">
+              {action.title}
+            </h3>
+            <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+              {action.desc}
+            </p>
+            <div className="mt-4 flex items-center gap-1 text-[11px] font-medium text-amber-500 opacity-0 transition-opacity group-hover:opacity-100">
+              <ArrowUpRight size={13} /> Buka Modul
+            </div>
+          </div>
         ))}
       </div>
 
       {/* Hot Leads */}
       <div>
-        <h3 className="font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-slate-900 mb-4">
-          Leads Panas & Follow-up
+        <h3 className="mb-4 text-lg font-bold text-zinc-900">
+          Leads Panas &amp; Follow-up
         </h3>
-        <div className="space-y-3">
-          {leadsData.map((lead) => (
-            <Card key={lead.name} className="border border-slate-200 bg-white rounded-2xl">
-              <CardContent className="p-4 sm:p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-slate-900 text-sm">{lead.name}</h4>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      <span className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded">
+        <div className="overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm">
+          <div className="hidden grid-cols-5 border-b border-zinc-100 bg-zinc-50/50 px-6 py-3 sm:grid">
+            <p className="col-span-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              Prospek
+            </p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              Status
+            </p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              Kontak Terakhir
+            </p>
+            <p className="text-right text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              Aksi Selanjutnya
+            </p>
+          </div>
+          <div className="divide-y divide-zinc-100">
+            {leadsData.map((lead) => (
+              <div
+                key={lead.name}
+                className="group flex flex-col gap-3 px-6 py-4 transition-colors hover:bg-zinc-50 sm:grid sm:grid-cols-5 sm:items-center sm:gap-0"
+              >
+                <div className="col-span-2 flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-sm font-bold text-zinc-600">
+                    {lead.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-zinc-900">
+                      {lead.name}
+                    </p>
+                    <div className="mt-0.5 flex items-center gap-1.5">
+                      <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500">
                         {lead.source}
                       </span>
-                      <span className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded">
+                      <span className="text-[10px] text-zinc-400">
                         {lead.unit}
                       </span>
                     </div>
-                    <p className="mt-2 text-xs text-slate-500">Kontak terakhir: {lead.lastConn}</p>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <Badge className={`${
-                      lead.status === "Hot Lead"
-                        ? "bg-red-50 text-red-700 border-red-200"
-                        : lead.status === "Warm Lead"
-                        ? "bg-amber-50 text-amber-700 border-amber-200"
-                        : "bg-blue-50 text-blue-700 border-blue-200"
-                    } border hover:bg-opacity-80 text-[10px] font-medium`}>
-                      {lead.status}
-                    </Badge>
-                    <p className="mt-2 text-xs font-medium text-blue-600">{lead.nextAction}</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+                <div>
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${statusStyle[lead.status] ?? "bg-zinc-100 text-zinc-600"}`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        lead.status === "Hot Lead"
+                          ? "bg-rose-500"
+                          : lead.status === "Warm Lead"
+                            ? "bg-amber-500"
+                            : "bg-blue-500"
+                      }`}
+                    />
+                    {lead.status}
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-500">{lead.lastConn}</p>
+                <p className="text-right text-xs font-medium text-blue-600">
+                  {lead.nextAction}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

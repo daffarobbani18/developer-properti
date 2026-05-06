@@ -1,10 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import {
   Building2,
   MapPin,
@@ -13,6 +9,7 @@ import {
   TrendingUp,
   Plus,
   AlertTriangle,
+  ArrowRight,
 } from "lucide-react";
 import {
   dummyProyek,
@@ -23,104 +20,115 @@ import {
   type Proyek,
 } from "@/lib/proyek-data";
 
+const statusBadgeStyle: Record<string, string> = {
+  "bg-blue-100 text-blue-700 border-blue-200": "bg-blue-100 text-blue-700",
+  "bg-amber-100 text-amber-700 border-amber-200": "bg-amber-100 text-amber-700",
+  "bg-emerald-100 text-emerald-700 border-emerald-200": "bg-emerald-100 text-emerald-700",
+  "bg-zinc-100 text-zinc-600 border-zinc-200": "bg-zinc-100 text-zinc-600",
+};
+
+const progressBarColor: Record<string, string> = {
+  "bg-blue-100 text-blue-700 border-blue-200": "from-blue-400 to-blue-500",
+  "bg-amber-100 text-amber-700 border-amber-200": "from-amber-400 to-amber-500",
+  "bg-emerald-100 text-emerald-700 border-emerald-200": "from-emerald-400 to-emerald-500",
+  "bg-zinc-100 text-zinc-600 border-zinc-200": "from-zinc-300 to-zinc-400",
+};
+
 export default function ProyekPage() {
   const proyekAktif = dummyProyek.filter(
     (p) => p.statusProyek === "konstruksi" || p.statusProyek === "finishing"
   );
   const totalUnit = dummyProyek.reduce((sum, p) => sum + p.totalUnit, 0);
   const unitSelesai = dummyProyek.reduce((sum, p) => sum + p.unitSelesai, 0);
-  const persentaseGlobal = (unitSelesai / totalUnit) * 100;
+  const persentaseGlobal = Math.round((unitSelesai / totalUnit) * 100);
+
+  const summaryStats = [
+    {
+      label: "Total Proyek",
+      value: String(dummyProyek.length),
+      note: `${proyekAktif.length} sedang berjalan`,
+      icon: Building2,
+      bg: "bg-blue-50",
+      color: "text-blue-500",
+    },
+    {
+      label: "Total Unit",
+      value: String(totalUnit),
+      note: `${unitSelesai} unit selesai`,
+      icon: TrendingUp,
+      bg: "bg-emerald-50",
+      color: "text-emerald-500",
+    },
+    {
+      label: "Progress Global",
+      value: `${persentaseGlobal}%`,
+      note: "rata-rata penyelesaian",
+      icon: TrendingUp,
+      bg: "bg-amber-50",
+      color: "text-amber-500",
+      progress: persentaseGlobal,
+    },
+    {
+      label: "Site Engineer",
+      value: "12",
+      note: "aktif di lapangan",
+      icon: Users,
+      bg: "bg-rose-50",
+      color: "text-rose-500",
+    },
+  ];
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <Building2 className="w-6 h-6 text-blue-600" />
+    <div className="space-y-8">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
+        <div className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.06),transparent_40%)]" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-blue-700">
+              <Building2 size={11} className="text-blue-500" /> Monitoring Proyek
             </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
-                Monitoring Proyek
-              </h1>
-              <p className="text-sm text-slate-600">
-                Pantau progres konstruksi & milestone setiap unit
-              </p>
-            </div>
+            <h1 className="font-serif text-3xl font-semibold tracking-tight text-zinc-900 md:text-4xl">
+              Progress Konstruksi & Milestone Unit
+            </h1>
+            <p className="max-w-2xl text-sm text-zinc-500 leading-relaxed">
+              Pantau progres konstruksi, kelola milestone tiap unit, dan sinkronisasi data dengan tim lapangan.
+            </p>
           </div>
-
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Tambah Proyek
-          </Button>
+          <button className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-5 py-2.5 text-sm font-semibold text-amber-600 shadow-sm transition-all hover:bg-amber-100 hover:shadow-md">
+            <Plus size={16} /> Tambah Proyek
+          </button>
         </div>
+      </section>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="clean-glass">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
-                  Total Proyek
-                </span>
-                <Building2 className="w-5 h-5 text-blue-600" />
+      {/* Summary Stats */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {summaryStats.map((stat) => (
+          <div key={stat.label} className="group rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+            <div className="mb-4 flex items-start justify-between">
+              <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.bg}`}>
+                <stat.icon className={`h-6 w-6 ${stat.color}`} />
               </div>
-              <p className="text-2xl font-bold text-slate-900">
-                {dummyProyek.length}
-              </p>
-              <p className="text-xs text-slate-500 mt-1">
-                {proyekAktif.length} sedang berjalan
-              </p>
             </div>
-          </Card>
-
-          <Card className="clean-glass">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
-                  Total Unit
-                </span>
-                <TrendingUp className="w-5 h-5 text-green-600" />
+            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{stat.label}</p>
+            <p className="mt-2 text-3xl font-bold text-zinc-900">{stat.value}</p>
+            {"progress" in stat && stat.progress !== undefined && (
+              <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-500"
+                  style={{ width: `${stat.progress}%` }}
+                />
               </div>
-              <p className="text-2xl font-bold text-slate-900">{totalUnit}</p>
-              <p className="text-xs text-slate-500 mt-1">
-                {unitSelesai} unit selesai
-              </p>
-            </div>
-          </Card>
+            )}
+            <p className="mt-1 text-xs text-zinc-500">{stat.note}</p>
+          </div>
+        ))}
+      </div>
 
-          <Card className="clean-glass">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
-                  Progress Global
-                </span>
-                <TrendingUp className="w-5 h-5 text-purple-600" />
-              </div>
-              <p className="text-2xl font-bold text-slate-900">
-                {persentaseGlobal.toFixed(0)}%
-              </p>
-              <Progress value={persentaseGlobal} className="mt-2" />
-            </div>
-          </Card>
-
-          <Card className="clean-glass">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
-                  Site Engineer
-                </span>
-                <Users className="w-5 h-5 text-amber-600" />
-              </div>
-              <p className="text-2xl font-bold text-slate-900">12</p>
-              <p className="text-xs text-slate-500 mt-1">Aktif di lapangan</p>
-            </div>
-          </Card>
-        </div>
-
-        {/* Proyek List */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Proyek Cards */}
+      <div>
+        <h2 className="mb-4 text-lg font-bold text-zinc-900">Daftar Proyek</h2>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {dummyProyek.map((proyek) => (
             <ProyekCard key={proyek.id} proyek={proyek} />
           ))}
@@ -132,97 +140,84 @@ export default function ProyekPage() {
 
 function ProyekCard({ proyek }: { proyek: Proyek }) {
   const isDelayed = proyek.persentaseSelesai < 50 && proyek.statusProyek === "konstruksi";
+  const rawColor = statusProyekColor[proyek.statusProyek] ?? "";
+  const badgeStyle = statusBadgeStyle[rawColor] ?? "bg-zinc-100 text-zinc-600";
+  const barGradient = progressBarColor[rawColor] ?? "from-zinc-300 to-zinc-400";
 
   return (
-    <Link href={`/proyek/${proyek.id}/unit`}>
-      <Card className="clean-glass hover:shadow-lg transition-all duration-200 cursor-pointer border-2 hover:border-blue-300">
-        <div className="p-6 space-y-4">
-          {/* Header */}
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-semibold text-lg text-slate-900">
-                  {proyek.nama}
-                </h3>
-                {isDelayed && (
-                  <AlertTriangle className="w-4 h-4 text-amber-500" />
-                )}
-              </div>
-              <div className="flex items-center gap-1.5 text-sm text-slate-600">
-                <MapPin className="w-4 h-4" />
-                <span>{proyek.lokasi}</span>
-              </div>
+    <Link href={`/proyek/${proyek.id}/unit`} className="block">
+      <div className="group h-full cursor-pointer overflow-hidden rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-200 hover:shadow-[0_8px_30px_rgba(245,158,11,0.12)]">
+        {/* Header */}
+        <div className="mb-5 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="truncate text-base font-bold text-zinc-900 group-hover:text-amber-600 transition-colors">
+                {proyek.nama}
+              </h3>
+              {isDelayed && <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />}
             </div>
-            <Badge
-              className={`${
-                statusProyekColor[proyek.statusProyek]
-              } border font-medium text-xs rounded-md px-2 py-1`}
-            >
-              {statusProyekLabel[proyek.statusProyek]}
-            </Badge>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-slate-900">
-                {proyek.totalUnit}
-              </p>
-              <p className="text-xs text-slate-500 mt-0.5">Total Unit</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">
-                {proyek.unitSelesai}
-              </p>
-              <p className="text-xs text-slate-500 mt-0.5">Selesai</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">
-                {proyek.jumlahKontraktor}
-              </p>
-              <p className="text-xs text-slate-500 mt-0.5">Kontraktor</p>
+            <div className="mt-1 flex items-center gap-1.5 text-xs text-zinc-400">
+              <MapPin size={12} />
+              <span>{proyek.lokasi}</span>
             </div>
           </div>
+          <span className={`inline-flex shrink-0 items-center rounded-full px-3 py-1 text-xs font-medium ${badgeStyle}`}>
+            {statusProyekLabel[proyek.statusProyek]}
+          </span>
+        </div>
 
-          {/* Progress */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-slate-700">
-                Progress Keseluruhan
-              </span>
-              <span className="text-sm font-bold text-slate-900">
-                {proyek.persentaseSelesai}%
-              </span>
+        {/* Stats Grid */}
+        <div className="mb-5 grid grid-cols-3 gap-3">
+          {[
+            { label: "Total Unit", value: proyek.totalUnit, color: "text-zinc-900" },
+            { label: "Selesai", value: proyek.unitSelesai, color: "text-emerald-600" },
+            { label: "Kontraktor", value: proyek.jumlahKontraktor, color: "text-blue-600" },
+          ].map((item) => (
+            <div key={item.label} className="rounded-xl bg-zinc-50 p-3 text-center">
+              <p className={`text-xl font-bold ${item.color}`}>{item.value}</p>
+              <p className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-zinc-400">{item.label}</p>
             </div>
-            <Progress
-              value={proyek.persentaseSelesai}
-              className="h-2"
+          ))}
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-4">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-medium text-zinc-500">Progress Keseluruhan</span>
+            <span className="text-xs font-bold text-zinc-900">{proyek.persentaseSelesai}%</span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100">
+            <div
+              className={`h-full rounded-full bg-gradient-to-r ${barGradient} transition-all duration-500`}
+              style={{ width: `${proyek.persentaseSelesai}%` }}
             />
           </div>
+        </div>
 
-          {/* Dates */}
-          <div className="flex items-center justify-between text-xs text-slate-600 pt-2 border-t border-slate-200/60">
-            <div className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5" />
+        {/* Footer */}
+        <div className="flex items-center justify-between border-t border-zinc-100 pt-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
+              <Calendar size={11} />
               <span>Mulai: {formatTanggalShort(proyek.tanggalMulai)}</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
+              <Calendar size={11} />
               <span>Target: {formatTanggalShort(proyek.targetSelesai)}</span>
             </div>
           </div>
-
-          {/* Footer */}
-          <div className="pt-2 border-t border-slate-200/60">
-            <div className="text-xs text-slate-500">
-              Nilai Kontrak:{" "}
-              <span className="font-semibold text-slate-700">
-                {formatRupiah(proyek.nilaiKontrak)}
-              </span>
-            </div>
+          <div className="text-right">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-400">Nilai Kontrak</p>
+            <p className="text-sm font-bold text-zinc-900">{formatRupiah(proyek.nilaiKontrak)}</p>
           </div>
         </div>
-      </Card>
+
+        {/* View Link */}
+        <div className="mt-4 flex items-center justify-end gap-1 text-xs font-medium text-amber-500 opacity-0 transition-opacity group-hover:opacity-100">
+          Lihat Detail Unit <ArrowRight size={13} />
+        </div>
+      </div>
     </Link>
   );
 }
+

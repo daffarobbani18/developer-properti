@@ -8,8 +8,8 @@ import {
   Receipt,
   TrendingUp,
   DollarSign,
+  ArrowUpRight,
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import {
   formatRupiah,
   laporanBulanan,
@@ -23,201 +23,213 @@ const menuItems = [
     description: "Analisis arus kas pemasukan & pengeluaran",
     icon: ArrowUpDown,
     href: "/keuangan/cashflow",
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
+    bg: "bg-blue-50",
+    color: "text-blue-500",
   },
   {
     title: "Tagihan",
     description: "Daftar tagihan & piutang pembeli",
     icon: FileText,
     href: "/keuangan/tagihan",
-    color: "text-green-600",
-    bgColor: "bg-green-50",
+    bg: "bg-emerald-50",
+    color: "text-emerald-500",
   },
   {
     title: "Pengeluaran",
     description: "Catat & kelola pengeluaran operasional",
     icon: Receipt,
     href: "/keuangan/pengeluaran",
-    color: "text-red-600",
-    bgColor: "bg-red-50",
+    bg: "bg-rose-50",
+    color: "text-rose-500",
   },
   {
     title: "RAB & Realisasi",
     description: "Pantau anggaran vs realisasi biaya",
     icon: TrendingUp,
     href: "/keuangan/rab",
-    color: "text-purple-600",
-    bgColor: "bg-purple-50",
+    bg: "bg-violet-50",
+    color: "text-violet-500",
   },
 ];
 
 export default function KeuanganPage() {
   const totalPiutang = getTotalByStatus(dummyTagihan, "belum_bayar");
   const totalTerlambat = getTotalByStatus(dummyTagihan, "terlambat");
+  const marginPct = (
+    (laporanBulanan.labaKotor / laporanBulanan.totalPemasukan) *
+    100
+  ).toFixed(1);
+  const tagihanAktif = dummyTagihan.filter((t) => t.status !== "lunas").length;
+  const tagihanTerlambat = dummyTagihan.filter(
+    (t) => t.status === "terlambat"
+  ).length;
+
+  const summaryStats = [
+    {
+      label: "Pemasukan Bulan Ini",
+      value: formatRupiah(laporanBulanan.totalPemasukan),
+      note: laporanBulanan.periode,
+      noteColor: "text-zinc-500",
+      icon: TrendingUp,
+      bg: "bg-emerald-50",
+      color: "text-emerald-500",
+    },
+    {
+      label: "Pengeluaran Bulan Ini",
+      value: formatRupiah(laporanBulanan.totalPengeluaran),
+      note: laporanBulanan.periode,
+      noteColor: "text-zinc-500",
+      icon: Receipt,
+      bg: "bg-rose-50",
+      color: "text-rose-500",
+    },
+    {
+      label: "Laba Kotor",
+      value: formatRupiah(laporanBulanan.labaKotor),
+      note: `+${marginPct}% margin`,
+      noteColor: "text-emerald-600",
+      icon: DollarSign,
+      bg: "bg-blue-50",
+      color: "text-blue-500",
+    },
+    {
+      label: "Piutang Belum Bayar",
+      value: formatRupiah(totalPiutang),
+      note:
+        totalTerlambat > 0
+          ? `+${formatRupiah(totalTerlambat)} terlambat`
+          : "Semua lancar",
+      noteColor: totalTerlambat > 0 ? "text-rose-600" : "text-emerald-600",
+      icon: FileText,
+      bg: "bg-amber-50",
+      color: "text-amber-500",
+    },
+  ];
+
+  const ringkasanItems = [
+    {
+      label: "Status Cashflow",
+      value: "Positif",
+      sub: `Saldo bulan ini: ${formatRupiah(laporanBulanan.labaKotor)}`,
+      valueColor: "text-emerald-600",
+      dot: "bg-emerald-500",
+    },
+    {
+      label: "Proyek Aktif",
+      value: String(laporanBulanan.proyekAktif),
+      sub: "Semua proyek berjalan lancar",
+      valueColor: "text-zinc-900",
+      dot: null as string | null,
+    },
+    {
+      label: "Total Tagihan Aktif",
+      value: String(tagihanAktif),
+      sub: `${tagihanTerlambat} terlambat, butuh tindak lanjut`,
+      valueColor: tagihanTerlambat > 0 ? "text-rose-600" : "text-zinc-900",
+      dot: null as string | null,
+    },
+  ];
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <Wallet className="w-6 h-6 text-blue-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
-                Keuangan
-              </h1>
-              <p className="text-sm text-slate-600">
-                Kelola cashflow, tagihan, dan laporan keuangan
-              </p>
-            </div>
+    <div className="space-y-8">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
+        <div className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.06),transparent_40%)]" />
+        <div className="relative space-y-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-amber-700">
+            <Wallet size={11} className="text-amber-500" /> Manajemen Keuangan
           </div>
+          <h1 className="font-serif text-3xl font-semibold tracking-tight text-zinc-900 md:text-4xl">
+            Keuangan & Laporan Keuangan
+          </h1>
+          <p className="max-w-2xl text-sm text-zinc-500 leading-relaxed">
+            Kelola cashflow, tagihan, pengeluaran, dan pantau laporan keuangan
+            proyek secara terpusat.
+          </p>
         </div>
+      </section>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="clean-glass">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
-                  Pemasukan Bulan Ini
-                </span>
-                <TrendingUp className="w-5 h-5 text-green-600" />
+      {/* Summary Stats */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {summaryStats.map((stat) => (
+          <div
+            key={stat.label}
+            className="group rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+          >
+            <div className="mb-4 flex items-start justify-between">
+              <div
+                className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.bg}`}
+              >
+                <stat.icon className={`h-6 w-6 ${stat.color}`} />
               </div>
-              <p className="text-2xl font-bold text-slate-900">
-                {formatRupiah(laporanBulanan.totalPemasukan)}
-              </p>
-              <p className="text-xs text-slate-500 mt-1">
-                {laporanBulanan.periode}
-              </p>
             </div>
-          </Card>
+            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              {stat.label}
+            </p>
+            <p className="mt-2 text-xl font-bold text-zinc-900 leading-tight">
+              {stat.value}
+            </p>
+            <p className={`mt-1 text-xs ${stat.noteColor}`}>{stat.note}</p>
+          </div>
+        ))}
+      </div>
 
-          <Card className="clean-glass">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
-                  Pengeluaran Bulan Ini
-                </span>
-                <Receipt className="w-5 h-5 text-red-600" />
-              </div>
-              <p className="text-2xl font-bold text-slate-900">
-                {formatRupiah(laporanBulanan.totalPengeluaran)}
-              </p>
-              <p className="text-xs text-slate-500 mt-1">
-                {laporanBulanan.periode}
-              </p>
-            </div>
-          </Card>
-
-          <Card className="clean-glass">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
-                  Laba Kotor
-                </span>
-                <DollarSign className="w-5 h-5 text-blue-600" />
-              </div>
-              <p className="text-2xl font-bold text-slate-900">
-                {formatRupiah(laporanBulanan.labaKotor)}
-              </p>
-              <p className="text-xs text-green-600 mt-1">
-                +{((laporanBulanan.labaKotor / laporanBulanan.totalPemasukan) * 100).toFixed(1)}% margin
-              </p>
-            </div>
-          </Card>
-
-          <Card className="clean-glass">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
-                  Piutang Belum Bayar
-                </span>
-                <FileText className="w-5 h-5 text-amber-600" />
-              </div>
-              <p className="text-2xl font-bold text-slate-900">
-                {formatRupiah(totalPiutang)}
-              </p>
-              <p className="text-xs text-red-600 mt-1">
-                {totalTerlambat > 0 && `+${formatRupiah(totalTerlambat)} terlambat`}
-              </p>
-            </div>
-          </Card>
-        </div>
-
-        {/* Menu Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link key={item.href} href={item.href}>
-                <Card className="clean-glass hover:shadow-md transition-all duration-200 h-full group cursor-pointer">
-                  <div className="p-6">
-                    <div
-                      className={`w-12 h-12 ${item.bgColor} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200`}
-                    >
-                      <Icon className={`w-6 h-6 ${item.color}`} />
-                    </div>
-                    <h3 className="font-semibold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
-                      {item.title}
-                    </h3>
-                    <p className="text-sm text-slate-600 leading-relaxed">
-                      {item.description}
-                    </p>
-                  </div>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* Quick Info */}
-        <Card className="clean-glass">
-          <div className="p-6">
-            <h3 className="font-semibold text-slate-900 mb-4">
-              Ringkasan Keuangan
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <p className="text-sm text-slate-600 mb-1">Status Cashflow</p>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <p className="text-lg font-semibold text-green-700">
-                    Positif
-                  </p>
+      {/* Module Menu */}
+      <div>
+        <h2 className="mb-4 text-lg font-bold text-zinc-900">
+          Modul Keuangan
+        </h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {menuItems.map((item) => (
+            <Link key={item.href} href={item.href} className="block">
+              <div className="group flex h-full flex-col rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-200 hover:shadow-[0_8px_25px_rgba(245,158,11,0.12)]">
+                <div
+                  className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${item.bg} transition-transform duration-300 group-hover:scale-105`}
+                >
+                  <item.icon className={`h-6 w-6 ${item.color}`} />
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  Saldo bulan ini: {formatRupiah(laporanBulanan.labaKotor)}
+                <h3 className="text-sm font-bold text-zinc-900 transition-colors group-hover:text-amber-600">
+                  {item.title}
+                </h3>
+                <p className="mt-1 flex-1 text-xs leading-relaxed text-zinc-500">
+                  {item.description}
                 </p>
+                <div className="mt-4 flex items-center gap-1 text-[11px] font-medium text-amber-500 opacity-0 transition-opacity group-hover:opacity-100">
+                  <ArrowUpRight size={13} /> Buka Modul
+                </div>
               </div>
+            </Link>
+          ))}
+        </div>
+      </div>
 
-              <div>
-                <p className="text-sm text-slate-600 mb-1">Proyek Aktif</p>
-                <p className="text-2xl font-bold text-slate-900">
-                  {laporanBulanan.proyekAktif}
-                </p>
-                <p className="text-xs text-slate-500 mt-1">
-                  Semua proyek berjalan lancar
+      {/* Ringkasan Panel */}
+      <div className="overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm">
+        <div className="border-b border-zinc-100 px-6 py-4">
+          <h3 className="text-sm font-bold text-zinc-900">
+            Ringkasan Keuangan
+          </h3>
+        </div>
+        <div className="grid grid-cols-1 gap-px bg-zinc-100 md:grid-cols-3">
+          {ringkasanItems.map((item) => (
+            <div key={item.label} className="bg-white p-6">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                {item.label}
+              </p>
+              <div className="flex items-center gap-2">
+                {item.dot && (
+                  <span
+                    className={`h-2.5 w-2.5 rounded-full ${item.dot}`}
+                  />
+                )}
+                <p className={`text-2xl font-bold ${item.valueColor}`}>
+                  {item.value}
                 </p>
               </div>
-
-              <div>
-                <p className="text-sm text-slate-600 mb-1">
-                  Total Tagihan Aktif
-                </p>
-                <p className="text-2xl font-bold text-slate-900">
-                  {dummyTagihan.filter((t) => t.status !== "lunas").length}
-                </p>
-                <p className="text-xs text-slate-500 mt-1">
-                  {dummyTagihan.filter((t) => t.status === "terlambat").length}{" "}
-                  terlambat, butuh tindak lanjut
-                </p>
-              </div>
+              <p className="mt-1 text-xs text-zinc-400">{item.sub}</p>
             </div>
-          </div>
-        </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
