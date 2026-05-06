@@ -13,21 +13,24 @@ import {
 interface HeaderProps {
   title?: string;
   onMenuClick: () => void;
+  showMenuButton?: boolean;
 }
 
-export default function Header({ title, onMenuClick }: HeaderProps) {
+export default function Header({ title, onMenuClick, showMenuButton = true }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-[0_1px_0_rgba(0,0,0,0.04)] backdrop-blur-2xl md:px-8">
       {/* Left: Hamburger + Title */}
       <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onMenuClick}
-          className="md:hidden rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all duration-200 ease-in-out"
-        >
-          <Menu className="h-5 w-5 text-slate-700" />
-        </Button>
+        {showMenuButton ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onMenuClick}
+            className="rounded-xl border border-slate-200 bg-slate-50 transition-all duration-200 ease-in-out hover:bg-slate-100 md:hidden"
+          >
+            <Menu className="h-5 w-5 text-slate-700" />
+          </Button>
+        ) : null}
         {title && (
           <h1 className="font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-slate-900">
             {title}

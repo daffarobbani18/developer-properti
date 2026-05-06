@@ -18,6 +18,10 @@ interface AppShellProps {
 export default function AppShell({ children, title }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const isInventoryRoute = pathname.startsWith("/inventory");
+  const mainClassName = isInventoryRoute
+    ? "flex-1 overflow-y-auto"
+    : "flex-1 overflow-y-auto p-4 sm:p-5 md:p-8"
 
   if (pathname === "/") {
     return <div className="min-h-screen">{children}</div>;
@@ -30,24 +34,30 @@ export default function AppShell({ children, title }: AppShellProps) {
       </div>
 
       <div className="relative z-10 flex w-full">
-      {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:flex-shrink-0">
-        <Sidebar />
-      </div>
+      {!isInventoryRoute ? (
+        <>
+          {/* Desktop Sidebar */}
+          <div className="hidden md:flex md:flex-shrink-0">
+            <Sidebar />
+          </div>
 
-      {/* Mobile Sidebar (Sheet) */}
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-64 p-0 bg-white backdrop-blur-md border-r border-slate-200">
-          <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
-          <Sidebar onClose={() => setMobileOpen(false)} />
-        </SheetContent>
-      </Sheet>
+          {/* Mobile Sidebar (Sheet) */}
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetContent side="left" className="w-64 border-r border-slate-200 bg-white p-0 backdrop-blur-md">
+              <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
+              <Sidebar onClose={() => setMobileOpen(false)} />
+            </SheetContent>
+          </Sheet>
+        </>
+      ) : null}
 
       {/* Main Area */}
       <div className="relative z-10 flex flex-1 flex-col overflow-hidden">
-        <Header title={title} onMenuClick={() => setMobileOpen(true)} />
+        {!isInventoryRoute ? (
+          <Header title={title} onMenuClick={() => setMobileOpen(true)} showMenuButton />
+        ) : null}
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-5 md:p-8">
+        <main className={mainClassName}>
           {children}
         </main>
       </div>

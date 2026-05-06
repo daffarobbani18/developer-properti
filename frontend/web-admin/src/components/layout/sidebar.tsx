@@ -161,21 +161,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
           ...group,
           items,
         };
-      })
-      .filter((group) => group.items.length > 0);
+      }) as MenuGroup[];
   }, [currentRole]);
-
-  useEffect(() => {
-    const expanded: string[] = [];
-    filteredMenuItems.forEach((group) =>
-      group.items.forEach((item) => {
-        if (item.children?.some((c) => pathname.startsWith(c.href))) {
-          expanded.push(item.href);
-        }
-      })
-    );
-    setExpandedMenus(expanded);
-  }, [pathname, filteredMenuItems]);
 
   const toggleExpand = (href: string) => {
     setExpandedMenus((prev) => (prev.includes(href) ? prev.filter((h) => h !== href) : [...prev, href]));
