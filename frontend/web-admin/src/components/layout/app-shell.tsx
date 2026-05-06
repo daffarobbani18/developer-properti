@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import {
@@ -16,6 +17,11 @@ interface AppShellProps {
 
 export default function AppShell({ children, title }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+
+  if (pathname === "/") {
+    return <div className="min-h-screen">{children}</div>;
+  }
 
   return (
     <div className="relative flex h-screen overflow-hidden bg-white text-zinc-900">
