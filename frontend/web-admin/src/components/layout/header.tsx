@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Bell, Menu, Search, CalendarDays, UserRound } from "lucide-react";
+import { readRoleFromAuthPayload, type UserRole } from "@/lib/access";
 
 interface HeaderProps {
   title?: string;
@@ -11,6 +12,8 @@ interface HeaderProps {
 
 export default function Header({ onMenuClick, showMenuButton = true }: HeaderProps) {
   const [now, setNow] = useState<Date | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
 
   useEffect(() => {
     setNow(new Date());
@@ -19,6 +22,35 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
     }, 60000);
 
     return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const localAuth = localStorage.getItem("simdp_auth");
+      const sessionAuth = sessionStorage.getItem("simdp_auth");
+      const authRaw = localAuth ?? sessionAuth;
+
+      if (!authRaw) {
+        setUserName(null);
+        setUserRole(null);
+        return;
+      }
+
+      const parsed = JSON.parse(authRaw) as { email?: string; role?: string };
+      if (parsed?.email) {
+        const namePart = parsed.email.split("@")[0];
+        const pretty = namePart.replace(/[._\-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+        setUserName(pretty);
+      } else {
+        setUserName(null);
+      }
+
+      const role = readRoleFromAuthPayload(authRaw);
+      setUserRole(role);
+    } catch {
+      setUserName(null);
+      setUserRole(null);
+    }
   }, []);
 
   const topBarDate = useMemo(
@@ -92,11 +124,11 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
 
           <div className="flex items-center gap-3 rounded-full border border-zinc-200 bg-white px-2 py-1.5 shadow-sm cursor-pointer hover:bg-zinc-50 transition-colors">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-zinc-950">
-              AD
+              {userName ? userName.split(" ").map((s) => s[0]).slice(0,2).join("") : "--"}
             </div>
             <div className="hidden min-w-0 sm:block text-left">
-              <p className="truncate text-sm font-semibold leading-tight text-zinc-900">Admin Profile</p>
-              <p className="truncate text-[11px] uppercase tracking-wide text-zinc-500">Akses Portal</p>
+              <p className="truncate text-sm font-semibold leading-tight text-zinc-900">{userName ?? "Pengguna"}</p>
+              <p className="truncate text-[11px] uppercase tracking-wide text-zinc-500">{(userRole && roleLabel(userRole)) ?? "Akses Portal"}</p>
             </div>
             <div className="hidden h-6 w-px bg-zinc-200 sm:block" />
             <UserRound size={16} className="hidden text-zinc-400 sm:block" />
@@ -105,4 +137,23 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
       </div>
     </header>
   );
+}
+
+function roleLabel(role: UserRole) {
+  switch (role) {
+    case "admin":
+      return "Administrator";
+    case "inventory":
+      return "Admin Inventory";
+    case "sales":
+      return "Sales & Marketing";
+    case "finance":
+      return "Finance & Accounting";
+    case "legal":
+      return "Legal & Perizinan";
+    case "supervisor":
+      return "Pengawas Lapangan";
+    default:
+      return "Akses Portal";
+  }
 }
