@@ -30,19 +30,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ROLE_HOME, USER_ROLES, readRoleFromAuthPayload, type UserRole } from "@/lib/access";
 
-type UserRole = "admin" | "inventory" | "sales" | "finance" | "legal" | "supervisor";
 type RoleWithGuest = UserRole | "guest";
-
-const ALL_ROLES: UserRole[] = ["admin", "inventory", "sales", "finance", "legal", "supervisor"];
-const ROLE_HOME: Record<UserRole, string> = {
-  admin: "/dashboard/admin",
-  inventory: "/dashboard/inventory",
-  sales: "/dashboard/sales",
-  finance: "/dashboard/finance",
-  legal: "/dashboard/legal",
-  supervisor: "/dashboard/supervisor",
-};
 
 interface MenuItem {
   label: string;
@@ -60,7 +50,7 @@ interface MenuGroup {
 const menuItems: MenuGroup[] = [
   {
     group: "Utama",
-    items: [{ label: "Dashboard", href: "/", icon: LayoutDashboard, roles: ALL_ROLES }],
+    items: [{ label: "Dashboard", href: "/", icon: LayoutDashboard, roles: USER_ROLES }],
   },
   {
     group: "Operasional",
@@ -69,53 +59,51 @@ const menuItems: MenuGroup[] = [
         label: "Admin Inventory",
         href: "/inventory",
         icon: Building2,
-        roles: ["admin", "inventory"],
+        roles: ["inventory"],
       },
       {
         label: "Sales & Marketing",
         href: "/sales",
         icon: Users,
-        roles: ["admin", "sales"],
+        roles: ["sales"],
         children: [
-          { label: "Leads", href: "/crm/leads", icon: Users, roles: ["admin", "sales"] },
-          { label: "Pipeline", href: "/crm/pipeline", icon: KanbanSquare, roles: ["admin", "sales"] },
-          { label: "Unit", href: "/crm/unit", icon: Home, roles: ["admin", "sales"] },
-          { label: "Transaksi", href: "/crm/transaksi", icon: Receipt, roles: ["admin", "sales"] },
-          { label: "Aktivitas", href: "/crm/aktivitas", icon: Activity, roles: ["admin", "sales"] },
+          { label: "Leads", href: "/crm/leads", icon: Users, roles: ["sales"] },
+          { label: "Pipeline", href: "/crm/pipeline", icon: KanbanSquare, roles: ["sales"] },
+          { label: "Unit", href: "/crm/unit", icon: Home, roles: ["sales"] },
+          { label: "Transaksi", href: "/crm/transaksi", icon: Receipt, roles: ["sales"] },
+          { label: "Aktivitas", href: "/crm/aktivitas", icon: Activity, roles: ["sales"] },
         ],
       },
       {
         label: "Finance & Accounting",
         href: "/finance",
         icon: Banknote,
-        roles: ["admin", "finance"],
+        roles: ["finance"],
         children: [
-          { label: "Cashflow", href: "/keuangan/cashflow", icon: Activity, roles: ["admin", "finance"] },
-          { label: "Tagihan", href: "/keuangan/tagihan", icon: Receipt, roles: ["admin", "finance"] },
-          { label: "Pengeluaran", href: "/keuangan/pengeluaran", icon: Receipt, roles: ["admin", "finance"] },
-          { label: "RAB & Realisasi", href: "/keuangan/rab", icon: FolderKanban, roles: ["admin", "finance"] },
+          { label: "Cashflow", href: "/keuangan/cashflow", icon: Activity, roles: ["finance"] },
+          { label: "Tagihan", href: "/keuangan/tagihan", icon: Receipt, roles: ["finance"] },
+          { label: "Pengeluaran", href: "/keuangan/pengeluaran", icon: Receipt, roles: ["finance"] },
+          { label: "RAB & Realisasi", href: "/keuangan/rab", icon: FolderKanban, roles: ["finance"] },
         ],
       },
       {
         label: "Pengawas Lapangan",
         href: "/supervisor",
         icon: HardHat,
-        roles: ["admin", "supervisor"],
+        roles: ["supervisor"],
       },
       {
         label: "Legal & Perizinan",
         href: "/legal",
         icon: FileCheck,
-        roles: ["admin", "legal"],
+        roles: ["legal"],
       },
       {
         label: "Monitoring Proyek",
         href: "/proyek",
         icon: Building2,
-        roles: ["admin", "supervisor", "inventory"],
-        children: [
-          { label: "Daftar Proyek", href: "/proyek", icon: Building2, roles: ["admin", "supervisor", "inventory"] },
-        ],
+        roles: ["supervisor", "inventory"],
+        children: [{ label: "Daftar Proyek", href: "/proyek", icon: Building2, roles: ["supervisor", "inventory"] }],
       },
     ],
   },
@@ -143,16 +131,11 @@ export default function Sidebar({ onClose }: SidebarProps) {
           return "guest";
         }
 
-        const parsed = JSON.parse(authRaw) as { role?: string };
-        const role = parsed.role;
-        if (role && ALL_ROLES.includes(role as UserRole)) {
-          return role as UserRole;
-        }
+        const role = readRoleFromAuthPayload(authRaw);
+        return role ?? "guest";
       } catch {
         return "guest";
       }
-
-      return "guest";
     };
 
     setCurrentRole(readStoredRole());
@@ -171,7 +154,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
             ...item,
             href: item.label === "Dashboard" ? ROLE_HOME[currentRole] : item.href,
             children: item.children?.filter((child) => child.roles.includes(currentRole)),
-          }));
+          }))
+          .filter((item) => !item.children || item.children.length > 0 || item.label === "Dashboard");
 
         return {
           ...group,
@@ -194,11 +178,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
   }, [pathname, filteredMenuItems]);
 
   const toggleExpand = (href: string) => {
-    setExpandedMenus((prev) =>
-      prev.includes(href)
-        ? prev.filter((h) => h !== href)
-        : [...prev, href]
-    );
+    setExpandedMenus((prev) => (prev.includes(href) ? prev.filter((h) => h !== href) : [...prev, href]));
   };
 
   const handleLogout = () => {
@@ -217,24 +197,21 @@ export default function Sidebar({ onClose }: SidebarProps) {
   };
 
   return (
-    <aside className="flex h-full w-64 flex-col border-r border-slate-200 bg-white backdrop-blur-2xl text-slate-900 shadow-[0_0_20px_rgba(0,0,0,0.08)]">
-      {/* Logo & Brand */}
+    <aside className="flex h-full w-64 flex-col border-r border-slate-200 bg-white text-slate-900 shadow-[0_0_20px_rgba(0,0,0,0.08)] backdrop-blur-2xl">
       <div className="flex h-16 items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="relative flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-100 to-slate-50 text-slate-900 font-[family-name:var(--font-heading)] font-bold text-sm shadow-sm shadow-black/5">
+          <div className="relative flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-100 to-slate-50 font-[family-name:var(--font-heading)] text-sm font-bold text-slate-900 shadow-sm shadow-black/5">
             <span className="absolute inset-0 rounded-2xl bg-amber-500/5 blur-md" />
             <span className="relative">S</span>
           </div>
-          <span className="font-[family-name:var(--font-heading)] font-bold text-lg tracking-tight text-slate-900">
-            SIMDP
-          </span>
+          <span className="font-[family-name:var(--font-heading)] text-lg font-bold tracking-tight text-slate-900">SIMDP</span>
         </Link>
         {onClose && (
           <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="md:hidden rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100"
+            className="rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 md:hidden"
           >
             <X className="h-5 w-5 text-slate-700" />
           </Button>
@@ -243,20 +220,15 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
       <Separator className="bg-slate-200" />
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+      <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
         {filteredMenuItems.map((group) => (
           <div key={group.group}>
-            <p className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-              {group.group}
-            </p>
+            <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">{group.group}</p>
             <ul className="space-y-1">
               {group.items.map((item) => {
-                const hasChildren = !!item.children?.length;
+                const hasChildren = Boolean(item.children?.length);
                 const isExpanded = expandedMenus.includes(item.href);
-                const isActive =
-                  pathname === item.href ||
-                  item.children?.some((c) => pathname === c.href);
+                const isActive = pathname === item.href || item.children?.some((c) => pathname === c.href);
                 const isExactActive = pathname === item.href;
 
                 return (
@@ -268,30 +240,21 @@ export default function Sidebar({ onClose }: SidebarProps) {
                           className={cn(
                             "flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ease-in-out",
                             isActive
-                              ? "bg-amber-50 text-amber-600 border border-amber-200/50"
+                              ? "border border-amber-200/50 bg-amber-50 text-amber-600"
                               : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                           )}
                         >
                           <span className="flex items-center gap-3">
-                            <item.icon
-                              className={cn(
-                                "h-[18px] w-[18px] shrink-0",
-                                isActive ? "text-amber-600" : "text-slate-600"
-                              )}
-                            />
+                            <item.icon className={cn("h-[18px] w-[18px] shrink-0", isActive ? "text-amber-600" : "text-slate-600")} />
                             {item.label}
                           </span>
-                          <ChevronDown
-                            className={cn(
-                              "h-4 w-4 text-slate-400 transition-transform duration-200",
-                              isExpanded && "rotate-180"
-                            )}
-                          />
+                          <ChevronDown className={cn("h-4 w-4 text-slate-400 transition-transform duration-200", isExpanded && "rotate-180")} />
                         </button>
-                        {isExpanded && (
+                        {isExpanded && item.children && (
                           <ul className="mt-1 ml-4 space-y-0.5 border-l border-slate-200 pl-3">
-                            {item.children!.map((child) => {
+                            {item.children.map((child) => {
                               const isChildActive = pathname === child.href;
+
                               return (
                                 <li key={child.href}>
                                   <Link
@@ -300,18 +263,11 @@ export default function Sidebar({ onClose }: SidebarProps) {
                                     className={cn(
                                       "flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-medium transition-all duration-200 ease-in-out",
                                       isChildActive
-                                        ? "bg-amber-50 text-amber-600 shadow-sm border border-amber-200/50"
+                                        ? "border border-amber-200/50 bg-amber-50 text-amber-600 shadow-sm"
                                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                                     )}
                                   >
-                                    <child.icon
-                                      className={cn(
-                                        "h-4 w-4 shrink-0",
-                                        isChildActive
-                                          ? "text-amber-600"
-                                          : "text-slate-600"
-                                      )}
-                                    />
+                                    <child.icon className={cn("h-4 w-4 shrink-0", isChildActive ? "text-amber-600" : "text-slate-600")} />
                                     {child.label}
                                   </Link>
                                 </li>
@@ -327,16 +283,11 @@ export default function Sidebar({ onClose }: SidebarProps) {
                         className={cn(
                           "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ease-in-out",
                           isExactActive
-                            ? "bg-amber-50 text-amber-600 shadow-sm border border-amber-200/50"
+                            ? "border border-amber-200/50 bg-amber-50 text-amber-600 shadow-sm"
                             : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                         )}
                       >
-                        <item.icon
-                          className={cn(
-                            "h-[18px] w-[18px] shrink-0",
-                            isExactActive ? "text-amber-600" : "text-slate-600"
-                          )}
-                        />
+                        <item.icon className={cn("h-[18px] w-[18px] shrink-0", isExactActive ? "text-amber-600" : "text-slate-600")} />
                         {item.label}
                       </Link>
                     )}
@@ -348,7 +299,6 @@ export default function Sidebar({ onClose }: SidebarProps) {
         ))}
       </nav>
 
-      {/* Footer */}
       <div className="border-t border-slate-200 p-4">
         <Button
           type="button"
@@ -358,9 +308,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
         >
           <LogOut className="h-4 w-4" /> Keluar
         </Button>
-        <p className="text-[11px] text-slate-500 text-center">
-          SIMDP v1.0 &copy; 2026
-        </p>
+        <p className="text-center text-[11px] text-slate-500">SIMDP v1.0 &copy; 2026</p>
       </div>
 
       <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>

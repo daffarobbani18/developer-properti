@@ -169,9 +169,9 @@ const ROLE_DASHBOARD: Record<
       { label: "Unit Terjual", value: String(soldUnits), note: `dari ${totalUnits} total unit` },
     ],
     quickLinks: [
-      { label: "Masuk CRM", href: "/crm", desc: "Kelola pipeline dan follow-up" },
-      { label: "Masuk Keuangan", href: "/finance", desc: "Verifikasi pembayaran" },
-      { label: "Masuk Proyek", href: "/proyek", desc: "Pantau progress lapangan" },
+      { label: "Ringkasan Internal", href: "#snapshot-data", desc: "Lihat snapshot lintas divisi" },
+      { label: "Statistik Utama", href: "#dashboard-stats", desc: "Pantau metrik ringkas" },
+      { label: "Aksi Cepat Admin", href: "#aksi-cepat", desc: "Akses panel admin yang tersedia" },
     ],
   },
   inventory: {
@@ -283,7 +283,7 @@ export default async function RoleDashboardPage({
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div id="dashboard-stats" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {dashboard.stats.map((stat) => (
           <Card key={stat.label} className="rounded-2xl border border-slate-200 bg-white shadow-[0_5px_15px_rgba(0,0,0,0.05)]">
             <CardContent className="p-5">
@@ -295,7 +295,7 @@ export default async function RoleDashboardPage({
         ))}
       </div>
 
-      <div>
+      <div id="aksi-cepat">
         <h2 className="mb-4 font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-slate-900">Aksi Cepat</h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {dashboard.quickLinks.map((item) => (
@@ -317,7 +317,7 @@ export default async function RoleDashboardPage({
         </div>
       </div>
 
-      <div>
+      <div id="snapshot-data">
         <h2 className="mb-4 font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-slate-900">Snapshot Data</h2>
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
           {roleSnapshots[role as Role].map((section) => (

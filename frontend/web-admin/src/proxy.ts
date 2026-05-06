@@ -1,41 +1,20 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import {
+  PUBLIC_PATHS,
+  ROLE_ALLOWED_PREFIXES,
+  ROLE_HOME,
+  USER_ROLES,
+  isAllowedByPrefix,
+  isUserRole,
+} from "@/lib/access";
 
-type UserRole = "admin" | "inventory" | "sales" | "finance" | "legal" | "supervisor";
-
-const VALID_ROLES: UserRole[] = ["admin", "inventory", "sales", "finance", "legal", "supervisor"];
-const PUBLIC_PATHS = ["/login", "/lupa-password"];
-
-const ROLE_HOME: Record<UserRole, string> = {
-  admin: "/dashboard/admin",
-  inventory: "/dashboard/inventory",
-  sales: "/dashboard/sales",
-  finance: "/dashboard/finance",
-  legal: "/dashboard/legal",
-  supervisor: "/dashboard/supervisor",
-};
-
-const ROLE_ALLOWED_PREFIXES: Record<UserRole, string[]> = {
-  admin: ["/dashboard", "/crm", "/finance", "/inventory", "/keuangan", "/legal", "/proyek", "/sales", "/supervisor"],
-  inventory: ["/dashboard/inventory", "/inventory", "/proyek"],
-  sales: ["/dashboard/sales", "/sales", "/crm"],
-  finance: ["/dashboard/finance", "/finance", "/keuangan"],
-  legal: ["/dashboard/legal", "/legal"],
-  supervisor: ["/dashboard/supervisor", "/supervisor", "/proyek"],
-};
-
-const isPublicPath = (pathname: string) => {
-  return PUBLIC_PATHS.includes(pathname);
-};
-
-const isAllowedByPrefix = (pathname: string, prefixes: string[]) => {
-  return prefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
-};
+const isPublicPath = (pathname: string) => PUBLIC_PATHS.includes(pathname as (typeof PUBLIC_PATHS)[number]);
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const roleCookie = request.cookies.get("simdp_role")?.value;
-  const role = VALID_ROLES.includes(roleCookie as UserRole) ? (roleCookie as UserRole) : null;
+  const role = isUserRole(roleCookie) ? roleCookie : null;
 
   if (pathname === "/") {
     return NextResponse.next();
