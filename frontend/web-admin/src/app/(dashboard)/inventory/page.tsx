@@ -68,38 +68,8 @@ export default function InventoryAdminPage() {
   const [activeMenu, setActiveMenu] = useState("dashboard");
   const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
   const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [now, setNow] = useState(() => new Date());
   const [propertyTypes] = useState<PropertyType[]>(propertyTypesSeed);
   const [units] = useState<UnitItem[]>(unitsSeed);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setNow(new Date());
-    }, 60000);
-
-    return () => window.clearInterval(timer);
-  }, []);
-
-  const topBarDate = useMemo(
-    () =>
-      new Intl.DateTimeFormat("id-ID", {
-        weekday: "short",
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }).format(now),
-    [now]
-  );
-
-  const topBarTime = useMemo(
-    () =>
-      new Intl.DateTimeFormat("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(now),
-    [now]
-  );
 
   const renderDashboard = () => (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -333,32 +303,15 @@ export default function InventoryAdminPage() {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-zinc-50 font-sans text-zinc-900 selection:bg-amber-200 selection:text-amber-900">
-      {isMobileSidebarOpen ? (
-        <div className="fixed inset-0 z-40 bg-zinc-950/50 backdrop-blur-sm md:hidden" onClick={() => setIsMobileSidebarOpen(false)} />
-      ) : null}
-
-      <aside className="relative z-20 hidden w-72 flex-col bg-zinc-950 transition-all duration-300 md:flex">
-        <div className="flex h-24 items-center border-b border-white/5 px-8">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 rotate-45 items-center justify-center rounded-lg border border-amber-500/50 bg-gradient-to-br from-zinc-800 to-zinc-900 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
-              <span className="font-serif text-lg font-bold text-transparent bg-clip-text bg-gradient-to-br from-amber-200 to-amber-500 -rotate-45">G</span>
-            </div>
-            <span className="font-serif text-sm tracking-widest text-white uppercase">
-              Griya<span className="font-light">Persada</span>
-            </span>
-          </div>
-        </div>
-
-        {/* profile section removed per request */}
-
-        <nav className="flex-1 space-y-1 px-4 py-6">
-          <p className="mb-4 px-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Modul Aset Lahan</p>
+    <>
+      {/* Internal Tabs Navigation */}
+      <div className="mb-6 overflow-x-auto border-b border-zinc-200">
+        <nav className="-mb-px flex space-x-6 sm:space-x-8">
           {[
-            { id: "dashboard", icon: LayoutDashboard, label: "Dasbor Overview" },
-            { id: "types", icon: Home, label: "Master Tipe Rumah" },
-            { id: "units", icon: Box, label: "Data Kavling & Unit" },
-            { id: "siteplan", icon: Map, label: "Site Plan Master" },
+            { id: "dashboard", icon: LayoutDashboard, label: "Overview" },
+            { id: "types", icon: Home, label: "Tipe Rumah" },
+            { id: "units", icon: Box, label: "Kavling & Unit" },
+            { id: "siteplan", icon: Map, label: "Site Plan" },
           ].map((item) => {
             const Icon = item.icon;
             const isActive = activeMenu === item.id;
@@ -366,138 +319,26 @@ export default function InventoryAdminPage() {
               <button
                 key={item.id}
                 onClick={() => setActiveMenu(item.id)}
-                className={`group flex w-full items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                  isActive ? "bg-amber-500/10 text-amber-500" : "text-zinc-400 hover:bg-white/5 hover:text-white"
+                className={`group inline-flex whitespace-nowrap items-center gap-2 border-b-2 py-3 px-1 text-sm font-medium transition-colors ${
+                  isActive
+                    ? "border-amber-500 text-amber-600"
+                    : "border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700"
                 }`}
               >
-                <Icon size={18} className={isActive ? "text-amber-500" : "text-zinc-500 group-hover:text-zinc-300"} />
-                <span className={`text-sm font-medium ${isActive ? "text-amber-500" : ""}`}>{item.label}</span>
-                {isActive && <div className="ml-auto h-5 w-1 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>}
+                <Icon size={18} className={isActive ? "text-amber-500" : "text-zinc-400 group-hover:text-zinc-500"} />
+                {item.label}
               </button>
             );
           })}
         </nav>
-      </aside>
+      </div>
 
-        <aside
-          className={`fixed left-0 top-0 z-50 flex h-screen w-72 flex-col bg-zinc-950 transition-transform duration-300 md:hidden ${
-            isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
-        >
-          <div className="flex h-24 items-center justify-between border-b border-white/5 px-8">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 rotate-45 items-center justify-center rounded-lg border border-amber-500/50 bg-gradient-to-br from-zinc-800 to-zinc-900 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
-                <span className="font-serif text-lg font-bold text-transparent bg-clip-text bg-gradient-to-br from-amber-200 to-amber-500 -rotate-45">G</span>
-              </div>
-              <span className="font-serif text-sm tracking-widest text-white uppercase">
-                Griya<span className="font-light">Persada</span>
-              </span>
-            </div>
-            <button
-              onClick={() => setIsMobileSidebarOpen(false)}
-              className="rounded-full border border-white/10 p-2 text-zinc-300 transition-colors hover:bg-white/5 hover:text-white"
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          {/* profile section removed per request */}
-
-          <nav className="flex-1 space-y-1 px-4 py-6">
-            <p className="mb-4 px-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Modul Aset Lahan</p>
-            {[
-              { id: "dashboard", icon: LayoutDashboard, label: "Dasbor Overview" },
-              { id: "types", icon: Home, label: "Master Tipe Rumah" },
-              { id: "units", icon: Box, label: "Data Kavling & Unit" },
-              { id: "siteplan", icon: Map, label: "Site Plan Master" },
-            ].map((item) => {
-              const Icon = item.icon;
-              const isActive = activeMenu === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveMenu(item.id);
-                    setIsMobileSidebarOpen(false);
-                  }}
-                  className={`group flex w-full items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 ${
-                    isActive ? "bg-amber-500/10 text-amber-500" : "text-zinc-400 hover:bg-white/5 hover:text-white"
-                  }`}
-                >
-                  <Icon size={18} className={isActive ? "text-amber-500" : "text-zinc-500 group-hover:text-zinc-300"} />
-                  <span className={`text-sm font-medium ${isActive ? "text-amber-500" : ""}`}>{item.label}</span>
-                  {isActive && <div className="ml-auto h-5 w-1 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>}
-                </button>
-              );
-            })}
-          </nav>
-        </aside>
-
-      <main className="relative flex flex-1 flex-col overflow-hidden">
-          <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/90 backdrop-blur-xl">
-            <div className="flex h-20 items-center justify-between gap-4 px-4 py-2 md:px-8">
-              <div className="flex min-w-0 items-center gap-3 md:gap-4">
-                <button
-                  onClick={() => setIsMobileSidebarOpen(true)}
-                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50 md:hidden"
-                  aria-label="Buka menu navigasi"
-                >
-                  <Menu size={18} />
-                </button>
-
-                <div className="min-w-0" />
-              </div>
-
-              <div className="hidden min-w-0 flex-1 justify-start px-0 md:flex">
-                <div className="relative w-full max-w-xl">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-                  <input
-                    type="text"
-                    placeholder="Pencarian cepat ID Unit, Tipe..."
-                    className="w-full rounded-full border border-zinc-200 bg-white py-2.5 pl-11 pr-16 text-sm text-zinc-700 shadow-[0_2px_10px_rgba(0,0,0,0.04)] outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20"
-                  />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-[11px] font-semibold text-zinc-500">
-                    ⌘K
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 md:gap-4">
-                <div className="hidden items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-right shadow-sm md:flex">
-                  <CalendarDays size={16} className="text-zinc-400" />
-                  <div className="leading-tight">
-                    <p className="text-[11px] font-medium text-zinc-500">{topBarDate}</p>
-                    <p className="text-sm font-semibold text-zinc-900">{topBarTime}</p>
-                  </div>
-                </div>
-
-                <button className="relative flex h-11 w-11 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-500 shadow-sm transition-colors hover:bg-zinc-50">
-                  <Bell size={18} />
-                  <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-rose-500"></span>
-                </button>
-
-                <div className="flex items-center gap-3 rounded-full border border-zinc-200 bg-white px-2 py-1.5 shadow-sm">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-zinc-950">
-                    AD
-                  </div>
-                  <div className="hidden min-w-0 sm:block">
-                    <p className="truncate text-sm font-semibold leading-tight text-zinc-900">Admin Inventory</p>
-                    <p className="truncate text-[11px] uppercase tracking-wide text-zinc-500">Div. Perencanaan</p>
-                  </div>
-                  <div className="hidden h-6 w-px bg-zinc-200 sm:block" />
-                  <UserRound size={16} className="hidden text-zinc-400 sm:block" />
-                </div>
-              </div>
-            </div>
-        </header>
-
-        <div className="flex-1 overflow-y-auto p-6 md:p-10">
-          {activeMenu === "dashboard" && renderDashboard()}
-          {activeMenu === "types" && renderTypes()}
-          {activeMenu === "units" && renderUnits()}
-          {activeMenu === "siteplan" && renderSitePlan()}
-        </div>
-      </main>
+      <div className="animate-in fade-in duration-500">
+        {activeMenu === "dashboard" && renderDashboard()}
+        {activeMenu === "types" && renderTypes()}
+        {activeMenu === "units" && renderUnits()}
+        {activeMenu === "siteplan" && renderSitePlan()}
+      </div>
 
       {isTypeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
@@ -638,6 +479,6 @@ export default function InventoryAdminPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

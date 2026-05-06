@@ -18,50 +18,34 @@ interface AppShellProps {
 export default function AppShell({ children, title }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
-  const isInventoryRoute = pathname.startsWith("/inventory");
-  const mainClassName = isInventoryRoute
-    ? "flex-1 overflow-y-auto"
-    : "flex-1 overflow-y-auto p-4 sm:p-5 md:p-8"
 
   if (pathname === "/") {
     return <div className="min-h-screen">{children}</div>;
   }
 
   return (
-    <div className="relative flex h-screen overflow-hidden bg-white text-zinc-900">
-      <div className="pointer-events-none absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.05),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.03),transparent_28%)]" />
+    <div className="flex h-screen overflow-hidden bg-zinc-50 font-sans text-zinc-900 selection:bg-amber-200 selection:text-amber-900">
+      {/* Desktop Sidebar */}
+      <div className="hidden md:flex md:flex-shrink-0">
+        <Sidebar />
       </div>
 
-      <div className="relative z-10 flex w-full">
-      {!isInventoryRoute ? (
-        <>
-          {/* Desktop Sidebar */}
-          <div className="hidden md:flex md:flex-shrink-0">
-            <Sidebar />
-          </div>
-
-          {/* Mobile Sidebar (Sheet) */}
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetContent side="left" className="w-64 border-r border-slate-200 bg-white p-0 backdrop-blur-md">
-              <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
-              <Sidebar onClose={() => setMobileOpen(false)} />
-            </SheetContent>
-          </Sheet>
-        </>
-      ) : null}
+      {/* Mobile Sidebar (Sheet) */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent side="left" className="w-64 border-r border-white/10 bg-zinc-950 p-0 text-white">
+          <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
+          <Sidebar onClose={() => setMobileOpen(false)} />
+        </SheetContent>
+      </Sheet>
 
       {/* Main Area */}
-      <div className="relative z-10 flex flex-1 flex-col overflow-hidden">
-        {!isInventoryRoute ? (
-          <Header title={title} onMenuClick={() => setMobileOpen(true)} showMenuButton />
-        ) : null}
+      <main className="relative flex flex-1 flex-col overflow-hidden">
+        <Header title={title} onMenuClick={() => setMobileOpen(true)} showMenuButton />
 
-        <main className={mainClassName}>
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-10">
           {children}
-        </main>
-      </div>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

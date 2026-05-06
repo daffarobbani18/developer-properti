@@ -1,14 +1,7 @@
 "use client";
 
-import { Bell, Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { useEffect, useMemo, useState } from "react";
+import { Bell, Menu, Search, CalendarDays, UserRound } from "lucide-react";
 
 interface HeaderProps {
   title?: string;
@@ -16,61 +9,97 @@ interface HeaderProps {
   showMenuButton?: boolean;
 }
 
-export default function Header({ title, onMenuClick, showMenuButton = true }: HeaderProps) {
+export default function Header({ onMenuClick, showMenuButton = true }: HeaderProps) {
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+    const timer = window.setInterval(() => {
+      setNow(new Date());
+    }, 60000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const topBarDate = useMemo(
+    () =>
+      now
+        ? new Intl.DateTimeFormat("id-ID", {
+            weekday: "short",
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }).format(now)
+        : "",
+    [now]
+  );
+
+  const topBarTime = useMemo(
+    () =>
+      now
+        ? new Intl.DateTimeFormat("id-ID", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }).format(now)
+        : "",
+    [now]
+  );
+
   return (
-    <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-[0_1px_0_rgba(0,0,0,0.04)] backdrop-blur-2xl md:px-8">
-      {/* Left: Hamburger + Title */}
-      <div className="flex items-center gap-3">
-        {showMenuButton ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onMenuClick}
-            className="rounded-xl border border-slate-200 bg-slate-50 transition-all duration-200 ease-in-out hover:bg-slate-100 md:hidden"
-          >
-            <Menu className="h-5 w-5 text-slate-700" />
-          </Button>
-        ) : null}
-        {title && (
-          <h1 className="font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-slate-900">
-            {title}
-          </h1>
-        )}
-      </div>
-
-      {/* Right: Notification + Avatar */}
-      <div className="flex items-center gap-2">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all duration-200 ease-in-out"
+    <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/90 backdrop-blur-xl">
+      <div className="flex h-20 items-center justify-between gap-4 px-4 py-2 md:px-8">
+        <div className="flex min-w-0 items-center gap-3 md:gap-4">
+          {showMenuButton ? (
+            <button
+              onClick={onMenuClick}
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50 md:hidden"
+              aria-label="Buka menu navigasi"
             >
-              <Bell className="h-5 w-5 text-slate-600" />
-              <Badge className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 text-[10px] bg-amber-500 text-zinc-950 border-2 border-zinc-950 hover:bg-amber-500">
-                3
-              </Badge>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Notifikasi</p>
-          </TooltipContent>
-        </Tooltip>
+              <Menu size={18} />
+            </button>
+          ) : null}
 
-        <div className="ml-2 flex items-center gap-3 cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 px-2 py-1.5 transition-all duration-200 ease-in-out hover:bg-slate-100">
-          <Avatar className="h-8 w-8 ring-1 ring-slate-200 shadow-sm">
-            <AvatarFallback className="bg-gradient-to-br from-amber-500 to-amber-700 text-zinc-950 text-xs font-semibold font-[family-name:var(--font-heading)]">
+          <div className="min-w-0" />
+        </div>
+
+        <div className="hidden min-w-0 flex-1 justify-start px-0 md:flex">
+          <div className="relative w-full max-w-xl">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+            <input
+              type="text"
+              placeholder="Pencarian cepat ID Unit, Tipe..."
+              className="w-full rounded-full border border-zinc-200 bg-white py-2.5 pl-11 pr-16 text-sm text-zinc-700 shadow-[0_2px_10px_rgba(0,0,0,0.04)] outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20"
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-[11px] font-semibold text-zinc-500">
+              ⌘K
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className={`hidden items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-right shadow-sm md:flex ${!now ? 'opacity-0' : 'opacity-100 transition-opacity'}`}>
+            <CalendarDays size={16} className="text-zinc-400" />
+            <div className="leading-tight text-left">
+              <p className="text-[11px] font-medium text-zinc-500">{topBarDate || "..."}</p>
+              <p className="text-sm font-semibold text-zinc-900">{topBarTime || "..."}</p>
+            </div>
+          </div>
+
+          <button className="relative flex h-11 w-11 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-500 shadow-sm transition-colors hover:bg-zinc-50">
+            <Bell size={18} />
+            <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-rose-500"></span>
+          </button>
+
+          <div className="flex items-center gap-3 rounded-full border border-zinc-200 bg-white px-2 py-1.5 shadow-sm cursor-pointer hover:bg-zinc-50 transition-colors">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-zinc-950">
               AD
-            </AvatarFallback>
-          </Avatar>
-          <div className="hidden sm:block">
-            <p className="text-sm font-medium text-slate-900 leading-tight">
-              Admin
-            </p>
-            <p className="text-[11px] text-slate-600 leading-tight">
-              Direktur
-            </p>
+            </div>
+            <div className="hidden min-w-0 sm:block text-left">
+              <p className="truncate text-sm font-semibold leading-tight text-zinc-900">Admin Profile</p>
+              <p className="truncate text-[11px] uppercase tracking-wide text-zinc-500">Akses Portal</p>
+            </div>
+            <div className="hidden h-6 w-px bg-zinc-200 sm:block" />
+            <UserRound size={16} className="hidden text-zinc-400 sm:block" />
           </div>
         </div>
       </div>

@@ -184,33 +184,30 @@ export default function Sidebar({ onClose }: SidebarProps) {
   };
 
   return (
-    <aside className="flex h-full w-64 flex-col border-r border-slate-200 bg-white text-slate-900 shadow-[0_0_20px_rgba(0,0,0,0.08)] backdrop-blur-2xl">
-      <div className="flex h-16 items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="relative flex h-9 w-9 items-center justify-center rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-100 to-slate-50 font-[family-name:var(--font-heading)] text-sm font-bold text-slate-900 shadow-sm shadow-black/5">
-            <span className="absolute inset-0 rounded-2xl bg-amber-500/5 blur-md" />
-            <span className="relative">S</span>
+    <aside className="relative z-20 flex h-full w-64 flex-col bg-zinc-950 transition-all duration-300">
+      <div className="flex h-24 shrink-0 items-center justify-between border-b border-white/5 px-8">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="flex h-8 w-8 rotate-45 items-center justify-center rounded-lg border border-amber-500/50 bg-gradient-to-br from-zinc-800 to-zinc-900 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+            <span className="font-serif text-lg font-bold text-transparent bg-clip-text bg-gradient-to-br from-amber-200 to-amber-500 -rotate-45">G</span>
           </div>
-          <span className="font-[family-name:var(--font-heading)] text-lg font-bold tracking-tight text-slate-900">SIMDP</span>
+          <span className="font-serif text-sm tracking-widest text-white uppercase">
+            Griya<span className="font-light">Persada</span>
+          </span>
         </Link>
         {onClose && (
-          <Button
-            variant="ghost"
-            size="icon"
+          <button
             onClick={onClose}
-            className="rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 md:hidden"
+            className="rounded-full border border-white/10 p-2 text-zinc-300 transition-colors hover:bg-white/5 hover:text-white md:hidden"
           >
-            <X className="h-5 w-5 text-slate-700" />
-          </Button>
+            <X size={18} />
+          </button>
         )}
       </div>
-
-      <Separator className="bg-slate-200" />
 
       <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
         {filteredMenuItems.map((group) => (
           <div key={group.group}>
-            <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">{group.group}</p>
+            <p className="mb-4 px-4 text-[10px] font-semibold uppercase tracking-widest text-zinc-500">{group.group}</p>
             <ul className="space-y-1">
               {group.items.map((item) => {
                 const hasChildren = Boolean(item.children?.length);
@@ -225,20 +222,20 @@ export default function Sidebar({ onClose }: SidebarProps) {
                         <button
                           onClick={() => toggleExpand(item.href)}
                           className={cn(
-                            "flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ease-in-out",
+                            "group flex w-full items-center justify-between rounded-xl px-4 py-3 transition-all duration-300",
                             isActive
-                              ? "border border-amber-200/50 bg-amber-50 text-amber-600"
-                              : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                              ? "bg-amber-500/10 text-amber-500"
+                              : "text-zinc-400 hover:bg-white/5 hover:text-white"
                           )}
                         >
-                          <span className="flex items-center gap-3">
-                            <item.icon className={cn("h-[18px] w-[18px] shrink-0", isActive ? "text-amber-600" : "text-slate-600")} />
+                          <span className="flex items-center gap-3 text-sm font-medium">
+                            <item.icon className={cn("h-[18px] w-[18px] shrink-0", isActive ? "text-amber-500" : "text-zinc-500 group-hover:text-zinc-300")} />
                             {item.label}
                           </span>
-                          <ChevronDown className={cn("h-4 w-4 text-slate-400 transition-transform duration-200", isExpanded && "rotate-180")} />
+                          <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", isExpanded ? "rotate-180" : "opacity-50")} />
                         </button>
                         {isExpanded && item.children && (
-                          <ul className="mt-1 ml-4 space-y-0.5 border-l border-slate-200 pl-3">
+                          <ul className="mt-2 ml-6 space-y-1 border-l border-white/10 pl-4">
                             {item.children.map((child) => {
                               const isChildActive = pathname === child.href;
 
@@ -248,13 +245,13 @@ export default function Sidebar({ onClose }: SidebarProps) {
                                     href={child.href}
                                     onClick={onClose}
                                     className={cn(
-                                      "flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-medium transition-all duration-200 ease-in-out",
+                                      "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-300",
                                       isChildActive
-                                        ? "border border-amber-200/50 bg-amber-50 text-amber-600 shadow-sm"
-                                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                        ? "text-amber-500"
+                                        : "text-zinc-500 hover:text-white"
                                     )}
                                   >
-                                    <child.icon className={cn("h-4 w-4 shrink-0", isChildActive ? "text-amber-600" : "text-slate-600")} />
+                                    <child.icon className={cn("h-[14px] w-[14px] shrink-0", isChildActive ? "text-amber-500" : "text-zinc-500 group-hover:text-zinc-300")} />
                                     {child.label}
                                   </Link>
                                 </li>
@@ -268,14 +265,15 @@ export default function Sidebar({ onClose }: SidebarProps) {
                         href={item.href}
                         onClick={onClose}
                         className={cn(
-                          "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ease-in-out",
+                          "group flex w-full items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300",
                           isExactActive
-                            ? "border border-amber-200/50 bg-amber-50 text-amber-600 shadow-sm"
-                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                            ? "bg-amber-500/10 text-amber-500"
+                            : "text-zinc-400 hover:bg-white/5 hover:text-white"
                         )}
                       >
-                        <item.icon className={cn("h-[18px] w-[18px] shrink-0", isExactActive ? "text-amber-600" : "text-slate-600")} />
-                        {item.label}
+                        <item.icon className={cn("h-[18px] w-[18px] shrink-0", isExactActive ? "text-amber-500" : "text-zinc-500 group-hover:text-zinc-300")} />
+                        <span className={cn("text-sm font-medium", isExactActive && "text-amber-500")}>{item.label}</span>
+                        {isExactActive && <div className="ml-auto h-5 w-1 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>}
                       </Link>
                     )}
                   </li>
@@ -286,16 +284,15 @@ export default function Sidebar({ onClose }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="border-t border-slate-200 p-4">
-        <Button
+      <div className="border-t border-white/5 p-6">
+        <button
           type="button"
-          variant="outline"
           onClick={() => setShowLogoutConfirm(true)}
-          className="mb-3 h-9 w-full justify-center gap-2 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 hover:text-rose-600"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-transparent px-4 py-2.5 text-sm font-medium text-zinc-400 transition-colors hover:bg-white/5 hover:text-rose-500"
         >
           <LogOut className="h-4 w-4" /> Keluar
-        </Button>
-        <p className="text-center text-[11px] text-slate-500">SIMDP v1.0 &copy; 2026</p>
+        </button>
+        <p className="mt-4 text-center text-[10px] tracking-wider text-zinc-600">GRIYA PERSADA &copy; 2026</p>
       </div>
 
       <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
