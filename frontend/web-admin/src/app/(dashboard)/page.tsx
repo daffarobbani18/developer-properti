@@ -16,15 +16,17 @@ import {
   Server,
   Activity,
   Database,
+  Quote,
 } from "lucide-react";
 
 type RevealProps = {
   children: React.ReactNode;
   delay?: number;
   direction?: "up" | "down" | "left" | "right";
+  className?: string;
 };
 
-function Reveal({ children, delay = 0, direction = "up" }: RevealProps) {
+function Reveal({ children, delay = 0, direction = "up", className = "" }: RevealProps) {
   const [isVisible, setVisible] = useState(false);
   const domRef = useRef<HTMLDivElement | null>(null);
 
@@ -63,7 +65,7 @@ function Reveal({ children, delay = 0, direction = "up" }: RevealProps) {
   return (
     <div
       ref={domRef}
-      className={`transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] transform ${
+      className={`${className} transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] transform ${
         isVisible ? "opacity-100 translate-x-0 translate-y-0 scale-100" : `opacity-0 ${getTransform()} scale-95`
       }`}
       style={{ transitionDelay: `${delay}ms` }}
@@ -88,22 +90,7 @@ export default function DashboardLandingPage() {
   }, []);
 
   const roles = [
-    {
-      id: "super-admin",
-      title: "Super Admin",
-      subtitle: "IT & Project Manager",
-      icon: ShieldAlert,
-      color: "text-rose-500",
-      borderGlow: "group-hover:border-rose-500/50",
-      shadowGlow: "group-hover:shadow-[0_0_40px_rgba(244,63,94,0.15)]",
-      gradient: "from-rose-500/10 to-transparent",
-      tasks: [
-        "Kontrol penuh arsitektur sistem.",
-        "Manajemen akses kredensial.",
-        "Audit trail log aktivitas.",
-        "Laporan eksekutif menyeluruh.",
-      ],
-    },
+    
     {
       id: "inventory",
       title: "Admin Inventory",
@@ -113,12 +100,8 @@ export default function DashboardLandingPage() {
       borderGlow: "group-hover:border-emerald-500/50",
       shadowGlow: "group-hover:shadow-[0_0_40px_rgba(16,185,129,0.15)]",
       gradient: "from-emerald-500/10 to-transparent",
-      tasks: [
-        "Input master data kavling.",
-        "Pembaruan Interactive Site Plan.",
-        "Pengaturan harga & spesifikasi.",
-        "Sinkronisasi stok real-time.",
-      ],
+      description:
+        'Divisi ini adalah jantung dari pengelolaan aset properti. Mereka bertanggung jawab menyiapkan data ketersediaan lahan, memetakan kavling pada denah peta digital interaktif, dan memastikan informasi stok setiap unit selalu diperbarui secara seketika (real-time) agar siap ditawarkan kepada pelanggan.',
     },
     {
       id: "sales",
@@ -129,60 +112,44 @@ export default function DashboardLandingPage() {
       borderGlow: "group-hover:border-blue-500/50",
       shadowGlow: "group-hover:shadow-[0_0_40px_rgba(59,130,246,0.15)]",
       gradient: "from-blue-500/10 to-transparent",
-      tasks: [
-        "Manajemen database Leads.",
-        "Eksekusi Booking/NUP.",
-        "Penjadwalan Site Visit.",
-        "Konversi prospek ke pesanan.",
-      ],
+      description:
+        'Sebagai garda terdepan perusahaan, tim ini fokus mendampingi perjalanan calon pembeli secara personal. Mulai dari merespons ketertarikan awal, mengatur jadwal kunjungan melihat lokasi, hingga membantu pelanggan mengamankan atau memesan unit rumah impian mereka di dalam sistem kami.',
     },
     {
       id: "finance",
-      title: "Finance & Treasury",
-      subtitle: "Accounting & Billing",
+      title: "Finance & Accounting",
+      subtitle: "Treasury & Billing",
       icon: CircleDollarSign,
       color: "text-amber-500",
       borderGlow: "group-hover:border-amber-500/50",
       shadowGlow: "group-hover:shadow-[0_0_40px_rgba(245,158,11,0.15)]",
       gradient: "from-amber-500/10 to-transparent",
-      tasks: [
-        "Verifikasi mutasi pembayaran.",
-        "Penerbitan kuitansi digital.",
-        "Manajemen pencairan KPR.",
-        "Otomatisasi status unit Lunas.",
-      ],
+      description:
+        'Tim keuangan bekerja dengan teliti di balik layar untuk memastikan seluruh alur transaksi berjalan aman dan transparan. Mereka memverifikasi validitas setiap pembayaran yang masuk, menerbitkan kuitansi pelunasan digital, serta mengurus administrasi yang berkaitan dengan pencairan KPR dari pihak bank.',
     },
     {
       id: "legal",
-      title: "Tim Legalitas",
+      title: "Tim Legal",
       subtitle: "Document & Compliance",
       icon: Scale,
       color: "text-purple-500",
       borderGlow: "group-hover:border-purple-500/50",
       shadowGlow: "group-hover:shadow-[0_0_40px_rgba(168,85,247,0.15)]",
       gradient: "from-purple-500/10 to-transparent",
-      tasks: [
-        "Validasi KYC pelanggan.",
-        "Penerbitan PPJB dan AJB.",
-        "Pemantauan pecah sertifikat.",
-        "Cetak dokumen BAST.",
-      ],
+      description:
+        'Divisi ini menjamin kepemilikan rumah Anda sah dan kuat secara hukum. Tim Legal bertugas mengawal pemberkasan identitas pembeli, menyusun draf perjanjian jual beli yang akurat, hingga memantau proses pemecahan sertifikat di notaris agar legalitas properti Anda terjamin sepenuhnya.',
     },
     {
       id: "pengawas",
-      title: "Field Supervisor",
-      subtitle: "Construction Engineering",
+      title: "Pengawas Lapangan",
+      subtitle: "Field Engineering",
       icon: HardHat,
       color: "text-orange-500",
       borderGlow: "group-hover:border-orange-500/50",
       shadowGlow: "group-hover:shadow-[0_0_40px_rgba(249,115,22,0.15)]",
       gradient: "from-orange-500/10 to-transparent",
-      tasks: [
-        "Akses Surat Perintah Kerja.",
-        "Input persentase progres.",
-        "Unggah dokumentasi foto.",
-        "Tindak lanjut tiket komplain.",
-      ],
+      description:
+        'Mereka adalah mata dan telinga perusahaan langsung di lokasi proyek. Pengawas bertugas memantau standar kualitas bangunan, melaporkan progres pembangunan fisik secara berkala melalui aplikasi, serta memastikan setiap keluhan di masa garansi segera diperbaiki oleh teknisi.',
     },
   ];
 
@@ -295,51 +262,64 @@ export default function DashboardLandingPage() {
       <section className="py-24 relative z-10 border-t border-white/5 bg-zinc-950/40 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="text-center mb-16">
-            <h2 className="text-2xl font-serif text-white mb-3">Direktori Otoritas</h2>
-            <p className="text-sm text-zinc-500 font-light max-w-lg mx-auto">
-              Pilih departemen Anda untuk melihat spesifikasi akses, batas wewenang, dan tanggung jawab modul operasional.
+            <h2 className="text-2xl md:text-3xl font-serif text-white mb-4">Mengenal Departemen Kami</h2>
+            <p className="text-sm text-zinc-500 font-light max-w-xl mx-auto leading-relaxed">
+              Pelajari peran dan batasan wewenang dari setiap divisi yang menyusun ekosistem digital Griya Persada untuk melayani perjalanan properti Anda.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="flex flex-wrap justify-center -mx-3 lg:-mx-4">
             {roles.map((role, index) => {
               const Icon = role.icon;
 
               return (
-                <Reveal key={role.id} delay={index * 100} direction="up">
-                  <div className={`group relative bg-zinc-900/50 backdrop-blur-2xl border border-zinc-800 rounded-2xl p-8 h-full transition-all duration-500 hover:-translate-y-2 ${role.shadowGlow} ${role.borderGlow} overflow-hidden cursor-default`}>
-                    <div className={`absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl ${role.gradient} rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`} />
+                <div key={role.id} className="w-full md:w-1/2 lg:w-1/3 p-3 lg:p-4 flex">
+                  <Reveal delay={index * 150} direction="up" className="w-full flex flex-col">
+                    <div className={`w-full flex-grow group relative bg-zinc-900/50 backdrop-blur-2xl border border-zinc-800 rounded-2xl p-8 transition-all duration-500 hover:-translate-y-2 ${role.shadowGlow} ${role.borderGlow} overflow-hidden cursor-default flex flex-col`}>
+                      <div className={`absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl ${role.gradient} rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`} />
 
-                    <div className="absolute -right-6 -bottom-6 opacity-[0.03] transform group-hover:scale-125 group-hover:rotate-12 transition-all duration-700 pointer-events-none text-white">
-                      <Icon size={160} />
-                    </div>
+                      <div className="absolute -right-6 -bottom-6 opacity-[0.03] transform group-hover:scale-125 group-hover:rotate-12 transition-all duration-700 pointer-events-none text-white">
+                        <Icon size={160} />
+                      </div>
 
-                    <div className="flex items-start gap-5 mb-8 relative z-10 border-b border-white/5 pb-6">
-                      <div className={`w-14 h-14 rounded-xl bg-zinc-950 border border-white/5 flex items-center justify-center flex-shrink-0 shadow-[inset_0_2px_10px_rgba(255,255,255,0.05)] transition-colors`}>
-                        <Icon className={role.color} size={28} strokeWidth={1.5} />
+                      <div className="flex items-start gap-5 mb-8 relative z-10 border-b border-white/5 pb-6">
+                        <div className={`w-14 h-14 rounded-xl bg-zinc-950 border border-white/5 flex items-center justify-center flex-shrink-0 shadow-[inset_0_2px_10px_rgba(255,255,255,0.05)] transition-colors`}>
+                          <Icon className={role.color} size={28} strokeWidth={1.5} />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-serif text-zinc-100 mb-1.5 group-hover:text-white transition-colors">{role.title}</h3>
+                          <p className={`text-[9px] uppercase tracking-[0.2em] font-bold ${role.color}`}>{role.subtitle}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-xl font-serif text-zinc-100 mb-1.5 group-hover:text-white transition-colors">{role.title}</h3>
-                        <p className={`text-[9px] uppercase tracking-[0.2em] font-bold ${role.color}`}>{role.subtitle}</p>
-                      </div>
-                    </div>
 
-                    <div className="relative z-10">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Network size={14} className="text-zinc-600" />
-                        <h4 className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-semibold">Tanggung Jawab Modul</h4>
+                      <div className="relative z-10 flex-grow">
+                        {role.description ? (
+                          <>
+                            <Quote size={18} className="text-zinc-700 mb-3 rotate-180" />
+                            <p className="text-sm font-light text-zinc-400 group-hover:text-zinc-300 transition-colors leading-relaxed text-justify">{role.description}</p>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2 mb-4">
+                              <Network size={14} className="text-zinc-600" />
+                              <h4 className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-semibold">Tanggung Jawab Modul</h4>
+                            </div>
+                            <ul className="space-y-3.5">
+                              {Array.isArray((role as any).tasks)
+                                ? (role as any).tasks.map((task: string, idx: number) => (
+                                    <li key={idx} className="flex items-start gap-3">
+                                      <ChevronRight size={14} className={`${role.color} mt-0.5 flex-shrink-0 opacity-70 group-hover:translate-x-1 transition-transform`} />
+                                      <span className="text-xs font-light text-zinc-400 group-hover:text-zinc-300 transition-colors leading-relaxed">{task}</span>
+                                    </li>
+                                  ))
+                                : null}
+                            </ul>
+                          </>
+                        )}
                       </div>
-                      <ul className="space-y-3.5">
-                        {role.tasks.map((task, idx) => (
-                          <li key={idx} className="flex items-start gap-3">
-                            <ChevronRight size={14} className={`${role.color} mt-0.5 flex-shrink-0 opacity-70 group-hover:translate-x-1 transition-transform`} />
-                            <span className="text-xs font-light text-zinc-400 group-hover:text-zinc-300 transition-colors leading-relaxed">{task}</span>
-                          </li>
-                        ))}
-                      </ul>
                     </div>
-                  </div>
-                </Reveal>
+                  </Reveal>
+                </div>
               );
             })}
           </div>
