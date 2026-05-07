@@ -43,6 +43,7 @@ import {
 } from "@/lib/keuangan-data";
 
 export default function TagihanPage() {
+  const [tagihanList, setTagihanList] = useState<Tagihan[]>(dummyTagihan);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterTipe, setFilterTipe] = useState<string>("all");
@@ -50,7 +51,7 @@ export default function TagihanPage() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
   // Filter tagihan
-  const filteredTagihan = dummyTagihan.filter((t) => {
+  const filteredTagihan = tagihanList.filter((t) => {
     const matchSearch =
       t.customerNama.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.nomorTagihan.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -63,10 +64,10 @@ export default function TagihanPage() {
   });
 
   // Calculate summary
-  const totalBelumBayar = getTotalByStatus(dummyTagihan, "belum_bayar");
-  const totalTerlambat = getTotalByStatus(dummyTagihan, "terlambat");
-  const totalLunas = getTotalByStatus(dummyTagihan, "lunas");
-  const jumlahTerlambat = dummyTagihan.filter(
+  const totalBelumBayar = getTotalByStatus(tagihanList, "belum_bayar");
+  const totalTerlambat = getTotalByStatus(tagihanList, "terlambat");
+  const totalLunas = getTotalByStatus(tagihanList, "lunas");
+  const jumlahTerlambat = tagihanList.filter(
     (t) => t.status === "terlambat"
   ).length;
 
@@ -76,8 +77,15 @@ export default function TagihanPage() {
   };
 
   const handleKonfirmasiPembayaran = () => {
-    alert("Pembayaran dikonfirmasi! (Demo)");
-    setDetailDialogOpen(false);
+    if (!selectedTagihan) return;
+    
+    const today = new Date().toISOString().split('T')[0];
+    const updatedList = tagihanList.map(t => 
+      t.id === selectedTagihan.id ? { ...t, status: "lunas" as StatusTagihan, tanggalBayar: today } : t
+    );
+    
+    setTagihanList(updatedList);
+    setSelectedTagihan({ ...selectedTagihan, status: "lunas", tanggalBayar: today });
   };
 
   return (
@@ -119,7 +127,7 @@ export default function TagihanPage() {
                 {formatRupiah(totalBelumBayar)}
               </p>
               <p className="text-xs text-slate-500 mt-1">
-                {dummyTagihan.filter((t) => t.status === "belum_bayar").length}{" "}
+                {tagihanList.filter((t) => t.status === "belum_bayar").length}{" "}
                 tagihan aktif
               </p>
             </div>
@@ -154,7 +162,7 @@ export default function TagihanPage() {
                 {formatRupiah(totalLunas)}
               </p>
               <p className="text-xs text-green-600 mt-1">
-                {dummyTagihan.filter((t) => t.status === "lunas").length} pembayaran
+                {tagihanList.filter((t) => t.status === "lunas").length} pembayaran
               </p>
             </div>
           </Card>
@@ -218,7 +226,7 @@ export default function TagihanPage() {
             </div>
 
             <p className="text-sm text-slate-600">
-              Menampilkan {filteredTagihan.length} dari {dummyTagihan.length}{" "}
+              Menampilkan {filteredTagihan.length} dari {tagihanList.length}{" "}
               tagihan
             </p>
           </div>

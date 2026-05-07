@@ -49,8 +49,20 @@ import {
 } from "@/lib/crm-data";
 
 export default function TransaksiPage() {
+  const [transaksiList, setTransaksiList] = useState<Transaksi[]>(dummyTransaksi);
   const [selectedTrx, setSelectedTrx] = useState<Transaksi | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
+
+  const handleUpdateStatusKPR = (newStatus: StatusKPR) => {
+    if (!selectedTrx) return;
+    
+    const updatedList = transaksiList.map(trx => 
+      trx.id === selectedTrx.id ? { ...trx, statusKPR: newStatus } : trx
+    );
+    
+    setTransaksiList(updatedList);
+    setSelectedTrx({ ...selectedTrx, statusKPR: newStatus });
+  };
 
   // Progress steps for KPR
   const kprSteps: StatusKPR[] = [
@@ -75,7 +87,7 @@ export default function TransaksiPage() {
         <div className="flex items-center justify-between mb-6">
         <div>
           <p className="text-sm text-slate-500">
-            {dummyTransaksi.length} transaksi tercatat
+            {transaksiList.length} transaksi tercatat
           </p>
         </div>
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
@@ -170,7 +182,7 @@ export default function TransaksiPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {dummyTransaksi.map((trx) => (
+              {transaksiList.map((trx) => (
                 <TableRow
                   key={trx.id}
                   className="border-slate-200/30 hover:bg-white/60 cursor-pointer transition-colors duration-150"
@@ -246,9 +258,18 @@ export default function TransaksiPage() {
                     {selectedTrx.id} · Unit {selectedTrx.nomorUnit}
                   </p>
                 </div>
-                <Badge className={`text-xs font-medium rounded-md ${statusKPRColor[selectedTrx.statusKPR]} border-0`}>
-                  {statusKPRLabel[selectedTrx.statusKPR]}
-                </Badge>
+                <Select value={selectedTrx.statusKPR} onValueChange={(v) => handleUpdateStatusKPR(v as StatusKPR)}>
+                  <SelectTrigger className={`h-8 w-[130px] border-0 focus:ring-0 shadow-none font-medium text-xs rounded-md ${statusKPRColor[selectedTrx.statusKPR]}`}>
+                    <SelectValue placeholder="Status KPR" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pengajuan">Pengajuan</SelectItem>
+                    <SelectItem value="proses">Proses</SelectItem>
+                    <SelectItem value="disetujui">Disetujui</SelectItem>
+                    <SelectItem value="akad">Akad</SelectItem>
+                    <SelectItem value="ditolak">Ditolak</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* KPR Progress Stepper */}
