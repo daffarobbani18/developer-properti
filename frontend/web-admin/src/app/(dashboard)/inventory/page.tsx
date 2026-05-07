@@ -441,8 +441,8 @@ export default function InventoryAdminPage() {
               </div>
               <div>
                 <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Pilih Tipe Rumah</label>
-                <select className="w-full cursor-pointer appearance-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30">
-                  <option value="" disabled selected>
+                <select defaultValue="" className="w-full cursor-pointer appearance-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30">
+                  <option value="" disabled>
                     Pilih Tipe Master...
                   </option>
                   {propertyTypes.map((type) => (
