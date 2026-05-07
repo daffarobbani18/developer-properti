@@ -151,6 +151,26 @@ export default function TransaksiPage() {
                   <Input className="h-10 rounded-lg border-slate-200/80 bg-white/60" placeholder="5.000.000" type="text" />
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm text-slate-700">Nominal Uang Muka / DP (Rp)</Label>
+                  <Input className="h-10 rounded-lg border-slate-200/80 bg-white/60" placeholder="20.000.000" type="text" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-slate-700">Tenor Cicilan DP (Bulan)</Label>
+                  <Select>
+                    <SelectTrigger className="h-10 rounded-lg border-slate-200/80 bg-white/60">
+                      <SelectValue placeholder="Berapa kali cicil" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1x (Lunas di muka)</SelectItem>
+                      <SelectItem value="2">2x Cicilan (2 Bulan)</SelectItem>
+                      <SelectItem value="3">3x Cicilan (3 Bulan)</SelectItem>
+                      <SelectItem value="6">6x Cicilan (6 Bulan)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <div className="flex justify-end gap-3 pt-2">
                 <Button variant="outline" onClick={() => setShowAddDialog(false)} className="rounded-lg border-slate-200/80">
                   Batal
