@@ -1,9 +1,10 @@
 export function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("id-ID", {
+  const formatted = new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(value);
+  return formatted.replace(/\s/g, "");
 }
 
 export function formatDate(value: string): string {
@@ -56,6 +57,24 @@ export function formatUnitStatusLabel(
     return "Dalam Proses";
   }
   return "Selesai";
+}
+
+export function formatAttendanceStatusLabel(
+  status: "HADIR" | "TERLAMBAT" | "IZIN" | "SAKIT" | "ALPHA"
+): string {
+  if (status === "HADIR") {
+    return "Hadir";
+  }
+  if (status === "TERLAMBAT") {
+    return "Terlambat";
+  }
+  if (status === "IZIN") {
+    return "Izin";
+  }
+  if (status === "SAKIT") {
+    return "Sakit";
+  }
+  return "Tanpa Keterangan";
 }
 
 export function formatIssueStatusLabel(

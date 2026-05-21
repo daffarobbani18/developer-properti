@@ -36,6 +36,16 @@ export type MilestonePhoto = {
   createdAt: string;
 };
 
+export type MilestoneChecklistItem = {
+  id: string;
+  milestoneId: string;
+  name: string;
+  description?: string;
+  orderNo: number;
+  isCompleted: boolean;
+  completedAt?: string;
+};
+
 export type Milestone = {
   id: string;
   unitId: string;
@@ -46,6 +56,9 @@ export type Milestone = {
   status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
   note?: string;
   photos: MilestonePhoto[];
+  checklist: MilestoneChecklistItem[];
+  checklistCompleted: number;
+  checklistTotal: number;
 };
 
 export type IssueItem = {
@@ -114,6 +127,17 @@ export type TicketItem = {
   status: "BARU" | "SEDANG_DITANGANI" | "SELESAI" | "DITUTUP";
   photoUrls?: string[];
   createdAt: string;
+  replies?: TicketReply[];
+};
+
+export type TicketReply = {
+  id: string;
+  ticketId: string;
+  sender: string;
+  senderRole: "CUSTOMER" | "CS_AGENT" | "ADMIN";
+  message: string;
+  createdAt: string;
+  photoUrl?: string;
 };
 
 export type FaqItem = {
@@ -139,4 +163,51 @@ export type PendingQueueItem = {
     photoUrls?: string[];
   };
   createdAt: string;
+};
+
+export type AttendanceStatus = "HADIR" | "TERLAMBAT" | "IZIN" | "SAKIT" | "ALPHA";
+
+export type AttendanceItem = {
+  id: string;
+  userId: string;
+  userName: string;
+  date: string;
+  checkInTime?: string;
+  checkOutTime?: string;
+  status: AttendanceStatus;
+  notes?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+    address?: string;
+  };
+  createdAt: string;
+};
+
+export type DailyReport = {
+  id: string;
+  userId: string;
+  userName: string;
+  date: string;
+  projectId?: string;
+  unitId?: string;
+  summary: string;
+  activities: string[];
+  issues: string[];
+  weather: "CERAH" | "MENDUNG" | "HUJAN" | "BADAI";
+  temperature?: number;
+  photoUrls: string[];
+  isDraft: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AttendanceSummary = {
+  totalDays: number;
+  presentDays: number;
+  lateDays: number;
+  permissionDays: number;
+  sickDays: number;
+  alphaDays: number;
+  attendanceRate: number;
 };

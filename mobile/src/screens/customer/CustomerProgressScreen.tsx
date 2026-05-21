@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import {
   Badge,
@@ -28,6 +28,7 @@ function toneByStatus(status: Milestone["status"]): "neutral" | "warning" | "suc
 
 export function CustomerProgressScreen(): React.JSX.Element {
   const { auth } = useAuth();
+  const navigation = useNavigation();
 
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -129,7 +130,7 @@ export function CustomerProgressScreen(): React.JSX.Element {
                     <Pressable
                       key={photo.id}
                       onPress={() => {
-                        void Linking.openURL(photo.url);
+                        navigation.navigate("PhotoGallery" as never);
                       }}
                       style={({ pressed }) => [styles.photoLink, pressed && styles.photoLinkPressed]}
                     >

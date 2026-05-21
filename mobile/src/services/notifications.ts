@@ -24,6 +24,8 @@ export type MobilePushRouteName =
   | "Unit"
   | "Kendala"
   | "Notifikasi"
+  | "UnitDetail"
+  | "UpdateHistory"
   | "Progres"
   | "Tagihan"
   | "Dokumen"
@@ -43,6 +45,8 @@ const ROUTE_ALIAS_MAP: Record<string, MobilePushRouteName> = {
   milestones: "Milestone",
   unit: "Unit",
   units: "Unit",
+  "unit-detail": "UnitDetail",
+  "update-history": "UpdateHistory",
   issue: "Kendala",
   issues: "Kendala",
   kendala: "Kendala",
@@ -82,7 +86,6 @@ function configureNotificationBehavior(): void {
 }
 
 function isPhysicalDevice(): boolean {
-  // expo-constants always exists in this app. Device check differs by platform and runtime.
   return Constants.isDevice === true;
 }
 

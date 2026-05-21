@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, ActivityIndicator, Alert } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 import {
@@ -13,6 +13,7 @@ import {
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { getCustomerDocuments } from "../../services/api";
+import { downloadDocument } from "../../services/media";
 import { DocumentItem } from "../../types";
 import { formatDocumentStatusLabel, inferBannerTone } from "../../utils/format";
 
@@ -32,6 +33,7 @@ export function CustomerDocumentsScreen(): React.JSX.Element {
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     if (!auth) {
@@ -54,6 +56,27 @@ export function CustomerDocumentsScreen(): React.JSX.Element {
       setIsLoading(false);
     }
   }, [loadData]);
+
+  const handleDownload = useCallback(async (document: DocumentItem) => {
+    if (!document.url) {
+      Alert.alert("Error", "Dokumen tidak tersedia untuk diunduh");
+      return;
+    }
+
+    setDownloadingId(document.id);
+    try {
+      const result = await downloadDocument(document.url, document.title);
+      if (!result.success) {
+        Alert.alert("Error", result.message);
+      } else {
+        Alert.alert("Berhasil", result.message);
+      }
+    } catch (error) {
+      Alert.alert("Error", "Gagal mengunduh dokumen");
+    } finally {
+      setDownloadingId(null);
+    }
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -108,18 +131,25 @@ export function CustomerDocumentsScreen(): React.JSX.Element {
                 <Badge label={formatDocumentStatusLabel(item.status)} tone={statusTone(item.status)} />
               </View>
               <Text style={styles.category}>Kategori: {item.category}</Text>
-              {item.url ? (
-                <Pressable
-                  onPress={() => {
-                    void Linking.openURL(item.url as string);
-                  }}
-                  style={({ pressed }) => [styles.linkBtn, pressed && styles.linkBtnPressed]}
-                >
-                  <Text style={styles.linkText}>Buka Dokumen</Text>
-                </Pressable>
-              ) : (
-                <Text style={styles.pendingText}>Dokumen belum tersedia untuk diunduh.</Text>
-              )}
+{item.url ? (
+                 <Pressable
+                   onPress={() => {
+                     void handleDownload(item);
+                   }}
+                   style={({ pressed }) => [styles.linkBtn, pressed && styles.linkBtnPressed]}
+                   disabled={downloadingId === item.id}
+                 >
+                   {downloadingId === item.id ? (
+                     <ActivityIndicator size="small" color="#1f5661" />
+                   ) : (
+                     <>
+                       <Text style={styles.linkText}>Unduh Dokumen</Text>
+                     </>
+                   )}
+                 </Pressable>
+               ) : (
+                 <Text style={styles.pendingText}>Dokumen belum tersedia untuk diunduh.</Text>
+               )}
             </Card>
           ))}
         </View>

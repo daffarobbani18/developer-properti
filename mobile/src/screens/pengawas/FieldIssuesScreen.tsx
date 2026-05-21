@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import {
   Badge,
@@ -61,6 +61,7 @@ function statusTone(level: IssueItem["status"]): "neutral" | "warning" | "succes
 
 export function FieldIssuesScreen(): React.JSX.Element {
   const { auth } = useAuth();
+  const navigation = useNavigation();
 
   const [projects, setProjects] = useState<Array<{ id: string; name: string }>>([]);
   const [issues, setIssues] = useState<IssueItem[]>([]);
@@ -227,7 +228,10 @@ export function FieldIssuesScreen(): React.JSX.Element {
             <Text style={styles.metricValue}>{criticalIssues}</Text>
           </View>
         </View>
-        <SecondaryButton label="Muat Ulang Kendala" onPress={() => void loadData()} />
+        <View style={styles.historyButtonRow}>
+          <SecondaryButton label="Muat Ulang Kendala" onPress={() => void loadData()} />
+          <SecondaryButton label="Riwayat Kendala" onPress={() => navigation.navigate({ name: "IssueHistory" } as never)} />
+        </View>
       </Card>
 
       <Card>
@@ -551,5 +555,9 @@ const styles = StyleSheet.create({
     color: "#205660",
     fontWeight: "700",
     fontSize: 12,
+  },
+  historyButtonRow: {
+    flexDirection: "row",
+    gap: 8,
   },
 });

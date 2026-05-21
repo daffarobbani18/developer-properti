@@ -73,3 +73,27 @@ export async function pushOfflineQueue(item: PendingQueueItem): Promise<void> {
 export async function clearOfflineQueue(): Promise<void> {
   await AsyncStorage.removeItem(OFFLINE_QUEUE_KEY);
 }
+
+const BIOMETRIC_CRED_KEY = "simdp-biometric-credential";
+
+export async function setBiometricCredential(payload: { credentialId: string; publicKey: string }): Promise<void> {
+  await AsyncStorage.setItem(BIOMETRIC_CRED_KEY, JSON.stringify(payload));
+}
+
+export async function getBiometricCredential(): Promise<{ credentialId: string; publicKey: string } | null> {
+  const raw = await AsyncStorage.getItem(BIOMETRIC_CRED_KEY);
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(raw) as { credentialId: string; publicKey: string };
+  } catch {
+    await AsyncStorage.removeItem(BIOMETRIC_CRED_KEY);
+    return null;
+  }
+}
+
+export async function clearBiometricCredential(): Promise<void> {
+  await AsyncStorage.removeItem(BIOMETRIC_CRED_KEY);
+}

@@ -1,7 +1,10 @@
 import {
+  AttendanceItem,
+  AttendanceSummary,
   AuthState,
   BillingSummary,
   CustomerOverview,
+  DailyReport,
   DocumentItem,
   FaqItem,
   InvoiceItem,
@@ -29,6 +32,7 @@ import {
   getSupportData,
   getUnits,
   markNotificationsRead,
+  replyToTicket as mockReplyToTicket,
   updateIssueStatus,
   updateMilestone,
   uploadPaymentProof,
@@ -179,17 +183,17 @@ export async function getFieldProjects(auth: AuthState | null): Promise<ProjectS
 
 export async function getProjectOptions(
   auth: AuthState | null
-): Promise<Array<{ id: string; name: string }>> {
+): Promise<ProjectSummary[]> {
   const session = ensureAuth(auth);
 
   try {
-    const response = await requestJson<Array<{ id: string; name: string }> | { data: Array<{ id: string; name: string }> }>(
+    const response = await requestJson<ProjectSummary[] | { data: ProjectSummary[] }>(
       "/mobile/field/project-options",
       { token: session.token }
     );
     return unwrapData(response);
   } catch {
-    return getProjects();
+    return getProjectSummaries();
   }
 }
 
@@ -385,6 +389,26 @@ export async function registerPushToken(
   }
 }
 
+export async function registerBiometricCredential(
+  auth: AuthState | null,
+  payload: { credentialId: string; publicKey: string }
+): Promise<void> {
+  const session = ensureAuth(auth);
+
+  try {
+    await requestJson<{ success: boolean } | { data: { success: boolean } }>(
+      "/mobile/auth/biometric-credential",
+      {
+        method: "POST",
+        token: session.token,
+        body: JSON.stringify(payload),
+      }
+    );
+  } catch {
+    // API may not support biometric registration yet
+  }
+}
+
 export async function getCustomerOverviewData(
   auth: AuthState | null
 ): Promise<CustomerOverview> {
@@ -520,5 +544,213 @@ export async function createCustomerTicket(
     return unwrapData(response);
   } catch {
     return createTicket(payload);
+  }
+}
+
+export async function replyToTicket(
+  auth: AuthState | null,
+  payload: {
+    ticketId: string;
+    message: string;
+    photoUrls?: string[];
+  }
+): Promise<TicketItem> {
+  const session = ensureAuth(auth);
+
+  try {
+    const response = await requestJson<TicketItem | { data: TicketItem }>(
+      `/mobile/customer/support/tickets/${payload.ticketId}/reply`,
+      {
+        method: "POST",
+        token: session.token,
+        body: JSON.stringify(payload),
+      }
+    );
+    return unwrapData(response);
+  } catch {
+    return mockReplyToTicket(payload);
+  }
+}
+
+import {
+  getAttendanceHistory,
+  getAttendanceSummary,
+  getDailyReports,
+  getDailyReport,
+  recordAttendance,
+  saveDailyReport,
+  updateAttendance,
+} from "./mock-data";
+
+export async function getFieldAttendanceHistory(
+  auth: AuthState | null,
+  params?: { month?: string; limit?: number }
+): Promise<AttendanceItem[]> {
+  const session = ensureAuth(auth);
+
+  try {
+    const query = new URLSearchParams();
+    if (params?.month) {
+      query.set("month", params.month);
+    }
+    if (params?.limit) {
+      query.set("limit", String(params.limit));
+    }
+
+    const response = await requestJson<AttendanceItem[] | { data: AttendanceItem[] }>(
+      `/mobile/field/attendance${query.toString() ? `?${query.toString()}` : ""}`,
+      { token: session.token }
+    );
+    return unwrapData(response);
+  } catch {
+    return getAttendanceHistory(session.user.id, params);
+  }
+}
+
+export async function getFieldAttendanceSummary(
+  auth: AuthState | null
+): Promise<AttendanceSummary> {
+  const session = ensureAuth(auth);
+
+  try {
+    const response = await requestJson<AttendanceSummary | { data: AttendanceSummary }>(
+      "/mobile/field/attendance/summary",
+      { token: session.token }
+    );
+    return unwrapData(response);
+  } catch {
+    return getAttendanceSummary(session.user.id);
+  }
+}
+
+export async function submitAttendance(
+  auth: AuthState | null,
+  payload: {
+    date: string;
+    checkInTime?: string;
+    checkOutTime?: string;
+    status: AttendanceItem["status"];
+    notes?: string;
+    location?: AttendanceItem["location"];
+  }
+): Promise<AttendanceItem> {
+  const session = ensureAuth(auth);
+
+  try {
+    const response = await requestJson<AttendanceItem | { data: AttendanceItem }>(
+      "/mobile/field/attendance",
+      {
+        method: "POST",
+        token: session.token,
+        body: JSON.stringify(payload),
+      }
+    );
+    return unwrapData(response);
+  } catch {
+    return recordAttendance({
+      userId: session.user.id,
+      userName: session.user.fullName,
+      ...payload,
+    });
+  }
+}
+
+export async function updateFieldAttendance(
+  auth: AuthState | null,
+  attendanceId: string,
+  payload: { checkOutTime?: string; notes?: string }
+): Promise<AttendanceItem> {
+  const session = ensureAuth(auth);
+
+  try {
+    const response = await requestJson<AttendanceItem | { data: AttendanceItem }>(
+      `/mobile/field/attendance/${attendanceId}`,
+      {
+        method: "PATCH",
+        token: session.token,
+        body: JSON.stringify(payload),
+      }
+    );
+    return unwrapData(response);
+  } catch {
+    return updateAttendance(attendanceId, payload);
+  }
+}
+
+export async function getFieldDailyReports(
+  auth: AuthState | null,
+  params?: { month?: string; includeDraft?: boolean }
+): Promise<DailyReport[]> {
+  const session = ensureAuth(auth);
+
+  try {
+    const query = new URLSearchParams();
+    if (params?.month) {
+      query.set("month", params.month);
+    }
+    if (params?.includeDraft !== undefined) {
+      query.set("includeDraft", String(params.includeDraft));
+    }
+
+    const response = await requestJson<DailyReport[] | { data: DailyReport[] }>(
+      `/mobile/field/reports${query.toString() ? `?${query.toString()}` : ""}`,
+      { token: session.token }
+    );
+    return unwrapData(response);
+  } catch {
+    return getDailyReports(session.user.id, params);
+  }
+}
+
+export async function getFieldDailyReport(
+  auth: AuthState | null,
+  reportId: string
+): Promise<DailyReport | null> {
+  const session = ensureAuth(auth);
+
+  try {
+    const response = await requestJson<DailyReport | { data: DailyReport } | null>(
+      `/mobile/field/reports/${reportId}`,
+      { token: session.token }
+    );
+    return unwrapData(response);
+  } catch {
+    return getDailyReport(reportId);
+  }
+}
+
+export async function submitDailyReport(
+  auth: AuthState | null,
+  payload: {
+    date: string;
+    projectId?: string;
+    unitId?: string;
+    summary: string;
+    activities: string[];
+    issues: string[];
+    weather: DailyReport["weather"];
+    temperature?: number;
+    photoUrls: string[];
+    isDraft: boolean;
+  }
+): Promise<DailyReport> {
+  const session = ensureAuth(auth);
+
+  try {
+    const response = await requestJson<DailyReport | { data: DailyReport }>(
+      "/mobile/field/reports",
+      {
+        method: "POST",
+        token: session.token,
+        body: JSON.stringify(payload),
+      }
+    );
+    return unwrapData(response);
+  } catch {
+    return saveDailyReport({
+      userId: session.user.id,
+      userName: session.user.fullName,
+      ...payload,
+    });
   }
 }

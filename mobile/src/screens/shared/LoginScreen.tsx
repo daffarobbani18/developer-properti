@@ -13,29 +13,33 @@ import * as LocalAuthentication from "expo-local-authentication";
 import { LabeledInput, PrimaryButton, SecondaryButton } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { demoCredentials } from "../../services/mock-data";
-import { getStoredAuth } from "../../services/storage";
+import { clearBiometricCredential, getBiometricCredential, getStoredAuth, setBiometricCredential } from "../../services/storage";
+import { registerBiometricCredential } from "../../services/api";
 import { AuthState } from "../../types";
 
 export function LoginScreen(): React.JSX.Element {
-  const { signIn, setSession } = useAuth();
+  const { signIn, setSession, auth } = useAuth();
   const [email, setEmail] = useState(demoCredentials[0]?.email ?? "");
   const [password, setPassword] = useState(demoCredentials[0]?.password ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showBiometricSetup, setShowBiometricSetup] = useState(false);
 
   const [storedAuth, setStoredAuthState] = useState<AuthState | null>(null);
   const [isBiometricReady, setIsBiometricReady] = useState(false);
   const [isCheckingBiometric, setIsCheckingBiometric] = useState(true);
+  const [savedBiometricCred, setSavedBiometricCred] = useState<{ credentialId: string; publicKey: string } | null>(null);
 
   useEffect(() => {
     let mounted = true;
 
     (async () => {
       try {
-        const [hasHardware, isEnrolled, savedAuth] = await Promise.all([
+        const [hasHardware, isEnrolled, savedAuth, savedCred] = await Promise.all([
           LocalAuthentication.hasHardwareAsync(),
           LocalAuthentication.isEnrolledAsync(),
           getStoredAuth(),
+          getBiometricCredential(),
         ]);
 
         if (!mounted) {
@@ -43,6 +47,7 @@ export function LoginScreen(): React.JSX.Element {
         }
 
         setStoredAuthState(savedAuth);
+        setSavedBiometricCred(savedCred);
         setIsBiometricReady(Boolean(hasHardware && isEnrolled && savedAuth));
       } finally {
         if (mounted) {
@@ -95,6 +100,29 @@ export function LoginScreen(): React.JSX.Element {
     }
   };
 
+  const handleBiometricSetup = async (): Promise<void> => {
+    if (!auth) {
+      return;
+    }
+
+    try {
+      const credentialId = `cred_${Date.now()}`;
+      const publicKey = `${auth.user.id}-${credentialId}`;
+
+      await setBiometricCredential({ credentialId, publicKey });
+      await registerBiometricCredential(auth, { credentialId, publicKey });
+      setSavedBiometricCred({ credentialId, publicKey });
+      setShowBiometricSetup(false);
+    } catch {
+      setErrorMessage("Gagal mendaftarkan biometrik. Silakan coba lagi.");
+    }
+  };
+
+  const handleDisableBiometric = async (): Promise<void> => {
+    await clearBiometricCredential();
+    setSavedBiometricCred(null);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -137,8 +165,23 @@ export function LoginScreen(): React.JSX.Element {
             </View>
           ) : null}
 
+          {showBiometricSetup ? (
+            <View style={styles.biometricSetupRow}>
+              <SecondaryButton label="Batal" onPress={() => setShowBiometricSetup(false)} />
+              <PrimaryButton label="Daftarkan Biometrik" onPress={handleBiometricSetup} />
+            </View>
+          ) : null}
+
           {isBiometricReady ? (
             <SecondaryButton label="Masuk dengan Biometrik" onPress={handleBiometricSignIn} />
+          ) : null}
+
+          {auth && !savedBiometricCred ? (
+            <SecondaryButton label="Aktifkan Login Biometrik" onPress={() => setShowBiometricSetup(true)} />
+          ) : null}
+
+          {savedBiometricCred ? (
+            <SecondaryButton label="Nonaktifkan Login Biometrik" onPress={handleDisableBiometric} />
           ) : null}
         </View>
 
@@ -211,6 +254,10 @@ const styles = StyleSheet.create({
     color: "#183843",
     fontSize: 18,
     fontWeight: "800",
+  },
+  biometricSetupRow: {
+    flexDirection: "row",
+    gap: 12,
   },
   biometricLoader: {
     flexDirection: "row",

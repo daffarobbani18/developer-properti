@@ -3,6 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
 import { AppNavigator } from "./navigation/AppNavigator";
 import { bootstrapPushNotifications, MobilePushRouteName } from "./services/notifications";
@@ -99,7 +100,9 @@ export function AppRoot(): React.JSX.Element {
       <SafeAreaProvider>
         <AuthProvider>
           <StatusBar style="dark" />
-          <AppSessionBootstrap />
+          <ErrorBoundary>
+            <AppSessionBootstrap />
+          </ErrorBoundary>
         </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

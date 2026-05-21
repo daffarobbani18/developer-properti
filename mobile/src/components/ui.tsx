@@ -1,7 +1,9 @@
-import React, { PropsWithChildren } from "react";
+import React, { PropsWithChildren, useEffect } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
+  RefreshControl,
   ScrollViewProps,
   ScrollView,
   StyleProp,
@@ -13,12 +15,15 @@ import {
   ViewStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNetInfo } from "@react-native-community/netinfo";
 
 type ScreenShellProps = PropsWithChildren<{
   title: string;
   subtitle?: string;
   scrollable?: boolean;
   rightAction?: React.ReactNode;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }>;
 
 export function ScreenShell({
@@ -26,14 +31,23 @@ export function ScreenShell({
   subtitle,
   scrollable = true,
   rightAction,
+  refreshing,
+  onRefresh,
   children,
 }: ScreenShellProps): React.JSX.Element {
+  const netInfo = useNetInfo();
+  const isOffline = netInfo.isConnected === false;
+
   const scrollProps: ScrollViewProps = {
     style: styles.scroll,
     contentContainerStyle: styles.scrollContent,
     keyboardShouldPersistTaps: "handled",
     showsVerticalScrollIndicator: false,
   };
+
+  if (refreshing !== undefined && onRefresh) {
+    scrollProps.refreshControl = <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />;
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -44,17 +58,92 @@ export function ScreenShell({
         </View>
         {rightAction ? <View>{rightAction}</View> : null}
       </View>
+      {isOffline ? <OfflineBanner /> : null}
       {scrollable ? <ScrollView {...scrollProps}>{children}</ScrollView> : <View style={styles.body}>{children}</View>}
     </SafeAreaView>
   );
 }
 
-export function Card({
-  children,
-  style,
-}: PropsWithChildren<{ style?: StyleProp<ViewStyle> }>): React.JSX.Element {
-  return <View style={[styles.card, style]}>{children}</View>;
+export function OfflineBanner(): React.JSX.Element {
+  return (
+    <View style={styles.offlineBanner}>
+      <Text style={styles.offlineBannerText}>⚠ Mode Offline - Data akan disimpan ke queue lokal</Text>
+    </View>
+  );
 }
+
+export function Card({
+   children,
+   style,
+ }: PropsWithChildren<{ style?: StyleProp<ViewStyle> }>): React.JSX.Element {
+   return <View style={[styles.card, style]}>{children}</View>;
+ }
+
+export function FadeInView({
+   children,
+   delay = 0,
+   duration = 300,
+   style,
+ }: PropsWithChildren<{
+   delay?: number;
+   duration?: number;
+   style?: StyleProp<ViewStyle>;
+ }>): React.JSX.Element {
+   const opacity = React.useRef(new Animated.Value(0)).current;
+
+   useEffect(() => {
+     Animated.timing(opacity, {
+       toValue: 1,
+       duration,
+       delay,
+       useNativeDriver: true,
+     }).start();
+   }, [delay, duration, opacity]);
+
+   return <Animated.View style={[{ opacity }, style]}>{children}</Animated.View>;
+ }
+
+export function SlideInView({
+   children,
+   delay = 0,
+   duration = 300,
+   direction = "up",
+   style,
+ }: PropsWithChildren<{
+   delay?: number;
+   duration?: number;
+   direction?: "up" | "down" | "left" | "right";
+   style?: StyleProp<ViewStyle>;
+ }>): React.JSX.Element {
+   const translateX = React.useRef(new Animated.Value(0)).current;
+   const translateY = React.useRef(new Animated.Value(0)).current;
+   const opacity = React.useRef(new Animated.Value(0)).current;
+
+   useEffect(() => {
+     const toValue = 0;
+     if (direction === "up") {
+       translateY.setValue(20);
+     } else if (direction === "down") {
+       translateY.setValue(-20);
+     } else if (direction === "left") {
+       translateX.setValue(20);
+     } else {
+       translateX.setValue(-20);
+     }
+
+     Animated.parallel([
+       Animated.timing(opacity, { toValue: 1, duration, delay, useNativeDriver: true }),
+       Animated.timing(translateX, { toValue, duration, delay, useNativeDriver: true }),
+       Animated.timing(translateY, { toValue, duration, delay, useNativeDriver: true }),
+     ]).start();
+   }, [delay, duration, direction, opacity, translateX, translateY]);
+
+   return (
+     <Animated.View style={[{ opacity, transform: [{ translateX }, { translateY }] }, style]}>
+       {children}
+     </Animated.View>
+   );
+ }
 
 export function SectionTitle({ title, caption }: { title: string; caption?: string }): React.JSX.Element {
   return (
@@ -201,10 +290,79 @@ export function LabeledInput({
   );
 }
 
-export function EmptyState({ message }: { message: string }): React.JSX.Element {
+export function EmptyState({ message, actionLabel, onAction }: { message: string; actionLabel?: string; onAction?: () => void }): React.JSX.Element {
   return (
     <View style={styles.emptyWrap}>
       <Text style={styles.emptyText}>{message}</Text>
+      {actionLabel && onAction ? (
+        <Pressable onPress={onAction} style={styles.emptyAction}>
+          <Text style={styles.emptyActionText}>{actionLabel}</Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+export function Skeleton({ width, height, borderRadius = 4, style }: { width: number | string; height: number; borderRadius?: number; style?: StyleProp<ViewStyle> }): React.JSX.Element {
+  const opacity = React.useRef(new Animated.Value(0.3)).current;
+
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 1, duration: 800, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+      ])
+    ).start();
+  }, [opacity]);
+
+  return <Animated.View style={[{ width: width as number, height, borderRadius, backgroundColor: "#e5e7e8" }, style, { opacity }]} />;
+}
+
+export function SkeletonList({ count = 3 }: { count?: number }): React.JSX.Element {
+  return (
+    <View style={styles.skeletonList}>
+      {Array.from({ length: count }).map((_, i) => (
+        <Card key={i} style={styles.skeletonCard}>
+          <Skeleton width="100%" height={16} style={{ marginBottom: 8 }} />
+          <Skeleton width="70%" height={14} style={{ marginBottom: 6 }} />
+          <Skeleton width="50%" height={12} />
+        </Card>
+      ))}
+    </View>
+  );
+}
+
+export function ConfirmationDialog({
+  visible,
+  title,
+  message,
+  confirmLabel = "Ya",
+  cancelLabel = "Batal",
+  onConfirm,
+  onCancel,
+}: {
+  visible: boolean;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}): React.JSX.Element | null {
+  if (!visible) {
+    return null;
+  }
+
+  return (
+    <View style={styles.dialogOverlay}>
+      <View style={styles.dialogBox}>
+        <Text style={styles.dialogTitle}>{title}</Text>
+        <Text style={styles.dialogMessage}>{message}</Text>
+        <View style={styles.dialogButtons}>
+          <SecondaryButton label={cancelLabel} onPress={onCancel} />
+          <PrimaryButton label={confirmLabel} onPress={onConfirm} />
+        </View>
+      </View>
     </View>
   );
 }
@@ -428,5 +586,67 @@ const styles = StyleSheet.create({
   emptyText: {
     color: "#55707a",
     fontSize: 13,
+  },
+  emptyAction: {
+    marginTop: 12,
+    alignSelf: "flex-start",
+  },
+  emptyActionText: {
+    color: "#1a6d78",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  skeletonList: {
+    gap: 12,
+  },
+  skeletonCard: {
+    gap: 6,
+  },
+  dialogOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+  dialogBox: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 20,
+    width: "100%",
+    maxWidth: 340,
+    gap: 12,
+  },
+  dialogTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#102f38",
+  },
+  dialogMessage: {
+    fontSize: 14,
+    color: "#4a6a73",
+    lineHeight: 20,
+  },
+  dialogButtons: {
+    flexDirection: "row",
+    gap: 12,
+    justifyContent: "flex-end",
+  },
+  offlineBanner: {
+    backgroundColor: "#fff3d3",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e7d2a0",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  offlineBannerText: {
+    color: "#805f24",
+    fontSize: 12,
+    fontWeight: "700",
   },
 });

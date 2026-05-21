@@ -20,7 +20,7 @@ import { inferBannerTone } from "../../utils/format";
 export function FieldHomeScreen({ globalBanner }: { globalBanner?: string | null }): React.JSX.Element {
   const { auth, signOut } = useAuth();
   const navigation = useNavigation();
-  const { queueCount, refreshQueueCount } = useOfflineQueue();
+  const { queueCount, isSyncing } = useOfflineQueue(auth);
 
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,12 +35,11 @@ export function FieldHomeScreen({ globalBanner }: { globalBanner?: string | null
     const [projectData, notifications] = await Promise.all([
       getFieldProjects(auth),
       getRoleNotifications(auth),
-      refreshQueueCount(),
     ]);
 
     setProjects(projectData);
     setUnreadCount(notifications.filter((item) => !item.isRead).length);
-  }, [auth, refreshQueueCount]);
+  }, [auth]);
 
   const goToTab = useCallback(
     (tabName: "Milestone" | "Unit" | "Kendala" | "Notifikasi") => {
@@ -83,12 +82,12 @@ export function FieldHomeScreen({ globalBanner }: { globalBanner?: string | null
       subtitle={auth ? `${auth.user.fullName} • ${auth.user.role}` : ""}
       rightAction={<SecondaryButton label="Logout" onPress={() => void signOut()} />}
     >
-      <View style={styles.highlightRow}>
-        <Card style={styles.highlightCard}>
-          <Text style={styles.highlightLabel}>Queue Offline</Text>
-          <Text style={styles.highlightValue}>{queueCount}</Text>
-          <Badge label={queueCount > 0 ? "Perlu sinkron" : "Aman"} tone={queueCount > 0 ? "warning" : "success"} />
-        </Card>
+<View style={styles.highlightRow}>
+         <Card style={styles.highlightCard}>
+           <Text style={styles.highlightLabel}>Queue Offline</Text>
+           <Text style={styles.highlightValue}>{isSyncing ? "..." : queueCount}</Text>
+           <Badge label={isSyncing ? "Sinkronisasi..." : queueCount > 0 ? "Perlu sinkron" : "Aman"} tone={isSyncing || queueCount > 0 ? "warning" : "success"} />
+         </Card>
 
         <Card style={styles.highlightCard}>
           <Text style={styles.highlightLabel}>Notifikasi Baru</Text>

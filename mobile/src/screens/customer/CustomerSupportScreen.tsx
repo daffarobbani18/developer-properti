@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import {
   Badge,
@@ -39,6 +39,7 @@ function statusTone(status: TicketItem["status"]): "neutral" | "warning" | "succ
 
 export function CustomerSupportScreen(): React.JSX.Element {
   const { auth } = useAuth();
+  const navigation = useNavigation();
 
   const [tickets, setTickets] = useState<TicketItem[]>([]);
   const [faq, setFaq] = useState<FaqItem[]>([]);
@@ -165,7 +166,10 @@ export function CustomerSupportScreen(): React.JSX.Element {
     <ScreenShell title="Bantuan" subtitle="Buat tiket, cek status, dan akses FAQ">
       <Card>
         <SectionTitle title="Kontak Cepat" caption="Gunakan kanal ini untuk respon lebih cepat" />
-        <PrimaryButton label="Hubungi WhatsApp CS" onPress={contactWhatsApp} />
+        <View style={styles.contactActionRow}>
+          <PrimaryButton label="Hubungi WhatsApp CS" onPress={contactWhatsApp} />
+          <SecondaryButton label="FAQ & Kontak Lainnya" onPress={() => navigation.navigate({ name: "FaqContact" } as never)} />
+        </View>
       </Card>
 
       <Card>
@@ -272,7 +276,11 @@ export function CustomerSupportScreen(): React.JSX.Element {
             ) : (
               <View style={styles.listWrap}>
                 {tickets.map((ticket) => (
-                  <View key={ticket.id} style={styles.ticketItem}>
+                  <Pressable
+                    key={ticket.id}
+                    onPress={() => navigation.navigate({ name: "TicketDetail", params: { ticketId: ticket.id } } as never)}
+                    style={({ pressed }) => [styles.ticketItem, pressed && styles.ticketItemPressed]}
+                  >
                     <View style={styles.ticketTopRow}>
                       <Text style={styles.ticketTitle}>{ticket.subject}</Text>
                       <Badge label={formatTicketStatusLabel(ticket.status)} tone={statusTone(ticket.status)} />
@@ -285,7 +293,7 @@ export function CustomerSupportScreen(): React.JSX.Element {
                       <Text style={styles.ticketMeta}>Lampiran: {ticket.photoUrls.length} foto</Text>
                     ) : null}
                     <Text style={styles.ticketDesc}>{ticket.description}</Text>
-                  </View>
+                  </Pressable>
                 ))}
               </View>
             )}
@@ -376,6 +384,9 @@ const styles = StyleSheet.create({
   pillTextActive: {
     color: "#114a53",
   },
+  contactActionRow: {
+    gap: 8,
+  },
   photoActionRow: {
     gap: 8,
   },
@@ -418,6 +429,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8fcfd",
     padding: 10,
     gap: 2,
+  },
+  ticketItemPressed: {
+    opacity: 0.7,
   },
   ticketTopRow: {
     flexDirection: "row",
