@@ -32,10 +32,10 @@ export default function TimPage({ params }: PageProps) {
 
   if (!proyek) {
     return (
-      <div className="min-h-screen p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="space-y-6">
+        <div className="">
           <Card className="clean-glass p-8 text-center">
-            <h2 className="text-xl font-semibold text-slate-900">
+            <h2 className="text-xl font-semibold text-zinc-900">
               Proyek Tidak Ditemukan
             </h2>
             <Link href="/proyek">
@@ -48,10 +48,10 @@ export default function TimPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
+      <div className="space-y-6">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-slate-600">
+        <div className="flex items-center gap-2 text-sm text-zinc-600">
           <Link href="/proyek" className="hover:text-blue-600 transition-colors">
             Proyek
           </Link>
@@ -63,7 +63,7 @@ export default function TimPage({ params }: PageProps) {
             {proyek.nama}
           </Link>
           <ChevronRight className="w-4 h-4" />
-          <span className="text-slate-900 font-medium">Tim Lapangan</span>
+          <span className="text-zinc-900 font-medium">Tim Lapangan</span>
         </div>
 
         {/* Header */}
@@ -78,10 +78,10 @@ export default function TimPage({ params }: PageProps) {
               <Users className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+              <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
                 Tim Lapangan
               </h1>
-              <p className="text-sm text-slate-600">{proyek.nama}</p>
+              <p className="text-sm text-zinc-600">{proyek.nama}</p>
             </div>
           </div>
 
@@ -99,14 +99,14 @@ export default function TimPage({ params }: PageProps) {
                 <p className="text-3xl font-bold text-blue-600">
                   {engineers.length}
                 </p>
-                <p className="text-sm text-slate-600 mt-1">Site Engineer</p>
+                <p className="text-sm text-zinc-600 mt-1">Site Engineer</p>
               </div>
-              <div className="h-12 w-px bg-slate-200"></div>
+              <div className="h-12 w-px bg-zinc-200"></div>
               <div className="text-center">
                 <p className="text-3xl font-bold text-green-600">
                   {engineers.reduce((sum, e) => sum + e.jumlahUnitTugas, 0)}
                 </p>
-                <p className="text-sm text-slate-600 mt-1">Total Unit Tugas</p>
+                <p className="text-sm text-zinc-600 mt-1">Total Unit Tugas</p>
               </div>
             </div>
           </div>
@@ -127,10 +127,10 @@ export default function TimPage({ params }: PageProps) {
                       {engineer.nama.split(" ").map((n) => n[0]).join("")}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-lg text-slate-900">
+                      <h3 className="font-semibold text-lg text-zinc-900">
                         {engineer.nama}
                       </h3>
-                      <p className="text-sm text-slate-600">Site Engineer</p>
+                      <p className="text-sm text-zinc-600">Site Engineer</p>
                       {engineer.blokTugas && (
                         <Badge className="mt-2 bg-blue-100 text-blue-700 border-blue-200 border text-xs font-medium rounded-md">
                           <MapPin className="w-3 h-3 mr-1" />
@@ -141,25 +141,25 @@ export default function TimPage({ params }: PageProps) {
                   </div>
 
                   {/* Contact Info */}
-                  <div className="space-y-2 pt-3 border-t border-slate-200/60">
-                    <div className="flex items-center gap-3 text-sm text-slate-600">
-                      <Phone className="w-4 h-4 text-slate-400" />
-                      <span className="font-medium text-slate-900">
+                  <div className="space-y-2 pt-3 border-t border-zinc-200/60">
+                    <div className="flex items-center gap-3 text-sm text-zinc-600">
+                      <Phone className="w-4 h-4 text-zinc-400" />
+                      <span className="font-medium text-zinc-900">
                         {engineer.telepon}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-slate-600">
-                      <Mail className="w-4 h-4 text-slate-400" />
-                      <span className="font-medium text-slate-900">
+                    <div className="flex items-center gap-3 text-sm text-zinc-600">
+                      <Mail className="w-4 h-4 text-zinc-400" />
+                      <span className="font-medium text-zinc-900">
                         {engineer.email}
                       </span>
                     </div>
                   </div>
 
                   {/* Stats */}
-                  <div className="pt-3 border-t border-slate-200/60">
+                  <div className="pt-3 border-t border-zinc-200/60">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-600">Unit Tugas</span>
+                      <span className="text-sm text-zinc-600">Unit Tugas</span>
                       <span className="text-xl font-bold text-blue-600">
                         {engineer.jumlahUnitTugas}
                       </span>
@@ -181,7 +181,7 @@ export default function TimPage({ params }: PageProps) {
         ) : (
           <Card className="clean-glass p-8 text-center">
             <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-600">Belum ada Site Engineer ditugaskan.</p>
+            <p className="text-zinc-600">Belum ada Site Engineer ditugaskan.</p>
             <Button className="mt-4 bg-blue-600 hover:bg-blue-700">
               <UserPlus className="w-4 h-4 mr-2" />
               Assign Site Engineer

@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+
 import Link from "next/link";
 import {
   Building2,
@@ -35,17 +37,63 @@ const progressBarColor: Record<string, string> = {
 };
 
 export default function ProyekPage() {
-  const proyekAktif = dummyProyek.filter(
+  const [projects, setProjects] = useState<Proyek[]>(dummyProyek);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        // Login to get token
+        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: "admin", password: "admin" })
+        });
+        const loginData = await loginRes.json();
+        const token = loginData.token;
+
+        if (token) {
+          const prjRes = await fetch("http://localhost:4000/api/projects", {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+          const fetchedProjects = await prjRes.json();
+          if (fetchedProjects && fetchedProjects.length > 0) {
+            setProjects(fetchedProjects.map((p: any) => ({
+              id: p.id,
+              nama: p.name,
+              lokasi: p.location,
+              totalUnit: p.totalUnits || 0,
+              unitSelesai: p._count?.units || 0, // Using count for now, adjust based on actual completed units logic
+              persentaseSelesai: p.totalUnits > 0 ? Math.round(((p._count?.units || 0) / p.totalUnits) * 100) : 0,
+              statusProyek: p.status,
+              jumlahKontraktor: 5, // Mock for now
+              tanggalMulai: p.createdAt,
+              targetSelesai: p.targetSelesai || p.createdAt,
+              nilaiKontrak: 10000000000 // Mock for now
+            })));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch projects", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProjects();
+  }, []);
+
+  const proyekAktif = projects.filter(
     (p) => p.statusProyek === "konstruksi" || p.statusProyek === "finishing"
   );
-  const totalUnit = dummyProyek.reduce((sum, p) => sum + p.totalUnit, 0);
-  const unitSelesai = dummyProyek.reduce((sum, p) => sum + p.unitSelesai, 0);
-  const persentaseGlobal = Math.round((unitSelesai / totalUnit) * 100);
+  const totalUnit = projects.reduce((sum, p) => sum + p.totalUnit, 0);
+  const unitSelesai = projects.reduce((sum, p) => sum + p.unitSelesai, 0);
+  const persentaseGlobal = totalUnit > 0 ? Math.round((unitSelesai / totalUnit) * 100) : 0;
 
   const summaryStats = [
     {
       label: "Total Proyek",
-      value: String(dummyProyek.length),
+      value: String(projects.length),
       note: `${proyekAktif.length} sedang berjalan`,
       icon: Building2,
       bg: "bg-blue-50",
@@ -79,16 +127,16 @@ export default function ProyekPage() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
-        <div className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.06),transparent_40%)]" />
+      <section className="module-hero md:p-8" style={{ "--hero-accent": "rgba(59,130,246,0.06)" } as React.CSSProperties}>
+        <div className="hero-pattern absolute inset-0 pointer-events-none rounded-2xl opacity-50" />
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-blue-700">
               <Building2 size={11} className="text-blue-500" /> Monitoring Proyek
             </div>
-            <h1 className="font-serif text-3xl font-semibold tracking-tight text-zinc-900 md:text-4xl">
+            <h1 className="font-[family-name:var(--font-heading)] text-2xl font-normal tracking-tight text-zinc-900 md:text-3xl">
               Progress Konstruksi & Milestone Unit
             </h1>
             <p className="max-w-2xl text-sm text-zinc-500 leading-relaxed">
@@ -104,7 +152,7 @@ export default function ProyekPage() {
       {/* Summary Stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {summaryStats.map((stat) => (
-          <div key={stat.label} className="group rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+          <div key={stat.label} className="stat-card group">
             <div className="mb-4 flex items-start justify-between">
               <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.bg}`}>
                 <stat.icon className={`h-6 w-6 ${stat.color}`} />
@@ -129,7 +177,7 @@ export default function ProyekPage() {
       <div>
         <h2 className="mb-4 text-lg font-bold text-zinc-900">Daftar Proyek</h2>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {dummyProyek.map((proyek) => (
+          {projects.map((proyek) => (
             <ProyekCard key={proyek.id} proyek={proyek} />
           ))}
         </div>

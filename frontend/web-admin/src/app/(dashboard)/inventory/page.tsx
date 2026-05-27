@@ -27,13 +27,14 @@ import {
 } from "lucide-react";
 
 type PropertyType = {
-  id: number;
+  id: string | number;
   name: string;
   lt: number;
   lb: number;
   bed: number;
   bath: number;
   price: number;
+  imageUrl?: string;
 };
 
 type UnitItem = {
@@ -68,13 +69,170 @@ export default function InventoryAdminPage() {
   const [activeMenu, setActiveMenu] = useState("dashboard");
   const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
   const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
-  const [propertyTypes] = useState<PropertyType[]>(propertyTypesSeed);
-  const [units] = useState<UnitItem[]>(unitsSeed);
+  
+  // Real data state
+  const [propertyTypes, setPropertyTypes] = useState<PropertyType[]>(propertyTypesSeed);
+  const [units, setUnits] = useState<UnitItem[]>(unitsSeed);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // Step 1: Login to get token (using dummy admin/admin as planned)
+        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: "admin", password: "admin" })
+        });
+        const loginData = await loginRes.json();
+        const token = loginData.token;
+
+        if (token) {
+          // Step 2: Fetch Property Types
+          const ptRes = await fetch("http://localhost:4000/api/property-types", {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+          const pts = await ptRes.json();
+          
+          // Map backend format to frontend format if there's any data
+          if (pts && pts.length > 0) {
+            setPropertyTypes(pts.map((p: any) => ({
+              id: p.id,
+              name: p.name,
+              lt: p.luasTanah,
+              lb: p.luasBangunan,
+              bed: p.bedrooms,
+              bath: p.bathrooms,
+              price: p.price,
+              imageUrl: p.imageUrl || undefined
+            })));
+          }
+
+          // Step 3: Fetch Units
+          const unRes = await fetch("http://localhost:4000/api/units", {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+          const uns = await unRes.json();
+          
+          if (uns && uns.length > 0) {
+            setUnits(uns.map((u: any) => ({
+              id: `BLK-${u.blok}${u.nomorUnit}`,
+              type: u.propertyType?.name || "Unknown",
+              price: u.price,
+              status: u.status
+            })));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch backend data, falling back to mock", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const [typeForm, setTypeForm] = useState<{
+    name: string;
+    lt: number;
+    lb: number;
+    bed: number;
+    bath: number;
+    price: number;
+    imageUrl: string;
+    imageFile: File | null;
+  }>({ name: "", lt: 0, lb: 0, bed: 0, bath: 0, price: 0, imageUrl: "", imageFile: null });
+  const [unitForm, setUnitForm] = useState({ blok: "", nomorUnit: "", propertyTypeId: "", priceAdjustment: 0 });
+
+  const handleTypeSubmit = async () => {
+    try {
+      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: "admin", password: "admin" })
+      });
+      const { token } = await loginRes.json();
+      
+      let uploadedImageUrl = typeForm.imageUrl;
+
+      if (typeForm.imageFile) {
+        const formData = new FormData();
+        formData.append("image", typeForm.imageFile);
+        
+        const uploadRes = await fetch("http://localhost:4000/api/upload", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${token}` },
+          body: formData
+        });
+        const uploadData = await uploadRes.json();
+        if (uploadData.imageUrl) {
+          uploadedImageUrl = `http://localhost:4000${uploadData.imageUrl}`;
+        }
+      }
+      
+      const payload = {
+        projectId: "PRJ001", // Default project for now
+        name: typeForm.name,
+        luasTanah: typeForm.lt,
+        luasBangunan: typeForm.lb,
+        bedrooms: typeForm.bed,
+        bathrooms: typeForm.bath,
+        price: typeForm.price,
+        imageUrl: uploadedImageUrl || null
+      };
+      
+      await fetch("http://localhost:4000/api/property-types", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify(payload)
+      });
+      setIsTypeModalOpen(false);
+      window.location.reload(); // Refresh data
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleUnitSubmit = async () => {
+    try {
+      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: "admin", password: "admin" })
+      });
+      const { token } = await loginRes.json();
+      
+      // Extract Blok and Nomor from input, e.g. "BLK-A12" -> "A" and "12"
+      // Simplification: use as is for nomorUnit
+      const pt = propertyTypes.find((p) => String(p.id) === unitForm.propertyTypeId);
+      const basePrice = pt ? pt.price : 0;
+      
+      const payload = {
+        projectId: "PRJ001", // Default project
+        propertyTypeId: unitForm.propertyTypeId,
+        blok: unitForm.blok || "BLK",
+        nomorUnit: unitForm.nomorUnit,
+        price: basePrice + Number(unitForm.priceAdjustment),
+        status: "Tersedia"
+      };
+      
+      await fetch("http://localhost:4000/api/units", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify(payload)
+      });
+      setIsUnitModalOpen(false);
+      window.location.reload(); // Refresh data
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const renderDashboard = () => (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-8">
-        <h2 className="mb-2 text-3xl font-serif text-zinc-900">Dasbor Inventaris</h2>
+        <h2 className="mb-2 text-3xl font-[family-name:var(--font-heading)] text-zinc-900">Dasbor Inventaris</h2>
         <p className="text-sm text-zinc-500">Ringkasan ketersediaan aset properti saat ini.</p>
       </div>
 
@@ -97,14 +255,14 @@ export default function InventoryAdminPage() {
           { label: "Sedang Booked", value: "12", icon: MapPin, color: "text-amber-600", bg: "bg-amber-50" },
           { label: "Sudah Terjual", value: "93", icon: ShieldCheck, color: "text-purple-600", bg: "bg-purple-50" },
         ].map((stat, idx) => (
-          <div key={idx} className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+          <div key={idx} className="stat-card group">
             <div className="mb-4 flex items-start justify-between">
               <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.bg}`}>
                 <stat.icon className={stat.color} size={24} />
               </div>
             </div>
-            <p className="mb-1 text-sm text-zinc-500">{stat.label}</p>
-            <h3 className="text-3xl font-bold text-zinc-900">{stat.value}</h3>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">{stat.label}</p>
+            <h3 className="mt-1.5 text-2xl font-bold text-zinc-900">{stat.value}</h3>
           </div>
         ))}
       </div>
@@ -133,7 +291,7 @@ export default function InventoryAdminPage() {
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-8 flex items-end justify-between">
         <div>
-          <h2 className="mb-2 text-3xl font-serif text-zinc-900">Master Tipe Rumah</h2>
+          <h2 className="mb-2 text-3xl font-[family-name:var(--font-heading)] text-zinc-900">Master Tipe Rumah</h2>
           <p className="text-sm text-zinc-500">Kelola spesifikasi dan harga dasar cetak biru properti.</p>
         </div>
         <button
@@ -148,15 +306,23 @@ export default function InventoryAdminPage() {
         {propertyTypes.map((type) => (
           <div key={type.id} className="group overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm transition-all hover:shadow-md">
             <div className="relative h-48 overflow-hidden bg-zinc-100">
-              <div className="absolute inset-0 flex items-center justify-center text-zinc-300 transition-transform duration-500 group-hover:scale-105">
-                <Home size={64} strokeWidth={1} />
-              </div>
+              {type.imageUrl ? (
+                <img
+                  src={type.imageUrl}
+                  alt={type.name}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-zinc-300 transition-transform duration-500 group-hover:scale-105">
+                  <Home size={64} strokeWidth={1} />
+                </div>
+              )}
               <div className="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-zinc-700 shadow-sm backdrop-blur-sm">
                 Tipe {type.lt}/{type.lb}
               </div>
             </div>
             <div className="p-6">
-              <h4 className="mb-4 text-xl font-serif text-zinc-900">{type.name}</h4>
+              <h4 className="mb-4 text-xl font-[family-name:var(--font-heading)] text-zinc-900">{type.name}</h4>
               <div className="mb-6 grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-2 text-sm text-zinc-600">
                   <Maximize size={16} className="text-amber-600" /> LT {type.lt} m²
@@ -188,7 +354,7 @@ export default function InventoryAdminPage() {
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <h2 className="mb-2 text-3xl font-serif text-zinc-900">Data Kavling & Unit</h2>
+          <h2 className="mb-2 text-3xl font-[family-name:var(--font-heading)] text-zinc-900">Data Kavling & Unit</h2>
           <p className="text-sm text-zinc-500">Database unit fisik berdasarkan blok dan nomor.</p>
         </div>
         <div className="flex w-full items-center gap-3 sm:w-auto">
@@ -263,7 +429,7 @@ export default function InventoryAdminPage() {
   const renderSitePlan = () => (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-8">
-        <h2 className="mb-2 text-3xl font-serif text-zinc-900">Master Site Plan</h2>
+        <h2 className="mb-2 text-3xl font-[family-name:var(--font-heading)] text-zinc-900">Master Site Plan</h2>
         <p className="text-sm text-zinc-500">Unggah dan kelola peta digital untuk Web Marketing.</p>
       </div>
 
@@ -354,6 +520,8 @@ export default function InventoryAdminPage() {
                 <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Nama Tipe Rumah</label>
                 <input
                   type="text"
+                  value={typeForm.name}
+                  onChange={(e) => setTypeForm({ ...typeForm, name: e.target.value })}
                   placeholder="Contoh: The Astoria Signature"
                   className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                 />
@@ -363,6 +531,8 @@ export default function InventoryAdminPage() {
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Luas Tanah (m²)</label>
                   <input
                     type="number"
+                    value={typeForm.lt || ""}
+                    onChange={(e) => setTypeForm({ ...typeForm, lt: Number(e.target.value) })}
                     placeholder="0"
                     className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                   />
@@ -371,6 +541,8 @@ export default function InventoryAdminPage() {
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Luas Bangunan (m²)</label>
                   <input
                     type="number"
+                    value={typeForm.lb || ""}
+                    onChange={(e) => setTypeForm({ ...typeForm, lb: Number(e.target.value) })}
                     placeholder="0"
                     className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                   />
@@ -381,6 +553,8 @@ export default function InventoryAdminPage() {
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Kamar Tidur</label>
                   <input
                     type="number"
+                    value={typeForm.bed || ""}
+                    onChange={(e) => setTypeForm({ ...typeForm, bed: Number(e.target.value) })}
                     placeholder="0"
                     className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                   />
@@ -389,6 +563,8 @@ export default function InventoryAdminPage() {
                   <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Kamar Mandi</label>
                   <input
                     type="number"
+                    value={typeForm.bath || ""}
+                    onChange={(e) => setTypeForm({ ...typeForm, bath: Number(e.target.value) })}
                     placeholder="0"
                     className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                   />
@@ -400,10 +576,32 @@ export default function InventoryAdminPage() {
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-500">Rp</span>
                   <input
                     type="number"
+                    value={typeForm.price || ""}
+                    onChange={(e) => setTypeForm({ ...typeForm, price: Number(e.target.value) })}
                     placeholder="0"
                     className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3 pl-10 pr-4 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                   />
                 </div>
+              </div>
+              <div>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Upload Gambar Properti (Lokal)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setTypeForm({ ...typeForm, imageFile: e.target.files ? e.target.files[0] : null })}
+                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 file:mr-4 file:rounded-md file:border-0 file:bg-amber-100 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-amber-700 hover:file:bg-amber-200"
+                />
+                <p className="mt-1 text-[10px] text-zinc-500">Pilih file dari komputer Anda (akan di-upload ke server).</p>
+              </div>
+              <div>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Atau URL Eksternal (Opsional)</label>
+                <input
+                  type="text"
+                  value={typeForm.imageUrl}
+                  onChange={(e) => setTypeForm({ ...typeForm, imageUrl: e.target.value })}
+                  placeholder="https://images.unsplash.com/... (diabaikan jika upload file)"
+                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                />
               </div>
             </div>
             <div className="flex justify-end gap-3 rounded-b-2xl border-t border-zinc-100 bg-zinc-50/50 px-6 py-4">
@@ -413,7 +611,7 @@ export default function InventoryAdminPage() {
               >
                 Batal
               </button>
-              <button className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-amber-600/20 transition-all hover:bg-amber-700">
+              <button onClick={handleTypeSubmit} className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-amber-600/20 transition-all hover:bg-amber-700">
                 Simpan Tipe Baru
               </button>
             </div>
@@ -432,21 +630,27 @@ export default function InventoryAdminPage() {
             </div>
             <div className="space-y-5 p-6">
               <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">ID Blok & Nomor</label>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Nomor Kavling/Unit</label>
                 <input
                   type="text"
-                  placeholder="Contoh: BLK-A12"
+                  value={unitForm.nomorUnit}
+                  onChange={(e) => setUnitForm({ ...unitForm, nomorUnit: e.target.value })}
+                  placeholder="Contoh: A12"
                   className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-mono transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                 />
               </div>
               <div>
                 <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Pilih Tipe Rumah</label>
-                <select defaultValue="" className="w-full cursor-pointer appearance-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30">
+                <select 
+                  value={unitForm.propertyTypeId} 
+                  onChange={(e) => setUnitForm({ ...unitForm, propertyTypeId: e.target.value })}
+                  className="w-full cursor-pointer appearance-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                >
                   <option value="" disabled>
                     Pilih Tipe Master...
                   </option>
                   {propertyTypes.map((type) => (
-                    <option key={type.id} value={type.id}>
+                    <option key={type.id} value={String(type.id)}>
                       {type.name} - {formatRupiah(type.price)}
                     </option>
                   ))}
@@ -458,6 +662,8 @@ export default function InventoryAdminPage() {
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-500">+ Rp</span>
                   <input
                     type="number"
+                    value={unitForm.priceAdjustment || ""}
+                    onChange={(e) => setUnitForm({ ...unitForm, priceAdjustment: Number(e.target.value) })}
                     placeholder="0"
                     className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3 pl-12 pr-4 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                   />
@@ -472,7 +678,7 @@ export default function InventoryAdminPage() {
               >
                 Batal
               </button>
-              <button className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-amber-600/20 transition-all hover:bg-amber-700">
+              <button onClick={handleUnitSubmit} className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-amber-600/20 transition-all hover:bg-amber-700">
                 Simpan Unit
               </button>
             </div>

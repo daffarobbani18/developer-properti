@@ -61,8 +61,8 @@ export default function RABPage() {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -70,10 +70,10 @@ export default function RABPage() {
               <TrendingUp className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+              <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
                 RAB & Realisasi
               </h1>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-zinc-600">
                 Pantau anggaran vs realisasi biaya per pos
               </p>
             </div>
@@ -90,15 +90,15 @@ export default function RABPage() {
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Total Anggaran (RAB)
                 </span>
                 <FileText className="w-5 h-5 text-blue-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalAnggaran)}
               </p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-zinc-500 mt-1">
                 {dummyRAB.length} pos anggaran
               </p>
             </div>
@@ -107,12 +107,12 @@ export default function RABPage() {
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Total Realisasi
                 </span>
                 <TrendingUp className="w-5 h-5 text-purple-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalRealisasi)}
               </p>
               <p className="text-xs text-purple-600 mt-1">
@@ -124,12 +124,12 @@ export default function RABPage() {
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Sisa Anggaran
                 </span>
                 <CheckCircle2 className="w-5 h-5 text-green-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(sisaAnggaran)}
               </p>
               <p className="text-xs text-green-600 mt-1">
@@ -141,12 +141,12 @@ export default function RABPage() {
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Pos Peringatan
                 </span>
                 <AlertTriangle className="w-5 h-5 text-amber-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">{warningCount}</p>
+              <p className="text-2xl font-bold text-zinc-900">{warningCount}</p>
               <p className="text-xs text-amber-600 mt-1">
                 Realisasi ≥ 80% dari RAB
               </p>
@@ -158,7 +158,7 @@ export default function RABPage() {
         <Card className="clean-glass">
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-slate-900">
+              <h3 className="font-semibold text-zinc-900">
                 Progress Realisasi Global
               </h3>
               <span className="text-2xl font-bold text-purple-600">
@@ -176,7 +176,7 @@ export default function RABPage() {
                 }
               />
             </div>
-            <div className="flex justify-between text-sm text-slate-600 mt-2">
+            <div className="flex justify-between text-sm text-zinc-600 mt-2">
               <span>Realisasi: {formatRupiah(totalRealisasi)}</span>
               <span>RAB: {formatRupiah(totalAnggaran)}</span>
             </div>
@@ -235,7 +235,7 @@ export default function RABPage() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-slate-900">
+                      <h3 className="font-semibold text-zinc-900">
                         {item.pos}
                       </h3>
                       {getStatusIcon(item.persentase)}
@@ -257,7 +257,7 @@ export default function RABPage() {
 
                 {/* Progress Bar */}
                 <div className="mb-4">
-                  <div className="relative h-4 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="relative h-4 bg-zinc-200 rounded-full overflow-hidden">
                     <div
                       className={`h-full ${getProgressColor(
                         item.persentase
@@ -270,19 +270,19 @@ export default function RABPage() {
                 {/* Numbers */}
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
-                    <p className="text-slate-600 mb-1">RAB</p>
-                    <p className="font-semibold text-slate-900">
+                    <p className="text-zinc-600 mb-1">RAB</p>
+                    <p className="font-semibold text-zinc-900">
                       {formatRupiah(item.anggaran)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-slate-600 mb-1">Realisasi</p>
+                    <p className="text-zinc-600 mb-1">Realisasi</p>
                     <p className="font-semibold text-purple-700">
                       {formatRupiah(item.realisasi)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-slate-600 mb-1">Sisa</p>
+                    <p className="text-zinc-600 mb-1">Sisa</p>
                     <p className="font-semibold text-green-700">
                       {formatRupiah(item.anggaran - item.realisasi)}
                     </p>
@@ -315,45 +315,45 @@ export default function RABPage() {
 
         {/* Detail Table */}
         <Card className="clean-glass overflow-hidden">
-          <div className="p-6 border-b border-slate-200">
-            <h3 className="font-semibold text-slate-900">
+          <div className="p-6 border-b border-zinc-200">
+            <h3 className="font-semibold text-zinc-900">
               Detail RAB vs Realisasi
             </h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50/50 border-b border-slate-200">
+              <thead className="bg-zinc-50/50 border-b border-zinc-200">
                 <tr>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-700">
                     Pos
                   </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-700">
                     Kategori
                   </th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-right py-3 px-4 text-sm font-semibold text-zinc-700">
                     Anggaran (RAB)
                   </th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-right py-3 px-4 text-sm font-semibold text-zinc-700">
                     Realisasi
                   </th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-right py-3 px-4 text-sm font-semibold text-zinc-700">
                     Sisa
                   </th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-center py-3 px-4 text-sm font-semibold text-zinc-700">
                     Progress
                   </th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-center py-3 px-4 text-sm font-semibold text-zinc-700">
                     Status
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-zinc-200">
                 {dummyRAB.map((item) => (
                   <tr
                     key={item.id}
-                    className="hover:bg-slate-50/50 transition-colors"
+                    className="hover:bg-zinc-50/50 transition-colors"
                   >
-                    <td className="py-3 px-4 text-sm font-medium text-slate-900">
+                    <td className="py-3 px-4 text-sm font-medium text-zinc-900">
                       {item.pos}
                     </td>
                     <td className="py-3 px-4">
@@ -364,7 +364,7 @@ export default function RABPage() {
                         {kategoriPengeluaranLabels[item.kategori]}
                       </Badge>
                     </td>
-                    <td className="py-3 px-4 text-sm text-right text-slate-900">
+                    <td className="py-3 px-4 text-sm text-right text-zinc-900">
                       {formatRupiah(item.anggaran)}
                     </td>
                     <td className="py-3 px-4 text-sm text-right font-semibold text-purple-700">
@@ -375,7 +375,7 @@ export default function RABPage() {
                     </td>
                     <td className="py-3 px-4 text-center">
                       <div className="flex items-center gap-2 justify-center">
-                        <div className="w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div className="w-24 h-2 bg-zinc-200 rounded-full overflow-hidden">
                           <div
                             className={`h-full ${getProgressColor(
                               item.persentase
@@ -383,7 +383,7 @@ export default function RABPage() {
                             style={{ width: `${item.persentase}%` }}
                           />
                         </div>
-                        <span className="text-sm font-semibold text-slate-700 w-12 text-right">
+                        <span className="text-sm font-semibold text-zinc-700 w-12 text-right">
                           {item.persentase}%
                         </span>
                       </div>
@@ -398,15 +398,15 @@ export default function RABPage() {
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="border-t-2 border-slate-300 bg-slate-50/50">
+              <tfoot className="border-t-2 border-zinc-300 bg-zinc-50/50">
                 <tr>
                   <td
                     colSpan={2}
-                    className="py-3 px-4 text-sm font-bold text-slate-900"
+                    className="py-3 px-4 text-sm font-bold text-zinc-900"
                   >
                     Total
                   </td>
-                  <td className="py-3 px-4 text-sm text-right font-bold text-slate-900">
+                  <td className="py-3 px-4 text-sm text-right font-bold text-zinc-900">
                     {formatRupiah(totalAnggaran)}
                   </td>
                   <td className="py-3 px-4 text-sm text-right font-bold text-purple-700">
@@ -416,7 +416,7 @@ export default function RABPage() {
                     {formatRupiah(sisaAnggaran)}
                   </td>
                   <td className="py-3 px-4 text-center">
-                    <span className="text-sm font-bold text-slate-900">
+                    <span className="text-sm font-bold text-zinc-900">
                       {persentaseGlobal.toFixed(1)}%
                     </span>
                   </td>

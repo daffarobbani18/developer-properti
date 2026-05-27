@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Project {
+  id              String         @id @default(uuid())
+  name            String
+  location        String
+  totalUnits      Int            @default(0)
+  targetSelesai   DateTime?
+  status          String         @default("perencanaan") // perencanaan, konstruksi, finishing, selesai
+  
+  propertyTypes   PropertyType[]
+  units           Unit[]
+  sitePlans       SitePlan[]
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model PropertyType {
+  id              String         @id @default(uuid())
+  projectId       String
+  name            String
+  luasTanah       Float
+  luasBangunan    Float
+  bedrooms        Int
+  bathrooms       Int
+  price           Float
+  imageUrl        String?        // NEW: URL for property image
+  
+  project         Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  units           Unit[]
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model Unit {
+  id              String         @id @default(uuid())
+  projectId       String
+  propertyTypeId  String
+  blok            String
+  nomorUnit       String
+  price           Float
+  status          String         @default("Tersedia") // Tersedia, Booked, Terjual
+  
+  project         Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  propertyType    PropertyType   @relation(fields: [propertyTypeId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model SitePlan {
+  id              String         @id @default(uuid())
+  projectId       String
+  imageUrl        String
+  coordinatesData String         @default("{}") // JSON string for SVG/JSON coordinates
+  
+  project         Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}

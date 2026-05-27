@@ -44,7 +44,7 @@ const allStatuses: UnitStatus[] = ["tersedia", "booked", "terjual", "indent"];
 const statusSitePlanColor: Record<UnitStatus, string> = {
   tersedia: "bg-emerald-100 border-emerald-300 text-emerald-800 hover:bg-emerald-200",
   booked: "bg-amber-100 border-amber-300 text-amber-800 hover:bg-amber-200",
-  terjual: "bg-slate-200 border-slate-300 text-slate-500",
+  terjual: "bg-zinc-200 border-zinc-300 text-zinc-500",
   indent: "bg-blue-100 border-blue-300 text-blue-800 hover:bg-blue-200",
 };
 
@@ -75,24 +75,24 @@ export default function UnitPage() {
   }, []);
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <h1 className="text-2xl font-bold text-slate-900">CRM — Manajemen Unit</h1>
+    <div className="space-y-6">
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-zinc-900">CRM — Manajemen Unit</h1>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Unit", value: summary.total, color: "text-slate-900" },
+          { label: "Total Unit", value: summary.total, color: "text-zinc-900" },
           { label: "Tersedia", value: summary.tersedia, color: "text-emerald-600" },
           { label: "Booked", value: summary.booked, color: "text-amber-600" },
-          { label: "Terjual", value: summary.terjual, color: "text-slate-500" },
+          { label: "Terjual", value: summary.terjual, color: "text-zinc-500" },
         ].map((s) => (
           <Card
             key={s.label}
-            className="bg-white/80 backdrop-blur-md border border-slate-200/50 shadow-sm rounded-xl"
+            className="bg-white/80 backdrop-blur-md border border-zinc-200/50 shadow-sm rounded-xl"
           >
             <CardContent className="p-4">
-              <p className="text-xs text-slate-500">{s.label}</p>
+              <p className="text-xs text-zinc-500">{s.label}</p>
               <p className={`text-2xl font-bold font-[family-name:var(--font-heading)] ${s.color}`}>
                 {s.value}
               </p>
@@ -102,21 +102,21 @@ export default function UnitPage() {
       </div>
 
       {/* Filters */}
-      <Card className="mb-6 bg-white/80 backdrop-blur-md border border-slate-200/50 shadow-sm rounded-xl">
+      <Card className="mb-6 bg-white/80 backdrop-blur-md border border-zinc-200/50 shadow-sm rounded-xl">
         <CardContent className="p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
               <Input
                 placeholder="Cari nomor unit..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-10 rounded-lg border-slate-200/80 bg-white/60 text-sm"
+                className="pl-9 h-10 rounded-lg border-zinc-200/80 bg-white/60 text-sm"
               />
             </div>
 
             <Select value={filterBlok} onValueChange={setFilterBlok}>
-              <SelectTrigger className="w-full sm:w-36 h-10 rounded-lg border-slate-200/80 bg-white/60 text-sm">
+              <SelectTrigger className="w-full sm:w-36 h-10 rounded-lg border-zinc-200/80 bg-white/60 text-sm">
                 <SelectValue placeholder="Blok" />
               </SelectTrigger>
               <SelectContent>
@@ -130,7 +130,7 @@ export default function UnitPage() {
             </Select>
 
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-full sm:w-40 h-10 rounded-lg border-slate-200/80 bg-white/60 text-sm">
+              <SelectTrigger className="w-full sm:w-40 h-10 rounded-lg border-zinc-200/80 bg-white/60 text-sm">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -144,15 +144,15 @@ export default function UnitPage() {
             </Select>
 
             {/* View Toggle */}
-            <div className="flex items-center gap-1 bg-slate-100/80 rounded-lg p-0.5">
+            <div className="flex items-center gap-1 bg-zinc-100/80 rounded-lg p-0.5">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setView("grid")}
                 className={`h-9 rounded-md px-3 transition-all duration-200 ${
                   view === "grid"
-                    ? "bg-white shadow-sm text-slate-900"
-                    : "text-slate-500 hover:text-slate-700"
+                    ? "bg-white shadow-sm text-zinc-900"
+                    : "text-zinc-500 hover:text-zinc-700"
                 }`}
               >
                 <LayoutGrid className="h-4 w-4" />
@@ -163,8 +163,8 @@ export default function UnitPage() {
                 onClick={() => setView("table")}
                 className={`h-9 rounded-md px-3 transition-all duration-200 ${
                   view === "table"
-                    ? "bg-white shadow-sm text-slate-900"
-                    : "text-slate-500 hover:text-slate-700"
+                    ? "bg-white shadow-sm text-zinc-900"
+                    : "text-zinc-500 hover:text-zinc-700"
                 }`}
               >
                 <List className="h-4 w-4" />
@@ -176,11 +176,11 @@ export default function UnitPage() {
 
       {/* Site Plan Legend */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
-        <span className="text-xs font-medium text-slate-500">Keterangan:</span>
+        <span className="text-xs font-medium text-zinc-500">Keterangan:</span>
         {allStatuses.map((s) => (
           <div key={s} className="flex items-center gap-1.5">
             <div className={`h-3 w-3 rounded-sm border ${statusSitePlanColor[s]}`} />
-            <span className="text-xs text-slate-600">
+            <span className="text-xs text-zinc-600">
               {unitStatusLabel[s]}
             </span>
           </div>
@@ -199,13 +199,13 @@ export default function UnitPage() {
               return (
                 <Card
                   key={blok}
-                  className="bg-white/80 backdrop-blur-md border border-slate-200/50 shadow-sm rounded-xl"
+                  className="bg-white/80 backdrop-blur-md border border-zinc-200/50 shadow-sm rounded-xl"
                 >
                   <CardHeader className="pb-3">
-                    <CardTitle className="font-[family-name:var(--font-heading)] text-base font-semibold text-slate-900 flex items-center gap-2">
+                    <CardTitle className="font-[family-name:var(--font-heading)] text-base font-semibold text-zinc-900 flex items-center gap-2">
                       <Home className="h-4 w-4 text-blue-600" />
                       Blok {blok}
-                      <Badge className="text-xs bg-slate-100 text-slate-600 font-medium rounded-md border-0 ml-1">
+                      <Badge className="text-xs bg-zinc-100 text-zinc-600 font-medium rounded-md border-0 ml-1">
                         {blokUnits.length} unit
                       </Badge>
                     </CardTitle>
@@ -241,49 +241,49 @@ export default function UnitPage() {
         </div>
       ) : (
         /* ===== Table View ===== */
-        <Card className="bg-white/80 backdrop-blur-md border border-slate-200/50 shadow-sm rounded-xl overflow-hidden">
+        <Card className="bg-white/80 backdrop-blur-md border border-zinc-200/50 shadow-sm rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="border-slate-200/50 hover:bg-transparent">
-                  <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider">No. Unit</TableHead>
-                  <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Blok</TableHead>
-                  <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tipe</TableHead>
-                  <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Luas Tanah</TableHead>
-                  <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Luas Bangunan</TableHead>
-                  <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Harga</TableHead>
-                  <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</TableHead>
-                  <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pembeli</TableHead>
+                <TableRow className="border-zinc-200/50 hover:bg-transparent">
+                  <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">No. Unit</TableHead>
+                  <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Blok</TableHead>
+                  <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Tipe</TableHead>
+                  <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Luas Tanah</TableHead>
+                  <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Luas Bangunan</TableHead>
+                  <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Harga</TableHead>
+                  <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Status</TableHead>
+                  <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Pembeli</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((unit) => (
                   <TableRow
                     key={unit.id}
-                    className="border-slate-200/30 hover:bg-white/60 cursor-pointer transition-colors duration-150"
+                    className="border-zinc-200/30 hover:bg-white/60 cursor-pointer transition-colors duration-150"
                     onClick={() => setSelectedUnit(unit)}
                   >
-                    <TableCell className="text-sm font-medium text-slate-900">{unit.nomorUnit}</TableCell>
-                    <TableCell className="text-sm text-slate-600">Blok {unit.blok}</TableCell>
-                    <TableCell className="text-sm text-slate-700">{unit.tipe}</TableCell>
-                    <TableCell className="text-sm text-slate-600">{unit.luasTanah} m²</TableCell>
-                    <TableCell className="text-sm text-slate-600">{unit.luasBangunan} m²</TableCell>
-                    <TableCell className="text-sm font-medium text-slate-900">{formatRupiah(unit.harga)}</TableCell>
+                    <TableCell className="text-sm font-medium text-zinc-900">{unit.nomorUnit}</TableCell>
+                    <TableCell className="text-sm text-zinc-600">Blok {unit.blok}</TableCell>
+                    <TableCell className="text-sm text-zinc-700">{unit.tipe}</TableCell>
+                    <TableCell className="text-sm text-zinc-600">{unit.luasTanah} m²</TableCell>
+                    <TableCell className="text-sm text-zinc-600">{unit.luasBangunan} m²</TableCell>
+                    <TableCell className="text-sm font-medium text-zinc-900">{formatRupiah(unit.harga)}</TableCell>
                     <TableCell>
                       <Badge className={`text-xs font-medium rounded-md ${unitStatusColor[unit.status]} border-0`}>
                         {unitStatusLabel[unit.status]}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-slate-600">
-                      {unit.pembeli || <span className="text-slate-400">—</span>}
+                    <TableCell className="text-sm text-zinc-600">
+                      {unit.pembeli || <span className="text-zinc-400">—</span>}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
-          <div className="border-t border-slate-200/30 px-6 py-3">
-            <p className="text-xs text-slate-400">
+          <div className="border-t border-zinc-200/30 px-6 py-3">
+            <p className="text-xs text-zinc-400">
               Menampilkan {filtered.length} dari {dummyUnits.length} unit
             </p>
           </div>
@@ -292,9 +292,9 @@ export default function UnitPage() {
 
       {/* Unit Detail Dialog */}
       <Dialog open={!!selectedUnit} onOpenChange={() => setSelectedUnit(null)}>
-        <DialogContent className="bg-white/95 backdrop-blur-md border-slate-200/50 rounded-xl max-w-md">
+        <DialogContent className="bg-white/95 backdrop-blur-md border-zinc-200/50 rounded-xl max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-[family-name:var(--font-heading)] text-lg font-semibold text-slate-900">
+            <DialogTitle className="font-[family-name:var(--font-heading)] text-lg font-semibold text-zinc-900">
               Detail Unit
             </DialogTitle>
           </DialogHeader>
@@ -302,10 +302,10 @@ export default function UnitPage() {
             <div className="space-y-4 mt-2">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-xl font-bold font-[family-name:var(--font-heading)] text-slate-900">
+                  <h3 className="text-xl font-bold font-[family-name:var(--font-heading)] text-zinc-900">
                     {selectedUnit.nomorUnit}
                   </h3>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-zinc-500">
                     Blok {selectedUnit.blok} — Tipe {selectedUnit.tipe}
                   </p>
                 </div>
@@ -314,22 +314,22 @@ export default function UnitPage() {
                 </Badge>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50/80 border border-slate-200/40 p-4">
+              <div className="grid grid-cols-2 gap-4 rounded-lg bg-zinc-50/80 border border-zinc-200/40 p-4">
                 <div>
-                  <p className="text-xs text-slate-400 mb-0.5">Luas Tanah</p>
-                  <p className="text-sm font-medium text-slate-700">{selectedUnit.luasTanah} m²</p>
+                  <p className="text-xs text-zinc-400 mb-0.5">Luas Tanah</p>
+                  <p className="text-sm font-medium text-zinc-700">{selectedUnit.luasTanah} m²</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 mb-0.5">Luas Bangunan</p>
-                  <p className="text-sm font-medium text-slate-700">{selectedUnit.luasBangunan} m²</p>
+                  <p className="text-xs text-zinc-400 mb-0.5">Luas Bangunan</p>
+                  <p className="text-sm font-medium text-zinc-700">{selectedUnit.luasBangunan} m²</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 mb-0.5">Harga</p>
-                  <p className="text-base font-bold text-slate-900">{formatRupiah(selectedUnit.harga)}</p>
+                  <p className="text-xs text-zinc-400 mb-0.5">Harga</p>
+                  <p className="text-base font-bold text-zinc-900">{formatRupiah(selectedUnit.harga)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 mb-0.5">Pembeli</p>
-                  <p className="text-sm font-medium text-slate-700">
+                  <p className="text-xs text-zinc-400 mb-0.5">Pembeli</p>
+                  <p className="text-sm font-medium text-zinc-700">
                     {selectedUnit.pembeli || "—"}
                   </p>
                 </div>
@@ -340,7 +340,7 @@ export default function UnitPage() {
                   <Button className="flex-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm shadow-blue-600/20 transition-all duration-200">
                     Booking Unit Ini
                   </Button>
-                  <Button variant="outline" className="rounded-lg border-slate-200/80">
+                  <Button variant="outline" className="rounded-lg border-zinc-200/80">
                     <Maximize2 className="mr-2 h-4 w-4" />
                     Edit Harga
                   </Button>

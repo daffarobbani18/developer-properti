@@ -24,10 +24,15 @@ export default function AppShell({ children, title }: AppShellProps) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-zinc-50 font-sans text-zinc-900 selection:bg-amber-200 selection:text-amber-900">
+    <div className="flex h-screen overflow-hidden bg-zinc-50 font-[family-name:var(--font-body)] text-zinc-900 selection:bg-amber-200 selection:text-amber-900">
       {/* Desktop Sidebar */}
       <div className="hidden md:flex md:flex-shrink-0">
         <Sidebar />
+      </div>
+
+      {/* Gradient transition strip between sidebar and content */}
+      <div className="hidden md:block w-[3px] bg-gradient-to-b from-zinc-900 via-zinc-800/60 to-zinc-900 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-zinc-900/20 to-transparent w-4 left-full pointer-events-none" />
       </div>
 
       {/* Mobile Sidebar (Sheet) */}
@@ -42,8 +47,10 @@ export default function AppShell({ children, title }: AppShellProps) {
       <main className="relative flex flex-1 flex-col overflow-hidden">
         <Header title={title} onMenuClick={() => setMobileOpen(true)} showMenuButton />
 
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-10">
-          {children}
+        <div className="flex-1 overflow-y-auto content-surface">
+          <div className="p-4 sm:p-6 md:p-8 max-w-[1400px] mx-auto animate-fade-in">
+            {children}
+          </div>
         </div>
       </main>
     </div>

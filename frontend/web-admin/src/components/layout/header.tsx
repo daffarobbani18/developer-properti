@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Bell, Menu, Search, CalendarDays, UserRound } from "lucide-react";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { Bell, Menu, Search, CalendarDays, UserRound, LogOut, Settings, ChevronDown } from "lucide-react";
 import { readRoleFromAuthPayload, type UserRole } from "@/lib/access";
+import Breadcrumb, { getPageTitle } from "@/components/layout/breadcrumb";
 
 interface HeaderProps {
   title?: string;
@@ -11,9 +13,13 @@ interface HeaderProps {
 }
 
 export default function Header({ onMenuClick, showMenuButton = true }: HeaderProps) {
+  const pathname = usePathname();
+  const router = useRouter();
   const [now, setNow] = useState<Date | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setNow(new Date());
@@ -53,6 +59,30 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
     }
   }, []);
 
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem("simdp_auth");
+      sessionStorage.removeItem("simdp_auth");
+      document.cookie = "simdp_role=; path=/; max-age=0; samesite=lax";
+      document.cookie = "simdp_email=; path=/; max-age=0; samesite=lax";
+    } catch {
+      // Ignore storage/cookie errors
+    }
+    setShowUserMenu(false);
+    router.replace("/login");
+  };
+
   const topBarDate = useMemo(
     () =>
       now
@@ -77,61 +107,108 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
     [now]
   );
 
+  const pageTitle = getPageTitle(pathname);
+
   return (
-    <header className="sticky top-0 z-30 border-b border-zinc-200 bg-white/90 backdrop-blur-xl">
-      <div className="flex h-20 items-center justify-between gap-4 px-4 py-2 md:px-8">
-        <div className="flex min-w-0 items-center gap-3 md:gap-4">
+    <header className="sticky top-0 z-30 border-b border-zinc-200/80 bg-white/95 backdrop-blur-xl">
+      <div className="flex h-16 items-center justify-between gap-4 px-4 md:px-8">
+        {/* Left: Menu button + Breadcrumb & Title */}
+        <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
           {showMenuButton ? (
             <button
               onClick={onMenuClick}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50 md:hidden"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-600 shadow-sm transition-all hover:bg-zinc-50 hover:shadow-md md:hidden"
               aria-label="Buka menu navigasi"
             >
-              <Menu size={18} />
+              <Menu size={16} />
             </button>
           ) : null}
 
-          <div className="min-w-0" />
+          <div className="min-w-0 hidden md:flex flex-col gap-0.5">
+            <Breadcrumb />
+            <h1 className="font-[family-name:var(--font-heading)] text-lg font-normal text-zinc-900 truncate leading-tight">
+              {pageTitle}
+            </h1>
+          </div>
+          <div className="min-w-0 md:hidden">
+            <h1 className="font-[family-name:var(--font-heading)] text-base font-normal text-zinc-900 truncate">
+              {pageTitle}
+            </h1>
+          </div>
         </div>
 
-        <div className="hidden min-w-0 flex-1 justify-start px-0 md:flex">
-          <div className="relative w-full max-w-xl">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+        {/* Center: Search */}
+        <div className="hidden min-w-0 max-w-md flex-1 lg:flex">
+          <div className="relative w-full">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
             <input
               type="text"
-              placeholder="Pencarian cepat ID Unit, Tipe..."
-              className="w-full rounded-full border border-zinc-200 bg-white py-2.5 pl-11 pr-16 text-sm text-zinc-700 shadow-[0_2px_10px_rgba(0,0,0,0.04)] outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20"
+              placeholder="Cari unit, tipe, pelanggan..."
+              className="w-full rounded-xl border border-zinc-200/80 bg-zinc-50/50 py-2 pl-10 pr-14 text-sm text-zinc-700 outline-none transition-all focus:border-amber-400 focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:shadow-sm placeholder:text-zinc-400"
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-[11px] font-semibold text-zinc-500">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md border border-zinc-200 bg-zinc-100/80 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-400">
               ⌘K
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-4">
-          <div className={`hidden items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-right shadow-sm md:flex ${!now ? 'opacity-0' : 'opacity-100 transition-opacity'}`}>
-            <CalendarDays size={16} className="text-zinc-400" />
+        {/* Right: Date, Notifications, User */}
+        <div className="flex items-center gap-2 md:gap-3">
+          <div className={`hidden items-center gap-2 rounded-xl border border-zinc-100 bg-zinc-50/80 px-3 py-1.5 text-right md:flex ${!now ? 'opacity-0' : 'opacity-100 transition-opacity'}`}>
+            <CalendarDays size={14} className="text-zinc-400" />
             <div className="leading-tight text-left">
-              <p className="text-[11px] font-medium text-zinc-500">{topBarDate || "..."}</p>
-              <p className="text-sm font-semibold text-zinc-900">{topBarTime || "..."}</p>
+              <p className="text-[10px] font-medium text-zinc-400">{topBarDate || "..."}</p>
+              <p className="text-xs font-semibold text-zinc-700">{topBarTime || "..."}</p>
             </div>
           </div>
 
-          <button className="relative flex h-11 w-11 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-500 shadow-sm transition-colors hover:bg-zinc-50">
-            <Bell size={18} />
-            <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-rose-500"></span>
+          <button className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200/80 bg-white text-zinc-500 shadow-sm transition-all hover:bg-zinc-50 hover:shadow-md">
+            <Bell size={16} />
+            <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-rose-500"></span>
           </button>
 
-          <div className="flex items-center gap-3 rounded-full border border-zinc-200 bg-white px-2 py-1.5 shadow-sm cursor-pointer hover:bg-zinc-50 transition-colors">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-zinc-950">
-              {userName ? userName.split(" ").map((s) => s[0]).slice(0,2).join("") : "--"}
-            </div>
-            <div className="hidden min-w-0 sm:block text-left">
-              <p className="truncate text-sm font-semibold leading-tight text-zinc-900">{userName ?? "Pengguna"}</p>
-              <p className="truncate text-[11px] uppercase tracking-wide text-zinc-500">{(userRole && roleLabel(userRole)) ?? "Akses Portal"}</p>
-            </div>
-            <div className="hidden h-6 w-px bg-zinc-200 sm:block" />
-            <UserRound size={16} className="hidden text-zinc-400 sm:block" />
+          {/* User dropdown */}
+          <div className="relative" ref={userMenuRef}>
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center gap-2 rounded-xl border border-zinc-200/80 bg-white px-2 py-1.5 shadow-sm cursor-pointer hover:bg-zinc-50 hover:shadow-md transition-all"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 text-xs font-bold text-white shadow-sm">
+                {userName ? userName.split(" ").map((s) => s[0]).slice(0,2).join("") : "--"}
+              </div>
+              <div className="hidden min-w-0 sm:block text-left">
+                <p className="truncate text-sm font-semibold leading-tight text-zinc-800 max-w-[120px]">{userName ?? "Pengguna"}</p>
+                <p className="truncate text-[10px] text-zinc-400">{(userRole && roleLabel(userRole)) ?? "Akses Portal"}</p>
+              </div>
+              <ChevronDown size={14} className={`hidden sm:block text-zinc-400 transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Dropdown menu */}
+            {showUserMenu && (
+              <div className="absolute right-0 top-full mt-2 w-56 animate-scale-in origin-top-right rounded-xl border border-zinc-200/80 bg-white p-1.5 shadow-lg shadow-zinc-200/50 z-50">
+                <div className="px-3 py-2.5 border-b border-zinc-100 mb-1">
+                  <p className="text-sm font-semibold text-zinc-900">{userName ?? "Pengguna"}</p>
+                  <p className="text-xs text-zinc-400 mt-0.5">{(userRole && roleLabel(userRole)) ?? "Akses Portal"}</p>
+                </div>
+                <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900">
+                  <UserRound size={15} className="text-zinc-400" />
+                  Profil Saya
+                </button>
+                <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900">
+                  <Settings size={15} className="text-zinc-400" />
+                  Pengaturan
+                </button>
+                <div className="border-t border-zinc-100 mt-1 pt-1">
+                  <button
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-rose-600 transition-colors hover:bg-rose-50"
+                  >
+                    <LogOut size={15} />
+                    Keluar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

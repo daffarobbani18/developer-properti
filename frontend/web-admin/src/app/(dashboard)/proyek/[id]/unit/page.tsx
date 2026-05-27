@@ -33,14 +33,14 @@ export default function UnitProgressPage({ params }: PageProps) {
 
   if (!proyek) {
     return (
-      <div className="min-h-screen p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="space-y-6">
+        <div className="">
           <Card className="clean-glass p-8 text-center">
-            <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-            <h2 className="text-xl font-semibold text-slate-900">
+            <AlertCircle className="w-12 h-12 text-zinc-400 mx-auto mb-3" />
+            <h2 className="text-xl font-semibold text-zinc-900">
               Proyek Tidak Ditemukan
             </h2>
-            <p className="text-slate-600 mt-2">
+            <p className="text-zinc-600 mt-2">
               ID Proyek tidak valid atau sudah dihapus.
             </p>
             <Link href="/proyek">
@@ -62,10 +62,10 @@ export default function UnitProgressPage({ params }: PageProps) {
   const bloks = Object.keys(unitsByBlok).sort();
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
+      <div className="space-y-6">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-slate-600">
+        <div className="flex items-center gap-2 text-sm text-zinc-600">
           <Link
             href="/proyek"
             className="hover:text-blue-600 transition-colors"
@@ -73,9 +73,9 @@ export default function UnitProgressPage({ params }: PageProps) {
             Proyek
           </Link>
           <ChevronRight className="w-4 h-4" />
-          <span className="text-slate-900 font-medium">{proyek.nama}</span>
+          <span className="text-zinc-900 font-medium">{proyek.nama}</span>
           <ChevronRight className="w-4 h-4" />
-          <span className="text-slate-900 font-medium">Unit</span>
+          <span className="text-zinc-900 font-medium">Unit</span>
         </div>
 
         {/* Header */}
@@ -90,10 +90,10 @@ export default function UnitProgressPage({ params }: PageProps) {
               <Building2 className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+              <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
                 {proyek.nama}
               </h1>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-zinc-600">
                 Progress {proyek.unitSelesai} dari {proyek.totalUnit} unit
               </p>
             </div>
@@ -108,8 +108,8 @@ export default function UnitProgressPage({ params }: PageProps) {
                 <CheckCircle2 className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-slate-600">Selesai (100%)</p>
-                <p className="text-2xl font-bold text-slate-900">
+                <p className="text-sm text-zinc-600">Selesai (100%)</p>
+                <p className="text-2xl font-bold text-zinc-900">
                   {units.filter((u) => u.persentaseSelesai === 100).length}
                 </p>
               </div>
@@ -122,8 +122,8 @@ export default function UnitProgressPage({ params }: PageProps) {
                 <Clock className="w-6 h-6 text-amber-600" />
               </div>
               <div>
-                <p className="text-sm text-slate-600">Perlu Perhatian</p>
-                <p className="text-2xl font-bold text-slate-900">
+                <p className="text-sm text-zinc-600">Perlu Perhatian</p>
+                <p className="text-2xl font-bold text-zinc-900">
                   {
                     units.filter(
                       (u) => u.status === "warning" || u.status === "terlambat"
@@ -140,8 +140,8 @@ export default function UnitProgressPage({ params }: PageProps) {
                 <Home className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-slate-600">On Track</p>
-                <p className="text-2xl font-bold text-slate-900">
+                <p className="text-sm text-zinc-600">On Track</p>
+                <p className="text-2xl font-bold text-zinc-900">
                   {units.filter((u) => u.status === "on_track").length}
                 </p>
               </div>
@@ -153,7 +153,7 @@ export default function UnitProgressPage({ params }: PageProps) {
         <div className="space-y-6">
           {bloks.map((blok) => (
             <div key={blok}>
-              <h2 className="text-lg font-semibold text-slate-900 mb-3">
+              <h2 className="text-lg font-semibold text-zinc-900 mb-3">
                 Blok {blok}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -199,12 +199,12 @@ function UnitCard({ unit, proyekId }: { unit: Unit; proyekId: string }) {
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
-              <Home className="w-5 h-5 text-slate-600" />
+              <Home className="w-5 h-5 text-zinc-600" />
               <div>
-                <h3 className="font-bold text-lg text-slate-900">
+                <h3 className="font-bold text-lg text-zinc-900">
                   {unit.nomorUnit}
                 </h3>
-                <p className="text-xs text-slate-600">{unit.tipe}</p>
+                <p className="text-xs text-zinc-600">{unit.tipe}</p>
               </div>
             </div>
             <Icon className={`w-5 h-5 ${statusIconColor[unit.status]}`} />
@@ -213,10 +213,10 @@ function UnitCard({ unit, proyekId }: { unit: Unit; proyekId: string }) {
           {/* Progress */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-medium text-slate-600">
+              <span className="text-xs font-medium text-zinc-600">
                 Progress
               </span>
-              <span className="text-sm font-bold text-slate-900">
+              <span className="text-sm font-bold text-zinc-900">
                 {unit.persentaseSelesai}%
               </span>
             </div>
@@ -224,9 +224,9 @@ function UnitCard({ unit, proyekId }: { unit: Unit; proyekId: string }) {
           </div>
 
           {/* Milestone Count */}
-          <div className="flex items-center justify-between text-xs text-slate-600 pt-2 border-t border-slate-200/60">
+          <div className="flex items-center justify-between text-xs text-zinc-600 pt-2 border-t border-zinc-200/60">
             <span>Milestone</span>
-            <span className="font-semibold text-slate-900">
+            <span className="font-semibold text-zinc-900">
               {unit.milestoneSelesai} / {unit.totalMilestone}
             </span>
           </div>

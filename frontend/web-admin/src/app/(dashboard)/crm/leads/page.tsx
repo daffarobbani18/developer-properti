@@ -106,9 +106,8 @@ export default function LeadsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <h1 className="text-2xl font-bold text-slate-900">CRM — Leads</h1>
+    <div className="space-y-6">
+      <div className="space-y-6">
 
         {/* Summary Badges */}
         <div className="flex flex-wrap gap-2">{allStatuses.map((s) => (
@@ -120,7 +119,7 @@ export default function LeadsPage() {
             className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium border transition-all duration-200 ${
               filterStatus === s
                 ? "bg-blue-50 text-blue-700 border-blue-200"
-                : "bg-white/80 text-slate-600 border-slate-200/50 hover:border-blue-300/50"
+                : "bg-white/80 text-zinc-600 border-zinc-200/50 hover:border-blue-300/50"
             }`}
           >
             {leadStatusLabel[s]}
@@ -132,24 +131,24 @@ export default function LeadsPage() {
       </div>
 
       {/* Filters & Search Bar */}
-      <Card className="mb-6 bg-white/80 backdrop-blur-md border border-slate-200/50 shadow-sm rounded-xl">
+      <Card className="mb-6 bg-white border border-zinc-200/50 shadow-sm rounded-xl">
         <CardContent className="p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             {/* Search */}
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
               <Input
                 placeholder="Cari nama atau nomor HP..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-10 rounded-lg border-slate-200/80 bg-white/60 text-sm focus:border-blue-400 focus:ring-blue-400/20"
+                className="pl-9 h-10 rounded-lg border-zinc-200/80 bg-white/60 text-sm focus:border-blue-400 focus:ring-blue-400/20"
               />
             </div>
 
             {/* Status Filter */}
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-full sm:w-40 h-10 rounded-lg border-slate-200/80 bg-white/60 text-sm">
-                <Filter className="mr-2 h-3.5 w-3.5 text-slate-400" />
+              <SelectTrigger className="w-full sm:w-40 h-10 rounded-lg border-zinc-200/80 bg-white/60 text-sm">
+                <Filter className="mr-2 h-3.5 w-3.5 text-zinc-400" />
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -164,7 +163,7 @@ export default function LeadsPage() {
 
             {/* Source Filter */}
             <Select value={filterSource} onValueChange={setFilterSource}>
-              <SelectTrigger className="w-full sm:w-40 h-10 rounded-lg border-slate-200/80 bg-white/60 text-sm">
+              <SelectTrigger className="w-full sm:w-40 h-10 rounded-lg border-zinc-200/80 bg-white/60 text-sm">
                 <SelectValue placeholder="Sumber" />
               </SelectTrigger>
               <SelectContent>
@@ -183,7 +182,7 @@ export default function LeadsPage() {
                 variant="ghost"
                 size="sm"
                 onClick={clearFilters}
-                className="h-10 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-white/90"
+                className="h-10 rounded-lg text-zinc-500 hover:text-zinc-700 hover:bg-white/90"
               >
                 <X className="mr-1 h-3.5 w-3.5" />
                 Reset
@@ -198,32 +197,32 @@ export default function LeadsPage() {
                   Tambah Lead
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-white/95 backdrop-blur-md border-slate-200/50 rounded-xl max-w-lg">
+              <DialogContent className="bg-white/95 backdrop-blur-md border-zinc-200/50 rounded-xl max-w-lg">
                 <DialogHeader>
-                  <DialogTitle className="font-[family-name:var(--font-heading)] text-lg font-semibold text-slate-900">
+                  <DialogTitle className="font-[family-name:var(--font-heading)] text-lg font-semibold text-zinc-900">
                     Tambah Lead Baru
                   </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 mt-2">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-sm text-slate-700">Nama Lengkap</Label>
-                      <Input className="h-10 rounded-lg border-slate-200/80 bg-white/60" placeholder="Nama calon pembeli" />
+                      <Label className="text-sm text-zinc-700">Nama Lengkap</Label>
+                      <Input className="h-10 rounded-lg border-zinc-200/80 bg-white/60" placeholder="Nama calon pembeli" />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm text-slate-700">No. Telepon</Label>
-                      <Input className="h-10 rounded-lg border-slate-200/80 bg-white/60" placeholder="081234567890" />
+                      <Label className="text-sm text-zinc-700">No. Telepon</Label>
+                      <Input className="h-10 rounded-lg border-zinc-200/80 bg-white/60" placeholder="081234567890" />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm text-slate-700">Email</Label>
-                    <Input className="h-10 rounded-lg border-slate-200/80 bg-white/60" placeholder="email@example.com" type="email" />
+                    <Label className="text-sm text-zinc-700">Email</Label>
+                    <Input className="h-10 rounded-lg border-zinc-200/80 bg-white/60" placeholder="email@example.com" type="email" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-sm text-slate-700">Sumber</Label>
+                      <Label className="text-sm text-zinc-700">Sumber</Label>
                       <Select>
-                        <SelectTrigger className="h-10 rounded-lg border-slate-200/80 bg-white/60">
+                        <SelectTrigger className="h-10 rounded-lg border-zinc-200/80 bg-white/60">
                           <SelectValue placeholder="Pilih sumber" />
                         </SelectTrigger>
                         <SelectContent>
@@ -234,16 +233,16 @@ export default function LeadsPage() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm text-slate-700">Minat Unit</Label>
-                      <Input className="h-10 rounded-lg border-slate-200/80 bg-white/60" placeholder="Tipe 45/72" />
+                      <Label className="text-sm text-zinc-700">Minat Unit</Label>
+                      <Input className="h-10 rounded-lg border-zinc-200/80 bg-white/60" placeholder="Tipe 45/72" />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm text-slate-700">Catatan</Label>
-                    <Textarea className="rounded-lg border-slate-200/80 bg-white/60 resize-none" rows={3} placeholder="Catatan tambahan..." />
+                    <Label className="text-sm text-zinc-700">Catatan</Label>
+                    <Textarea className="rounded-lg border-zinc-200/80 bg-white/60 resize-none" rows={3} placeholder="Catatan tambahan..." />
                   </div>
                   <div className="flex justify-end gap-3 pt-2">
-                    <Button variant="outline" onClick={() => setShowAddDialog(false)} className="rounded-lg border-slate-200/80">
+                    <Button variant="outline" onClick={() => setShowAddDialog(false)} className="rounded-lg border-zinc-200/80">
                       Batal
                     </Button>
                     <Button onClick={() => setShowAddDialog(false)} className="rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm shadow-blue-600/20">
@@ -258,25 +257,25 @@ export default function LeadsPage() {
       </Card>
 
       {/* Leads Table */}
-      <Card className="bg-white/80 backdrop-blur-md border border-slate-200/50 shadow-sm rounded-xl overflow-hidden">
+      <Card className="bg-white border border-zinc-200/50 shadow-sm rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="border-slate-200/50 hover:bg-transparent">
-                <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Nama</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kontak</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sumber</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Minat</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sales</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tanggal</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-500 uppercase tracking-wider w-16"></TableHead>
+              <TableRow className="border-zinc-200/50 hover:bg-transparent">
+                <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Nama</TableHead>
+                <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Kontak</TableHead>
+                <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Sumber</TableHead>
+                <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Status</TableHead>
+                <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Minat</TableHead>
+                <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Sales</TableHead>
+                <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Tanggal</TableHead>
+                <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider w-16"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-sm text-slate-400">
+                  <TableCell colSpan={8} className="text-center py-12 text-sm text-zinc-400">
                     Tidak ada leads ditemukan.
                   </TableCell>
                 </TableRow>
@@ -284,29 +283,29 @@ export default function LeadsPage() {
                 filtered.map((lead) => (
                   <TableRow
                     key={lead.id}
-                    className="border-slate-200/30 hover:bg-white/60 transition-colors duration-150 cursor-pointer"
+                    className="border-zinc-200/30 hover:bg-white/60 transition-colors duration-150 cursor-pointer"
                     onClick={() => setSelectedLead(lead)}
                   >
                     <TableCell>
                       <div>
-                        <p className="text-sm font-medium text-slate-900">{lead.nama}</p>
-                        <p className="text-xs text-slate-400">{lead.id}</p>
+                        <p className="text-sm font-medium text-zinc-900">{lead.nama}</p>
+                        <p className="text-xs text-zinc-400">{lead.id}</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-0.5">
-                        <span className="inline-flex items-center gap-1 text-xs text-slate-600">
+                        <span className="inline-flex items-center gap-1 text-xs text-zinc-600">
                           <Phone className="h-3 w-3" />
                           {lead.telepon}
                         </span>
-                        <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                        <span className="inline-flex items-center gap-1 text-xs text-zinc-400">
                           <Mail className="h-3 w-3" />
                           {lead.email}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="text-xs text-slate-600">{sourceLabel[lead.sumber]}</span>
+                      <span className="text-xs text-zinc-600">{sourceLabel[lead.sumber]}</span>
                     </TableCell>
                     <TableCell>
                       <Badge className={`text-xs font-medium rounded-md ${leadStatusColor[lead.status]} border-0`}>
@@ -314,13 +313,13 @@ export default function LeadsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm text-slate-700">{lead.minatUnit}</span>
+                      <span className="text-sm text-zinc-700">{lead.minatUnit}</span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm text-slate-600">{lead.salesPIC}</span>
+                      <span className="text-sm text-zinc-600">{lead.salesPIC}</span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-xs text-slate-500">{formatTanggal(lead.tanggalMasuk)}</span>
+                      <span className="text-xs text-zinc-500">{formatTanggal(lead.tanggalMasuk)}</span>
                     </TableCell>
                     <TableCell>
                       <Button
@@ -332,7 +331,7 @@ export default function LeadsPage() {
                           setSelectedLead(lead);
                         }}
                       >
-                        <Eye className="h-4 w-4 text-slate-400" />
+                        <Eye className="h-4 w-4 text-zinc-400" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -343,8 +342,8 @@ export default function LeadsPage() {
         </div>
 
         {/* Table Footer */}
-        <div className="border-t border-slate-200/30 px-6 py-3 flex items-center justify-between">
-          <p className="text-xs text-slate-400">
+        <div className="border-t border-zinc-200/30 px-6 py-3 flex items-center justify-between">
+          <p className="text-xs text-zinc-400">
             Menampilkan {filtered.length} dari {dummyLeads.length} leads
           </p>
         </div>
@@ -352,9 +351,9 @@ export default function LeadsPage() {
 
       {/* Lead Detail Dialog */}
       <Dialog open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
-        <DialogContent className="bg-white/95 backdrop-blur-md border-slate-200/50 rounded-xl max-w-lg">
+        <DialogContent className="bg-white/95 backdrop-blur-md border-zinc-200/50 rounded-xl max-w-lg">
           <DialogHeader>
-            <DialogTitle className="font-[family-name:var(--font-heading)] text-lg font-semibold text-slate-900">
+            <DialogTitle className="font-[family-name:var(--font-heading)] text-lg font-semibold text-zinc-900">
               Detail Lead
             </DialogTitle>
           </DialogHeader>
@@ -362,49 +361,49 @@ export default function LeadsPage() {
             <div className="space-y-4 mt-2">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900">{selectedLead.nama}</h3>
-                  <p className="text-xs text-slate-400">{selectedLead.id}</p>
+                  <h3 className="text-lg font-semibold text-zinc-900">{selectedLead.nama}</h3>
+                  <p className="text-xs text-zinc-400">{selectedLead.id}</p>
                 </div>
                 <Badge className={`text-xs font-medium rounded-md ${leadStatusColor[selectedLead.status]} border-0`}>
                   {leadStatusLabel[selectedLead.status]}
                 </Badge>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50/80 border border-slate-200/40 p-4">
+              <div className="grid grid-cols-2 gap-4 rounded-lg bg-zinc-50/80 border border-zinc-200/40 p-4">
                 <div>
-                  <p className="text-xs text-slate-400 mb-0.5">Telepon</p>
-                  <p className="text-sm font-medium text-slate-700">{selectedLead.telepon}</p>
+                  <p className="text-xs text-zinc-400 mb-0.5">Telepon</p>
+                  <p className="text-sm font-medium text-zinc-700">{selectedLead.telepon}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 mb-0.5">Email</p>
-                  <p className="text-sm font-medium text-slate-700">{selectedLead.email}</p>
+                  <p className="text-xs text-zinc-400 mb-0.5">Email</p>
+                  <p className="text-sm font-medium text-zinc-700">{selectedLead.email}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 mb-0.5">Sumber</p>
-                  <p className="text-sm font-medium text-slate-700">{sourceLabel[selectedLead.sumber]}</p>
+                  <p className="text-xs text-zinc-400 mb-0.5">Sumber</p>
+                  <p className="text-sm font-medium text-zinc-700">{sourceLabel[selectedLead.sumber]}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 mb-0.5">Minat Unit</p>
-                  <p className="text-sm font-medium text-slate-700">{selectedLead.minatUnit}</p>
+                  <p className="text-xs text-zinc-400 mb-0.5">Minat Unit</p>
+                  <p className="text-sm font-medium text-zinc-700">{selectedLead.minatUnit}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 mb-0.5">Sales PIC</p>
-                  <p className="text-sm font-medium text-slate-700">{selectedLead.salesPIC}</p>
+                  <p className="text-xs text-zinc-400 mb-0.5">Sales PIC</p>
+                  <p className="text-sm font-medium text-zinc-700">{selectedLead.salesPIC}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 mb-0.5">Tanggal Masuk</p>
-                  <p className="text-sm font-medium text-slate-700">{formatTanggal(selectedLead.tanggalMasuk)}</p>
+                  <p className="text-xs text-zinc-400 mb-0.5">Tanggal Masuk</p>
+                  <p className="text-sm font-medium text-zinc-700">{formatTanggal(selectedLead.tanggalMasuk)}</p>
                 </div>
               </div>
 
-              <div className="rounded-lg bg-slate-50/80 border border-slate-200/40 p-4">
-                <p className="text-xs text-slate-400 mb-1">Catatan Terakhir</p>
-                <p className="text-sm text-slate-700">{selectedLead.catatanTerakhir}</p>
+              <div className="rounded-lg bg-zinc-50/80 border border-zinc-200/40 p-4">
+                <p className="text-xs text-zinc-400 mb-1">Catatan Terakhir</p>
+                <p className="text-sm text-zinc-700">{selectedLead.catatanTerakhir}</p>
               </div>
 
               {/* Status Update */}
               <div className="flex items-center gap-2 pt-1">
-                <span className="text-xs text-slate-500">Pindah ke:</span>
+                <span className="text-xs text-zinc-500">Pindah ke:</span>
                 {allStatuses
                   .filter((s) => s !== selectedLead.status)
                   .map((s) => (

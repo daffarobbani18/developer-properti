@@ -137,11 +137,50 @@ function Reveal({
   );
 }
 
+const defaultPropertyTypes = [
+  {
+    id: "astoria",
+    name: "The Astoria",
+    imageUrl: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+    luasBangunan: 150,
+    luasTanah: 200,
+    bedrooms: 4,
+    bathrooms: 2,
+    price: 2800000000,
+    badge: "Tipe Signature",
+    carOrFeature: "2 Garasi"
+  },
+  {
+    id: "bvlgari",
+    name: "The Bvlgari",
+    imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+    luasBangunan: 210,
+    luasTanah: 250,
+    bedrooms: 5,
+    bathrooms: 3,
+    price: 4500000000,
+    badge: "Paling Diminati",
+    carOrFeature: "3 Garasi + Pool"
+  }
+];
+
+const formatPriceShort = (price: number) => {
+  if (price >= 1000000000) {
+    const formatted = (price / 1000000000).toFixed(1);
+    return `Rp ${formatted.endsWith(".0") ? formatted.slice(0, -2) : formatted} M`;
+  } else if (price >= 1000000) {
+    const formatted = (price / 1000000).toFixed(1);
+    return `Rp ${formatted.endsWith(".0") ? formatted.slice(0, -2) : formatted} Jt`;
+  }
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(price);
+};
+
 export default function HomePage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeKavling, setActiveKavling] = useState<string | null>(null);
   const [activeFaq, setActiveFaq] = useState(0);
+  const [propertyTypes, setPropertyTypes] = useState<any[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -150,6 +189,28 @@ export default function HomePage() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const fetchPropertyTypes = async () => {
+      try {
+        const res = await fetch("http://localhost:4000/api/property-types");
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length > 0) {
+            setPropertyTypes(data);
+          } else {
+            setPropertyTypes(defaultPropertyTypes);
+          }
+        } else {
+          setPropertyTypes(defaultPropertyTypes);
+        }
+      } catch (error) {
+        console.error("Failed to fetch property types:", error);
+        setPropertyTypes(defaultPropertyTypes);
+      }
+    };
+    fetchPropertyTypes();
   }, []);
 
   return (
@@ -427,87 +488,60 @@ export default function HomePage() {
           </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
-            <Reveal delay={100}>
-              <Link href="/unit/astoria" className="group cursor-pointer block">
-                <div className="relative h-[360px] sm:h-[440px] lg:h-[500px] overflow-hidden rounded-sm mb-6">
-                  <div className="absolute inset-0 bg-zinc-900/20 group-hover:bg-transparent transition-colors duration-700 z-10" />
-                  <img
-                    src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
-                    alt="The Astoria"
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-[1.5s] ease-out"
-                  />
-                  <div className="absolute top-6 left-6 z-20">
-                    <span className="bg-zinc-900 text-white text-[10px] uppercase tracking-widest px-4 py-2 rounded-sm backdrop-blur-md">
-                      Tipe Signature
-                    </span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="text-3xl font-serif text-zinc-900 mb-2">The Astoria</h4>
-                    <p className="text-zinc-500 font-light mb-4 text-sm">
-                      Luas Bangunan 150m² • Luas Tanah 200m²
-                    </p>
-                    <div className="flex gap-4">
-                      <span className="flex items-center gap-2 text-zinc-900 text-sm font-medium">
-                        <Home size={16} className="text-amber-600" /> 4 BR
-                      </span>
-                      <span className="flex items-center gap-2 text-zinc-900 text-sm font-medium">
-                        <Car size={16} className="text-amber-600" /> 2 Garasi
-                      </span>
+            {propertyTypes.map((unit, idx) => {
+              const isEven = idx % 2 === 0;
+              const linkHref = unit.id === "astoria" || unit.id === "bvlgari" 
+                ? `/unit/${unit.id}` 
+                : `/unit/${unit.id}`;
+              const imgUrl = unit.imageUrl || (isEven 
+                ? "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                : "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80");
+              const badgeText = unit.badge || (unit.bedrooms > 4 ? "Paling Diminati" : "Tipe Signature");
+              const carFeatureText = unit.carOrFeature || (unit.bathrooms > 2 ? `${unit.bathrooms} Garasi + Pool` : `${unit.bathrooms} Garasi`);
+              
+              return (
+                <Reveal key={unit.id} delay={100 + idx * 200}>
+                  <Link href={linkHref} className={`group cursor-pointer block ${idx % 2 === 1 ? "md:mt-24" : ""}`}>
+                    <div className="relative h-[360px] sm:h-[440px] lg:h-[500px] overflow-hidden rounded-sm mb-6">
+                      <div className="absolute inset-0 bg-zinc-900/20 group-hover:bg-transparent transition-colors duration-700 z-10" />
+                      <img
+                        src={imgUrl}
+                        alt={unit.name}
+                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-[1.5s] ease-out"
+                      />
+                      <div className="absolute top-6 left-6 z-20">
+                        <span className={`text-white text-[10px] uppercase tracking-widest px-4 py-2 rounded-sm backdrop-blur-md ${badgeText === "Paling Diminati" ? "bg-amber-600" : "bg-zinc-900"}`}>
+                          {badgeText}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-zinc-400 uppercase tracking-widest mb-1">Mulai Dari</p>
-                    <p className="text-2xl font-serif text-amber-600">Rp 2.8 M</p>
-                    <p className="text-xs uppercase tracking-[0.18em] text-zinc-500 mt-4 group-hover:text-amber-600 transition-colors">
-                      Detail Unit
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            </Reveal>
-
-            <Reveal delay={300} direction="up">
-              <Link href="/unit/bvlgari" className="group cursor-pointer md:mt-24 block">
-                <div className="relative h-[360px] sm:h-[440px] lg:h-[500px] overflow-hidden rounded-sm mb-6">
-                  <div className="absolute inset-0 bg-zinc-900/20 group-hover:bg-transparent transition-colors duration-700 z-10" />
-                  <img
-                    src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
-                    alt="The Bvlgari"
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-[1.5s] ease-out"
-                  />
-                  <div className="absolute top-6 left-6 z-20">
-                    <span className="bg-amber-600 text-white text-[10px] uppercase tracking-widest px-4 py-2 rounded-sm backdrop-blur-md">
-                      Paling Diminati
-                    </span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="text-3xl font-serif text-zinc-900 mb-2">The Bvlgari</h4>
-                    <p className="text-zinc-500 font-light mb-4 text-sm">
-                      Luas Bangunan 210m² • Luas Tanah 250m²
-                    </p>
-                    <div className="flex gap-4">
-                      <span className="flex items-center gap-2 text-zinc-900 text-sm font-medium">
-                        <Home size={16} className="text-amber-600" /> 5 BR
-                      </span>
-                      <span className="flex items-center gap-2 text-zinc-900 text-sm font-medium">
-                        <Car size={16} className="text-amber-600" /> 3 Garasi + Pool
-                      </span>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="text-3xl font-serif text-zinc-900 mb-2">{unit.name}</h4>
+                        <p className="text-zinc-500 font-light mb-4 text-sm">
+                          Luas Bangunan {unit.luasBangunan}m² • Luas Tanah {unit.luasTanah}m²
+                        </p>
+                        <div className="flex gap-4">
+                          <span className="flex items-center gap-2 text-zinc-900 text-sm font-medium">
+                            <Home size={16} className="text-amber-600" /> {unit.bedrooms} BR
+                          </span>
+                          <span className="flex items-center gap-2 text-zinc-900 text-sm font-medium">
+                            <Car size={16} className="text-amber-600" /> {carFeatureText}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-zinc-400 uppercase tracking-widest mb-1">Mulai Dari</p>
+                        <p className="text-2xl font-serif text-amber-600">{formatPriceShort(unit.price)}</p>
+                        <p className="text-xs uppercase tracking-[0.18em] text-zinc-500 mt-4 group-hover:text-amber-600 transition-colors">
+                          Detail Unit
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-zinc-400 uppercase tracking-widest mb-1">Mulai Dari</p>
-                    <p className="text-2xl font-serif text-amber-600">Rp 4.5 M</p>
-                    <p className="text-xs uppercase tracking-[0.18em] text-zinc-500 mt-4 group-hover:text-amber-600 transition-colors">
-                      Detail Unit
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            </Reveal>
+                  </Link>
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </section>

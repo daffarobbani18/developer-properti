@@ -89,8 +89,8 @@ export default function TagihanPage() {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -98,10 +98,10 @@ export default function TagihanPage() {
               <FileText className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+              <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
                 Tagihan & Piutang
               </h1>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-zinc-600">
                 Kelola tagihan pembeli & konfirmasi pembayaran
               </p>
             </div>
@@ -118,15 +118,15 @@ export default function TagihanPage() {
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Belum Bayar
                 </span>
                 <Clock className="w-5 h-5 text-amber-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalBelumBayar)}
               </p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-zinc-500 mt-1">
                 {tagihanList.filter((t) => t.status === "belum_bayar").length}{" "}
                 tagihan aktif
               </p>
@@ -136,7 +136,7 @@ export default function TagihanPage() {
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Terlambat
                 </span>
                 <XCircle className="w-5 h-5 text-red-600" />
@@ -153,12 +153,12 @@ export default function TagihanPage() {
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Lunas Bulan Ini
                 </span>
                 <CheckCircle2 className="w-5 h-5 text-green-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalLunas)}
               </p>
               <p className="text-xs text-green-600 mt-1">
@@ -170,15 +170,15 @@ export default function TagihanPage() {
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Total Piutang
                 </span>
                 <FileText className="w-5 h-5 text-blue-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalBelumBayar + totalTerlambat)}
               </p>
-              <p className="text-xs text-slate-500 mt-1">Semua tagihan aktif</p>
+              <p className="text-xs text-zinc-500 mt-1">Semua tagihan aktif</p>
             </div>
           </Card>
         </div>
@@ -188,7 +188,7 @@ export default function TagihanPage() {
           <div className="p-4 space-y-4">
             <div className="flex flex-col md:flex-row gap-3">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                 <Input
                   placeholder="Cari nama customer, nomor tagihan, atau unit..."
                   value={searchQuery}
@@ -225,7 +225,7 @@ export default function TagihanPage() {
               </Select>
             </div>
 
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-zinc-600">
               Menampilkan {filteredTagihan.length} dari {tagihanList.length}{" "}
               tagihan
             </p>
@@ -236,51 +236,51 @@ export default function TagihanPage() {
         <Card className="clean-glass overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50/50 border-b border-slate-200">
+              <thead className="bg-zinc-50/50 border-b border-zinc-200">
                 <tr>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-700">
                     Nomor Tagihan
                   </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-700">
                     Customer
                   </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-700">
                     Unit
                   </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-700">
                     Tipe
                   </th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-right py-3 px-4 text-sm font-semibold text-zinc-700">
                     Nominal
                   </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-700">
                     Jatuh Tempo
                   </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-700">
                     Status
                   </th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-center py-3 px-4 text-sm font-semibold text-zinc-700">
                     Aksi
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-zinc-200">
                 {filteredTagihan.map((tagihan) => (
                   <tr
                     key={tagihan.id}
-                    className="hover:bg-slate-50/50 transition-colors"
+                    className="hover:bg-zinc-50/50 transition-colors"
                   >
                     <td className="py-3 px-4">
-                      <div className="text-sm font-medium text-slate-900">
+                      <div className="text-sm font-medium text-zinc-900">
                         {tagihan.nomorTagihan}
                       </div>
                       {tagihan.cicilan && (
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-zinc-500">
                           Cicilan {tagihan.cicilan.ke}/{tagihan.cicilan.dari}
                         </div>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-900">
+                    <td className="py-3 px-4 text-sm text-zinc-900">
                       {tagihan.customerNama}
                     </td>
                     <td className="py-3 px-4">
@@ -293,11 +293,11 @@ export default function TagihanPage() {
                         {tipeTagihanLabels[tagihan.tipeTagihan]}
                       </Badge>
                     </td>
-                    <td className="py-3 px-4 text-sm text-right font-semibold text-slate-900">
+                    <td className="py-3 px-4 text-sm text-right font-semibold text-zinc-900">
                       {formatRupiah(tagihan.nominal)}
                     </td>
                     <td className="py-3 px-4">
-                      <div className="text-sm text-slate-900">
+                      <div className="text-sm text-zinc-900">
                         {formatTanggalShort(tagihan.jatuhTempo)}
                       </div>
                       {tagihan.tanggalBayar && (
@@ -332,7 +332,7 @@ export default function TagihanPage() {
           {filteredTagihan.length === 0 && (
             <div className="p-12 text-center">
               <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-600">Tidak ada tagihan ditemukan</p>
+              <p className="text-zinc-600">Tidak ada tagihan ditemukan</p>
             </div>
           )}
         </Card>
@@ -352,15 +352,15 @@ export default function TagihanPage() {
                 {/* Tagihan Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm text-slate-600">
+                    <label className="text-sm text-zinc-600">
                       Nomor Tagihan
                     </label>
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-zinc-900">
                       {selectedTagihan.nomorTagihan}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm text-slate-600">Status</label>
+                    <label className="text-sm text-zinc-600">Status</label>
                     <div className="mt-1">
                       <Badge
                         variant="outline"
@@ -371,38 +371,38 @@ export default function TagihanPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm text-slate-600">Customer</label>
-                    <p className="font-semibold text-slate-900">
+                    <label className="text-sm text-zinc-600">Customer</label>
+                    <p className="font-semibold text-zinc-900">
                       {selectedTagihan.customerNama}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm text-slate-600">Unit</label>
-                    <p className="font-semibold text-slate-900">
+                    <label className="text-sm text-zinc-600">Unit</label>
+                    <p className="font-semibold text-zinc-900">
                       {selectedTagihan.unit}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm text-slate-600">Tipe Tagihan</label>
-                    <p className="font-semibold text-slate-900">
+                    <label className="text-sm text-zinc-600">Tipe Tagihan</label>
+                    <p className="font-semibold text-zinc-900">
                       {tipeTagihanLabels[selectedTagihan.tipeTagihan]}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm text-slate-600">Nominal</label>
+                    <label className="text-sm text-zinc-600">Nominal</label>
                     <p className="text-xl font-bold text-blue-600">
                       {formatRupiah(selectedTagihan.nominal)}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm text-slate-600">Jatuh Tempo</label>
-                    <p className="font-semibold text-slate-900">
+                    <label className="text-sm text-zinc-600">Jatuh Tempo</label>
+                    <p className="font-semibold text-zinc-900">
                       {formatTanggalShort(selectedTagihan.jatuhTempo)}
                     </p>
                   </div>
                   {selectedTagihan.tanggalBayar && (
                     <div>
-                      <label className="text-sm text-slate-600">
+                      <label className="text-sm text-zinc-600">
                         Tanggal Bayar
                       </label>
                       <p className="font-semibold text-green-700">
@@ -412,7 +412,7 @@ export default function TagihanPage() {
                   )}
                   {selectedTagihan.cicilan && (
                     <div className="col-span-2">
-                      <label className="text-sm text-slate-600">
+                      <label className="text-sm text-zinc-600">
                         Progress Cicilan
                       </label>
                       <div className="mt-2">
@@ -430,7 +430,7 @@ export default function TagihanPage() {
                             %
                           </span>
                         </div>
-                        <div className="w-full bg-slate-200 rounded-full h-2">
+                        <div className="w-full bg-zinc-200 rounded-full h-2">
                           <div
                             className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                             style={{
@@ -450,8 +450,8 @@ export default function TagihanPage() {
                 {/* Actions */}
                 {selectedTagihan.status === "belum_bayar" ||
                 selectedTagihan.status === "terlambat" ? (
-                  <div className="space-y-3 pt-4 border-t border-slate-200">
-                    <label className="text-sm font-medium text-slate-700">
+                  <div className="space-y-3 pt-4 border-t border-zinc-200">
+                    <label className="text-sm font-medium text-zinc-700">
                       Upload Bukti Pembayaran
                     </label>
                     <div className="flex gap-3">

@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter } from "next/font/google";
+import { DM_Serif_Display, Inter } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
-const plusJakarta = Plus_Jakarta_Sans({
+const dmSerif = DM_Serif_Display({
   variable: "--font-heading",
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  weight: ["400"],
 });
 
 const inter = Inter({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body
-        className={`${plusJakarta.variable} ${inter.variable} font-[family-name:var(--font-body)] antialiased bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 min-h-screen text-slate-900`}
+        className={`${dmSerif.variable} ${inter.variable} font-[family-name:var(--font-body)] antialiased bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 min-h-screen text-slate-900`}
       >
         <TooltipProvider>{children}</TooltipProvider>
       </body>

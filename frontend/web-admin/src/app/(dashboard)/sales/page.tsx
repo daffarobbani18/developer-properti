@@ -16,6 +16,8 @@ const salesStats = [
     label: "Leads Bulan Ini",
     value: "24",
     note: "+8 leads hari ini",
+    trend: "+33%",
+    trendUp: true,
     icon: Users,
     bg: "bg-blue-50",
     color: "text-blue-500",
@@ -24,6 +26,8 @@ const salesStats = [
     label: "Follow-up Hari Ini",
     value: "12",
     note: "6 sudah selesai",
+    trend: "+2",
+    trendUp: true,
     icon: Phone,
     bg: "bg-emerald-50",
     color: "text-emerald-500",
@@ -32,6 +36,8 @@ const salesStats = [
     label: "Unit Booking",
     value: "8",
     note: "dari 60 total unit",
+    trend: "+3",
+    trendUp: true,
     icon: MapPin,
     bg: "bg-amber-50",
     color: "text-amber-500",
@@ -40,6 +46,7 @@ const salesStats = [
     label: "Target Penjualan",
     value: "Rp 2,4 M",
     note: "40% sudah terkumpul",
+    progress: 40,
     icon: DollarSign,
     bg: "bg-rose-50",
     color: "text-rose-500",
@@ -105,17 +112,17 @@ const statusStyle: Record<string, string> = {
 
 export default function SalesAdminPage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
-        <div className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.06),transparent_40%)]" />
+      <section className="module-hero md:p-8" style={{ "--hero-accent": "rgba(59,130,246,0.06)" } as React.CSSProperties}>
+        <div className="hero-pattern absolute inset-0 pointer-events-none rounded-2xl opacity-50" />
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-blue-700">
               <TrendingUp size={11} className="text-blue-500" /> Sales &amp;
               Marketing
             </div>
-            <h1 className="font-serif text-3xl font-semibold tracking-tight text-zinc-900 md:text-4xl">
+            <h1 className="font-[family-name:var(--font-heading)] text-2xl font-normal tracking-tight text-zinc-900 md:text-3xl">
               Pipeline Penjualan &amp; Manajemen Leads
             </h1>
             <p className="max-w-2xl text-sm text-zinc-500 leading-relaxed">
@@ -134,20 +141,34 @@ export default function SalesAdminPage() {
         {salesStats.map((stat) => (
           <div
             key={stat.label}
-            className="group rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+            className="stat-card group"
           >
             <div className="mb-4 flex items-start justify-between">
               <div
-                className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.bg}`}
+                className={`flex h-11 w-11 items-center justify-center rounded-xl ${stat.bg}`}
               >
-                <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                <stat.icon className={`h-5 w-5 ${stat.color}`} />
               </div>
+              {stat.trend && (
+                <div className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${stat.trendUp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                  <TrendingUp size={11} />
+                  {stat.trend}
+                </div>
+              )}
             </div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
               {stat.label}
             </p>
-            <p className="mt-2 text-3xl font-bold text-zinc-900">{stat.value}</p>
+            <p className="mt-1.5 text-2xl font-bold text-zinc-900">{stat.value}</p>
             <p className="mt-1 text-xs text-zinc-500">{stat.note}</p>
+            {stat.progress !== undefined && (
+              <div className="mt-3 space-y-1">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
+                  <div className="h-full rounded-full bg-gradient-to-r from-rose-400 to-rose-500 transition-all duration-700" style={{ width: `${stat.progress}%` }} />
+                </div>
+                <p className="text-[10px] text-zinc-400">{stat.progress}% tercapai</p>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -157,20 +178,20 @@ export default function SalesAdminPage() {
         {actionCards.map((action) => (
           <div
             key={action.title}
-            className="group cursor-pointer rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-200 hover:shadow-[0_8px_25px_rgba(245,158,11,0.12)]"
+            className="group cursor-pointer rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-200/60 hover:shadow-[0_8px_25px_rgba(59,130,246,0.08)]"
           >
             <div
-              className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${action.bg} transition-transform duration-300 group-hover:scale-105`}
+              className={`mb-3 flex h-11 w-11 items-center justify-center rounded-xl ${action.bg} transition-transform duration-300 group-hover:scale-105`}
             >
-              <action.icon className={`h-6 w-6 ${action.color}`} />
+              <action.icon className={`h-5 w-5 ${action.color}`} />
             </div>
-            <h3 className="text-sm font-bold text-zinc-900 transition-colors group-hover:text-amber-600">
+            <h3 className="text-sm font-bold text-zinc-900 transition-colors group-hover:text-blue-600">
               {action.title}
             </h3>
             <p className="mt-1 text-xs leading-relaxed text-zinc-500">
               {action.desc}
             </p>
-            <div className="mt-4 flex items-center gap-1 text-[11px] font-medium text-amber-500 opacity-0 transition-opacity group-hover:opacity-100">
+            <div className="mt-3 flex items-center gap-1 text-[11px] font-medium text-blue-500 opacity-0 transition-opacity group-hover:opacity-100">
               <ArrowUpRight size={13} /> Buka Modul
             </div>
           </div>
@@ -179,21 +200,21 @@ export default function SalesAdminPage() {
 
       {/* Hot Leads */}
       <div>
-        <h3 className="mb-4 text-lg font-bold text-zinc-900">
+        <h3 className="mb-4 text-sm font-bold text-zinc-900 uppercase tracking-wider">
           Leads Panas &amp; Follow-up
         </h3>
-        <div className="overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm">
+        <div className="table-wrapper">
           <div className="hidden grid-cols-5 border-b border-zinc-100 bg-zinc-50/50 px-6 py-3 sm:grid">
-            <p className="col-span-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            <p className="col-span-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
               Prospek
             </p>
-            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
               Status
             </p>
-            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
               Kontak Terakhir
             </p>
-            <p className="text-right text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            <p className="text-right text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
               Aksi Selanjutnya
             </p>
           </div>
@@ -201,10 +222,10 @@ export default function SalesAdminPage() {
             {leadsData.map((lead) => (
               <div
                 key={lead.name}
-                className="group flex flex-col gap-3 px-6 py-4 transition-colors hover:bg-zinc-50 sm:grid sm:grid-cols-5 sm:items-center sm:gap-0"
+                className="group flex flex-col gap-3 px-6 py-4 transition-colors hover:bg-zinc-50/50 sm:grid sm:grid-cols-5 sm:items-center sm:gap-0"
               >
                 <div className="col-span-2 flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-sm font-bold text-zinc-600">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-zinc-100 to-zinc-50 text-sm font-bold text-zinc-600">
                     {lead.name.charAt(0)}
                   </div>
                   <div>
@@ -223,7 +244,7 @@ export default function SalesAdminPage() {
                 </div>
                 <div>
                   <span
-                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${statusStyle[lead.status] ?? "bg-zinc-100 text-zinc-600"}`}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${statusStyle[lead.status] ?? "bg-zinc-100 text-zinc-600"}`}
                   >
                     <span
                       className={`h-1.5 w-1.5 rounded-full ${

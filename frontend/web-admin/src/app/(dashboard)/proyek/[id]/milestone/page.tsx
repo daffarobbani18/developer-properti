@@ -58,10 +58,10 @@ export default function MilestonePage({ params }: PageProps) {
 
   if (!proyek) {
     return (
-      <div className="min-h-screen p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="space-y-6">
+        <div className="">
           <Card className="clean-glass p-8 text-center">
-            <h2 className="text-xl font-semibold text-slate-900">
+            <h2 className="text-xl font-semibold text-zinc-900">
               Proyek Tidak Ditemukan
             </h2>
             <Link href="/proyek">
@@ -78,10 +78,10 @@ export default function MilestonePage({ params }: PageProps) {
   const milestoneBelum = milestones.filter((m) => m.status === "belum_mulai").length;
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
+      <div className="space-y-6">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-slate-600">
+        <div className="flex items-center gap-2 text-sm text-zinc-600">
           <Link href="/proyek" className="hover:text-blue-600 transition-colors">
             Proyek
           </Link>
@@ -93,7 +93,7 @@ export default function MilestonePage({ params }: PageProps) {
             {proyek.nama}
           </Link>
           <ChevronRight className="w-4 h-4" />
-          <span className="text-slate-900 font-medium">Milestone</span>
+          <span className="text-zinc-900 font-medium">Milestone</span>
         </div>
 
         {/* Header */}
@@ -108,10 +108,10 @@ export default function MilestonePage({ params }: PageProps) {
               <Building2 className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+              <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
                 Milestone Unit
               </h1>
-              <p className="text-sm text-slate-600">{proyek.nama}</p>
+              <p className="text-sm text-zinc-600">{proyek.nama}</p>
             </div>
           </div>
         </div>
@@ -121,7 +121,7 @@ export default function MilestonePage({ params }: PageProps) {
           <div className="p-6 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex-1">
-                <label className="text-sm font-medium text-slate-700 mb-2 block">
+                <label className="text-sm font-medium text-zinc-700 mb-2 block">
                   Pilih Unit
                 </label>
                 <Select value={selectedUnitId} onValueChange={setSelectedUnitId}>
@@ -144,19 +144,19 @@ export default function MilestonePage({ params }: PageProps) {
                     <p className="text-2xl font-bold text-green-600">
                       {milestoneSelesai}
                     </p>
-                    <p className="text-xs text-slate-600">Selesai</p>
+                    <p className="text-xs text-zinc-600">Selesai</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-blue-600">
                       {milestoneProgress}
                     </p>
-                    <p className="text-xs text-slate-600">Dikerjakan</p>
+                    <p className="text-xs text-zinc-600">Dikerjakan</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-slate-400">
+                    <p className="text-2xl font-bold text-zinc-400">
                       {milestoneBelum}
                     </p>
-                    <p className="text-xs text-slate-600">Belum</p>
+                    <p className="text-xs text-zinc-600">Belum</p>
                   </div>
                 </div>
               )}
@@ -165,10 +165,10 @@ export default function MilestonePage({ params }: PageProps) {
             {selectedUnit && (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-slate-700">
+                  <span className="text-sm font-medium text-zinc-700">
                     Progress Unit
                   </span>
-                  <span className="text-sm font-bold text-slate-900">
+                  <span className="text-sm font-bold text-zinc-900">
                     {selectedUnit.persentaseSelesai}%
                   </span>
                 </div>
@@ -192,7 +192,7 @@ export default function MilestonePage({ params }: PageProps) {
         ) : (
           <Card className="clean-glass p-8 text-center">
             <Circle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-600">
+            <p className="text-zinc-600">
               Belum ada data milestone untuk unit ini.
             </p>
           </Card>
@@ -234,7 +234,7 @@ function MilestoneCard({ milestone, isLast }: MilestoneCardProps) {
           ? "border-green-200 bg-green-50/30"
           : milestone.status === "progress"
           ? "border-blue-200 bg-blue-50/30"
-          : "border-slate-200"
+          : "border-zinc-200"
       }`}
     >
       <div className="p-6">
@@ -250,12 +250,12 @@ function MilestoneCard({ milestone, isLast }: MilestoneCardProps) {
                 <Circle className="w-5 h-5 text-blue-600 fill-blue-600" />
               </div>
             ) : (
-              <div className="p-2 bg-slate-100 rounded-full">
-                <Circle className="w-5 h-5 text-slate-400" />
+              <div className="p-2 bg-zinc-100 rounded-full">
+                <Circle className="w-5 h-5 text-zinc-400" />
               </div>
             )}
             {!isLast && (
-              <div className="w-0.5 h-16 bg-slate-200 mt-2"></div>
+              <div className="w-0.5 h-16 bg-zinc-200 mt-2"></div>
             )}
           </div>
 
@@ -263,7 +263,7 @@ function MilestoneCard({ milestone, isLast }: MilestoneCardProps) {
           <div className="flex-1 space-y-3">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="font-semibold text-lg text-slate-900">
+                <h3 className="font-semibold text-lg text-zinc-900">
                   {milestone.nama}
                 </h3>
                 <div className="flex items-center gap-2 mt-1">
@@ -304,22 +304,22 @@ function MilestoneCard({ milestone, isLast }: MilestoneCardProps) {
 
             {/* Info Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-              <div className="flex items-center gap-2 text-slate-600">
+              <div className="flex items-center gap-2 text-zinc-600">
                 <Calendar className="w-4 h-4" />
                 <div>
-                  <p className="text-xs text-slate-500">Target</p>
-                  <p className="font-medium text-slate-900">
+                  <p className="text-xs text-zinc-500">Target</p>
+                  <p className="font-medium text-zinc-900">
                     {formatTanggalShort(milestone.tanggalTarget)}
                   </p>
                 </div>
               </div>
 
               {milestone.tanggalAktual && (
-                <div className="flex items-center gap-2 text-slate-600">
+                <div className="flex items-center gap-2 text-zinc-600">
                   <CheckCircle2 className="w-4 h-4" />
                   <div>
-                    <p className="text-xs text-slate-500">Selesai</p>
-                    <p className="font-medium text-slate-900">
+                    <p className="text-xs text-zinc-500">Selesai</p>
+                    <p className="font-medium text-zinc-900">
                       {formatTanggalShort(milestone.tanggalAktual)}
                     </p>
                   </div>
@@ -327,11 +327,11 @@ function MilestoneCard({ milestone, isLast }: MilestoneCardProps) {
               )}
 
               {milestone.engineerPIC && (
-                <div className="flex items-center gap-2 text-slate-600">
+                <div className="flex items-center gap-2 text-zinc-600">
                   <User className="w-4 h-4" />
                   <div>
-                    <p className="text-xs text-slate-500">PIC</p>
-                    <p className="font-medium text-slate-900">
+                    <p className="text-xs text-zinc-500">PIC</p>
+                    <p className="font-medium text-zinc-900">
                       {milestone.engineerPIC}
                     </p>
                   </div>
@@ -339,10 +339,10 @@ function MilestoneCard({ milestone, isLast }: MilestoneCardProps) {
               )}
 
               {milestone.fotoCount > 0 && (
-                <div className="flex items-center gap-2 text-slate-600">
+                <div className="flex items-center gap-2 text-zinc-600">
                   <Camera className="w-4 h-4" />
                   <div>
-                    <p className="text-xs text-slate-500">Foto</p>
+                    <p className="text-xs text-zinc-500">Foto</p>
                     <p className="font-medium text-blue-600">
                       {milestone.fotoCount} foto
                     </p>
@@ -353,9 +353,9 @@ function MilestoneCard({ milestone, isLast }: MilestoneCardProps) {
 
             {/* Catatan */}
             {milestone.catatan && (
-              <div className="pt-3 border-t border-slate-200/60">
-                <p className="text-xs text-slate-500 mb-1">Catatan:</p>
-                <p className="text-sm text-slate-700">{milestone.catatan}</p>
+              <div className="pt-3 border-t border-zinc-200/60">
+                <p className="text-xs text-zinc-500 mb-1">Catatan:</p>
+                <p className="text-sm text-zinc-700">{milestone.catatan}</p>
               </div>
             )}
           </div>

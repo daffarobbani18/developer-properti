@@ -44,8 +44,8 @@ export default function CashflowPage() {
   }));
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -53,10 +53,10 @@ export default function CashflowPage() {
               <ArrowUpDown className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+              <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
                 Cashflow
               </h1>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-zinc-600">
                 Analisis arus kas & proyeksi keuangan
               </p>
             </div>
@@ -75,42 +75,42 @@ export default function CashflowPage() {
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Total Pemasukan
                 </span>
                 <TrendingUp className="w-5 h-5 text-green-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalPemasukan)}
               </p>
-              <p className="text-xs text-slate-500 mt-1">6 bulan terakhir</p>
+              <p className="text-xs text-zinc-500 mt-1">6 bulan terakhir</p>
             </div>
           </Card>
 
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Total Pengeluaran
                 </span>
                 <TrendingDown className="w-5 h-5 text-red-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalPengeluaran)}
               </p>
-              <p className="text-xs text-slate-500 mt-1">6 bulan terakhir</p>
+              <p className="text-xs text-zinc-500 mt-1">6 bulan terakhir</p>
             </div>
           </Card>
 
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Saldo Bulan Ini
                 </span>
                 <ArrowUpDown className="w-5 h-5 text-blue-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(bulanTerakhir.saldo)}
               </p>
               <p className="text-xs text-green-600 mt-1">
@@ -122,15 +122,15 @@ export default function CashflowPage() {
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Rata-rata Saldo
                 </span>
                 <TrendingUp className="w-5 h-5 text-purple-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(rataRataSaldo)}
               </p>
-              <p className="text-xs text-slate-500 mt-1">Per bulan</p>
+              <p className="text-xs text-zinc-500 mt-1">Per bulan</p>
             </div>
           </Card>
         </div>
@@ -157,7 +157,7 @@ export default function CashflowPage() {
         {/* Area Chart - Cashflow Trend */}
         <Card className="clean-glass">
           <div className="p-6">
-            <h3 className="font-semibold text-slate-900 mb-4">
+            <h3 className="font-semibold text-zinc-900 mb-4">
               Tren Cashflow 6 Bulan Terakhir
             </h3>
             <div className="h-80">
@@ -196,8 +196,8 @@ export default function CashflowPage() {
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className="bg-white/95 backdrop-blur-sm border border-slate-200 rounded-lg p-3 shadow-lg">
-                            <p className="font-semibold text-slate-900 mb-2">
+                          <div className="bg-white/95 backdrop-blur-sm border border-zinc-200 rounded-lg p-3 shadow-lg">
+                            <p className="font-semibold text-zinc-900 mb-2">
                               {getBulanName(payload[0].payload.bulan)}
                             </p>
                             <div className="space-y-1 text-sm">
@@ -213,7 +213,7 @@ export default function CashflowPage() {
                                   {formatRupiah(payload[1].value as number)}
                                 </span>
                               </div>
-                              <div className="flex items-center justify-between gap-4 pt-1 border-t border-slate-200">
+                              <div className="flex items-center justify-between gap-4 pt-1 border-t border-zinc-200">
                                 <span className="text-blue-700">Saldo:</span>
                                 <span className="font-semibold text-blue-700">
                                   {formatRupiah(
@@ -255,7 +255,7 @@ export default function CashflowPage() {
         {/* Bar Chart - Net Cashflow */}
         <Card className="clean-glass">
           <div className="p-6">
-            <h3 className="font-semibold text-slate-900 mb-4">
+            <h3 className="font-semibold text-zinc-900 mb-4">
               Saldo Bersih Per Bulan
             </h3>
             <div className="h-64">
@@ -278,8 +278,8 @@ export default function CashflowPage() {
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className="bg-white/95 backdrop-blur-sm border border-slate-200 rounded-lg p-3 shadow-lg">
-                            <p className="font-semibold text-slate-900 mb-1">
+                          <div className="bg-white/95 backdrop-blur-sm border border-zinc-200 rounded-lg p-3 shadow-lg">
+                            <p className="font-semibold text-zinc-900 mb-1">
                               {getBulanName(payload[0].payload.bulan)}
                             </p>
                             <p className="text-sm text-blue-700 font-semibold">
@@ -306,39 +306,39 @@ export default function CashflowPage() {
         {/* Detail Table */}
         <Card className="clean-glass">
           <div className="p-6">
-            <h3 className="font-semibold text-slate-900 mb-4">
+            <h3 className="font-semibold text-zinc-900 mb-4">
               Detail Cashflow
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                  <tr className="border-b border-zinc-200">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-700">
                       Bulan
                     </th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-zinc-700">
                       Pemasukan
                     </th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-zinc-700">
                       Pengeluaran
                     </th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-zinc-700">
                       Saldo
                     </th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-zinc-700">
                       Margin
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-zinc-200">
                   {dummyCashflow.map((item) => {
                     const margin = ((item.saldo / item.pemasukan) * 100).toFixed(1);
                     return (
                       <tr
                         key={item.bulan}
-                        className="hover:bg-slate-50/50 transition-colors"
+                        className="hover:bg-zinc-50/50 transition-colors"
                       >
-                        <td className="py-3 px-4 text-sm font-medium text-slate-900">
+                        <td className="py-3 px-4 text-sm font-medium text-zinc-900">
                           {getBulanName(item.bulan)}
                         </td>
                         <td className="py-3 px-4 text-sm text-right text-green-700 font-semibold">
@@ -372,9 +372,9 @@ export default function CashflowPage() {
                     );
                   })}
                 </tbody>
-                <tfoot className="border-t-2 border-slate-300 bg-slate-50/50">
+                <tfoot className="border-t-2 border-zinc-300 bg-zinc-50/50">
                   <tr>
-                    <td className="py-3 px-4 text-sm font-bold text-slate-900">
+                    <td className="py-3 px-4 text-sm font-bold text-zinc-900">
                       Total
                     </td>
                     <td className="py-3 px-4 text-sm text-right font-bold text-green-700">
@@ -386,7 +386,7 @@ export default function CashflowPage() {
                     <td className="py-3 px-4 text-sm text-right font-bold text-blue-700">
                       {formatRupiah(totalPemasukan - totalPengeluaran)}
                     </td>
-                    <td className="py-3 px-4 text-sm text-right font-bold text-slate-700">
+                    <td className="py-3 px-4 text-sm text-right font-bold text-zinc-700">
                       {(
                         ((totalPemasukan - totalPengeluaran) / totalPemasukan) *
                         100

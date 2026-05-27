@@ -131,16 +131,16 @@ export default function KeuanganPage() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
-        <div className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.06),transparent_40%)]" />
-        <div className="relative space-y-3">
+      <section className="module-hero md:p-8" style={{ "--hero-accent": "rgba(245,158,11,0.06)" } as React.CSSProperties}>
+        <div className="hero-pattern absolute inset-0 pointer-events-none rounded-2xl opacity-50" />
+        <div className="relative space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-amber-700">
             <Wallet size={11} className="text-amber-500" /> Manajemen Keuangan
           </div>
-          <h1 className="font-serif text-3xl font-semibold tracking-tight text-zinc-900 md:text-4xl">
-            Keuangan & Laporan Keuangan
+          <h1 className="font-[family-name:var(--font-heading)] text-2xl font-normal tracking-tight text-zinc-900 md:text-3xl">
+            Keuangan &amp; Laporan Keuangan
           </h1>
           <p className="max-w-2xl text-sm text-zinc-500 leading-relaxed">
             Kelola cashflow, tagihan, pengeluaran, dan pantau laporan keuangan
@@ -154,7 +154,7 @@ export default function KeuanganPage() {
         {summaryStats.map((stat) => (
           <div
             key={stat.label}
-            className="group rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+            className="stat-card group"
           >
             <div className="mb-4 flex items-start justify-between">
               <div

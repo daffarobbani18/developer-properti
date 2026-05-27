@@ -10,6 +10,23 @@ const port = Number(process.env.PORT || 4000);
 app.use(cors());
 app.use(express.json());
 
+import authRoutes from "./routes/auth.route";
+import projectRoutes from "./routes/projects.route";
+import propertyTypeRoutes from "./routes/property-types.route";
+import unitRoutes from "./routes/units.route";
+import sitePlanRoutes from "./routes/site-plans.route";
+import uploadRoutes from "./routes/upload.route";
+import path from "path";
+
+app.use("/uploads", express.static(path.join(process.cwd(), "public", "uploads")));
+
+app.use("/api/auth", authRoutes);
+app.use("/api/projects", projectRoutes);
+app.use("/api/property-types", propertyTypeRoutes);
+app.use("/api/units", unitRoutes);
+app.use("/api/site-plans", sitePlanRoutes);
+app.use("/api/upload", uploadRoutes);
+
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", service: "simdp-backend" });
 });

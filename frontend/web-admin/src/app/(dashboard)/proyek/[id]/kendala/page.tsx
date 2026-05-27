@@ -53,10 +53,10 @@ export default function KendalaPage({ params }: PageProps) {
 
   if (!proyek) {
     return (
-      <div className="min-h-screen p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="space-y-6">
+        <div className="">
           <Card className="clean-glass p-8 text-center">
-            <h2 className="text-xl font-semibold text-slate-900">
+            <h2 className="text-xl font-semibold text-zinc-900">
               Proyek Tidak Ditemukan
             </h2>
             <Link href="/proyek">
@@ -85,10 +85,10 @@ export default function KendalaPage({ params }: PageProps) {
   const totalTinggi = allKendala.filter((k) => k.prioritas === "tinggi").length;
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
+      <div className="space-y-6">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-slate-600">
+        <div className="flex items-center gap-2 text-sm text-zinc-600">
           <Link href="/proyek" className="hover:text-blue-600 transition-colors">
             Proyek
           </Link>
@@ -100,7 +100,7 @@ export default function KendalaPage({ params }: PageProps) {
             {proyek.nama}
           </Link>
           <ChevronRight className="w-4 h-4" />
-          <span className="text-slate-900 font-medium">Laporan Kendala</span>
+          <span className="text-zinc-900 font-medium">Laporan Kendala</span>
         </div>
 
         {/* Header */}
@@ -115,10 +115,10 @@ export default function KendalaPage({ params }: PageProps) {
               <AlertTriangle className="w-6 h-6 text-red-600" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+              <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
                 Laporan Kendala
               </h1>
-              <p className="text-sm text-slate-600">{proyek.nama}</p>
+              <p className="text-sm text-zinc-600">{proyek.nama}</p>
             </div>
           </div>
 
@@ -133,44 +133,44 @@ export default function KendalaPage({ params }: PageProps) {
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">Baru</span>
+                <span className="text-sm font-medium text-zinc-600">Baru</span>
                 <AlertTriangle className="w-5 h-5 text-red-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">{totalBaru}</p>
+              <p className="text-2xl font-bold text-zinc-900">{totalBaru}</p>
             </div>
           </Card>
 
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Ditindaklanjuti
                 </span>
                 <Clock className="w-5 h-5 text-amber-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">{totalDitindak}</p>
+              <p className="text-2xl font-bold text-zinc-900">{totalDitindak}</p>
             </div>
           </Card>
 
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">Selesai</span>
+                <span className="text-sm font-medium text-zinc-600">Selesai</span>
                 <CheckCircle2 className="w-5 h-5 text-green-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">{totalSelesai}</p>
+              <p className="text-2xl font-bold text-zinc-900">{totalSelesai}</p>
             </div>
           </Card>
 
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Prioritas Tinggi
                 </span>
                 <AlertTriangle className="w-5 h-5 text-red-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">{totalTinggi}</p>
+              <p className="text-2xl font-bold text-zinc-900">{totalTinggi}</p>
             </div>
           </Card>
         </div>
@@ -179,7 +179,7 @@ export default function KendalaPage({ params }: PageProps) {
         <Card className="clean-glass">
           <div className="p-4 flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
               <Input
                 placeholder="Cari kendala..."
                 value={searchQuery}
@@ -237,11 +237,11 @@ export default function KendalaPage({ params }: PageProps) {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-lg text-slate-900">
+                        <h3 className="font-semibold text-lg text-zinc-900">
                           {kendala.judul}
                         </h3>
                       </div>
-                      <p className="text-sm text-slate-600 line-clamp-2">
+                      <p className="text-sm text-zinc-600 line-clamp-2">
                         {kendala.deskripsi}
                       </p>
                     </div>
@@ -266,31 +266,31 @@ export default function KendalaPage({ params }: PageProps) {
 
                   {/* Info Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                    <div className="flex items-center gap-2 text-slate-600">
+                    <div className="flex items-center gap-2 text-zinc-600">
                       <Calendar className="w-4 h-4" />
                       <div>
-                        <p className="text-xs text-slate-500">Tanggal Lapor</p>
-                        <p className="font-medium text-slate-900">
+                        <p className="text-xs text-zinc-500">Tanggal Lapor</p>
+                        <p className="font-medium text-zinc-900">
                           {formatTanggalShort(kendala.tanggalLapor)}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-slate-600">
+                    <div className="flex items-center gap-2 text-zinc-600">
                       <User className="w-4 h-4" />
                       <div>
-                        <p className="text-xs text-slate-500">Dilaporkan Oleh</p>
-                        <p className="font-medium text-slate-900">
+                        <p className="text-xs text-zinc-500">Dilaporkan Oleh</p>
+                        <p className="font-medium text-zinc-900">
                           {kendala.dilaporkanOleh}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-slate-600">
+                    <div className="flex items-center gap-2 text-zinc-600">
                       <Filter className="w-4 h-4" />
                       <div>
-                        <p className="text-xs text-slate-500">Kategori</p>
-                        <p className="font-medium text-slate-900">
+                        <p className="text-xs text-zinc-500">Kategori</p>
+                        <p className="font-medium text-zinc-900">
                           {kategoriKendalaLabel[kendala.kategori]}
                         </p>
                       </div>
@@ -299,12 +299,12 @@ export default function KendalaPage({ params }: PageProps) {
 
                   {/* Tindak Lanjut Info */}
                   {kendala.ditindaklanjutiOleh && (
-                    <div className="pt-3 border-t border-slate-200/60">
+                    <div className="pt-3 border-t border-zinc-200/60">
                       <div className="flex items-center gap-2 text-sm">
                         <User className="w-4 h-4 text-amber-600" />
-                        <span className="text-slate-600">
+                        <span className="text-zinc-600">
                           Ditindaklanjuti oleh:{" "}
-                          <span className="font-medium text-slate-900">
+                          <span className="font-medium text-zinc-900">
                             {kendala.ditindaklanjutiOleh}
                           </span>
                         </span>
@@ -314,11 +314,11 @@ export default function KendalaPage({ params }: PageProps) {
 
                   {/* Solusi */}
                   {kendala.solusi && (
-                    <div className="pt-3 border-t border-slate-200/60">
-                      <p className="text-xs text-slate-500 mb-1">Solusi:</p>
-                      <p className="text-sm text-slate-700">{kendala.solusi}</p>
+                    <div className="pt-3 border-t border-zinc-200/60">
+                      <p className="text-xs text-zinc-500 mb-1">Solusi:</p>
+                      <p className="text-sm text-zinc-700">{kendala.solusi}</p>
                       {kendala.tanggalSelesai && (
-                        <p className="text-xs text-slate-500 mt-2">
+                        <p className="text-xs text-zinc-500 mt-2">
                           Selesai: {formatTanggalShort(kendala.tanggalSelesai)}
                         </p>
                       )}
@@ -330,7 +330,7 @@ export default function KendalaPage({ params }: PageProps) {
           ) : (
             <Card className="clean-glass p-8 text-center">
               <AlertTriangle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-600">Tidak ada kendala ditemukan.</p>
+              <p className="text-zinc-600">Tidak ada kendala ditemukan.</p>
             </Card>
           )}
         </div>

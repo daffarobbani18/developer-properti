@@ -76,8 +76,8 @@ export default function PengeluaranPage() {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -85,10 +85,10 @@ export default function PengeluaranPage() {
               <Receipt className="w-6 h-6 text-red-600" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+              <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
                 Pengeluaran
               </h1>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-zinc-600">
                 Catat & kelola semua pengeluaran operasional
               </p>
             </div>
@@ -114,15 +114,15 @@ export default function PengeluaranPage() {
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Total Pengeluaran
                 </span>
                 <TrendingDown className="w-5 h-5 text-red-600" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalPengeluaran)}
               </p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-zinc-500 mt-1">
                 {dummyPengeluaran.length} transaksi bulan ini
               </p>
             </div>
@@ -131,17 +131,17 @@ export default function PengeluaranPage() {
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Material
                 </span>
                 <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
                   <FileText className="w-4 h-4 text-amber-600" />
                 </div>
               </div>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalMaterial)}
               </p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-zinc-500 mt-1">
                 {((totalMaterial / totalPengeluaran) * 100).toFixed(1)}% dari total
               </p>
             </div>
@@ -150,17 +150,17 @@ export default function PengeluaranPage() {
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Kontraktor
                 </span>
                 <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                   <FileText className="w-4 h-4 text-blue-600" />
                 </div>
               </div>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalKontraktor)}
               </p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-zinc-500 mt-1">
                 {((totalKontraktor / totalPengeluaran) * 100).toFixed(1)}% dari total
               </p>
             </div>
@@ -169,17 +169,17 @@ export default function PengeluaranPage() {
           <Card className="clean-glass">
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">
+                <span className="text-sm font-medium text-zinc-600">
                   Operasional
                 </span>
-                <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                  <FileText className="w-4 h-4 text-slate-600" />
+                <div className="w-8 h-8 bg-zinc-100 rounded-lg flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-zinc-600" />
                 </div>
               </div>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalOperasional)}
               </p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-zinc-500 mt-1">
                 {((totalOperasional / totalPengeluaran) * 100).toFixed(1)}% dari total
               </p>
             </div>
@@ -191,7 +191,7 @@ export default function PengeluaranPage() {
           <div className="p-4 space-y-4">
             <div className="flex flex-col md:flex-row gap-3">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                 <Input
                   placeholder="Cari keterangan, vendor, atau nomor bukti..."
                   value={searchQuery}
@@ -220,7 +220,7 @@ export default function PengeluaranPage() {
               </Select>
             </div>
 
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-zinc-600">
               Menampilkan {filteredPengeluaran.length} dari{" "}
               {dummyPengeluaran.length} pengeluaran
             </p>
@@ -231,42 +231,42 @@ export default function PengeluaranPage() {
         <Card className="clean-glass overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50/50 border-b border-slate-200">
+              <thead className="bg-zinc-50/50 border-b border-zinc-200">
                 <tr>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-700">
                     Tanggal
                   </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-700">
                     Nomor Bukti
                   </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-700">
                     Kategori
                   </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-700">
                     Keterangan
                   </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-700">
                     Vendor
                   </th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-right py-3 px-4 text-sm font-semibold text-zinc-700">
                     Nominal
                   </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-zinc-700">
                     Disetujui
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-zinc-200">
                 {filteredPengeluaran.map((pengeluaran) => (
                   <tr
                     key={pengeluaran.id}
-                    className="hover:bg-slate-50/50 transition-colors"
+                    className="hover:bg-zinc-50/50 transition-colors"
                   >
-                    <td className="py-3 px-4 text-sm text-slate-900">
+                    <td className="py-3 px-4 text-sm text-zinc-900">
                       {formatTanggalShort(pengeluaran.tanggal)}
                     </td>
                     <td className="py-3 px-4">
-                      <div className="text-sm font-medium text-slate-900">
+                      <div className="text-sm font-medium text-zinc-900">
                         {pengeluaran.nomorBukti}
                       </div>
                       {pengeluaran.bukti && (
@@ -286,26 +286,26 @@ export default function PengeluaranPage() {
                         {kategoriPengeluaranLabels[pengeluaran.kategori]}
                       </Badge>
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-900 max-w-xs truncate">
+                    <td className="py-3 px-4 text-sm text-zinc-900 max-w-xs truncate">
                       {pengeluaran.keterangan}
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-600">
+                    <td className="py-3 px-4 text-sm text-zinc-600">
                       {pengeluaran.vendor || "-"}
                     </td>
                     <td className="py-3 px-4 text-sm text-right font-semibold text-red-700">
                       {formatRupiah(pengeluaran.nominal)}
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-600">
+                    <td className="py-3 px-4 text-sm text-zinc-600">
                       {pengeluaran.disetujuiOleh || "-"}
                     </td>
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="border-t-2 border-slate-300 bg-slate-50/50">
+              <tfoot className="border-t-2 border-zinc-300 bg-zinc-50/50">
                 <tr>
                   <td
                     colSpan={5}
-                    className="py-3 px-4 text-sm font-bold text-slate-900"
+                    className="py-3 px-4 text-sm font-bold text-zinc-900"
                   >
                     Total
                   </td>
@@ -323,7 +323,7 @@ export default function PengeluaranPage() {
           {filteredPengeluaran.length === 0 && (
             <div className="p-12 text-center">
               <Receipt className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-600">Tidak ada pengeluaran ditemukan</p>
+              <p className="text-zinc-600">Tidak ada pengeluaran ditemukan</p>
             </div>
           )}
         </Card>
@@ -421,7 +421,7 @@ export default function PengeluaranPage() {
                       <Upload className="w-4 h-4" />
                     </Button>
                   </div>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-zinc-500">
                     Format: JPG, PNG, PDF (Max 5MB)
                   </p>
                 </div>
