@@ -236,8 +236,8 @@ export default function InventoryAdminPage() {
         ].map((stat, idx) => (
           <div key={idx} className="stat-card group">
             <div className="mb-4 flex items-start justify-between">
-              <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.bg}`}>
-                <stat.icon weight="duotone" className={stat.color} size={24} />
+              <div className={`icon-wrapper h-12 w-12 ${stat.bg === 'bg-blue-50' ? 'icon-blue' : stat.bg === 'bg-emerald-50' ? 'icon-emerald' : stat.bg === 'bg-amber-50' ? 'icon-amber' : stat.bg === 'bg-rose-50' ? 'icon-rose' : 'icon-violet'}`}>
+                <stat.icon weight="duotone" size={24} />
               </div>
             </div>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">{stat.label}</p>

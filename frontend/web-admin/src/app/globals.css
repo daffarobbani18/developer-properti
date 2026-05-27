@@ -213,11 +213,7 @@
 
   /* ========== Premium Icon Wrapper System ========== */
   .icon-wrapper {
-    @apply relative flex items-center justify-center rounded-2xl;
-    /* Inner ring highlight — top-left white glow for emboss effect */
-    box-shadow:
-      inset 0 1px 1px 0 rgba(255, 255, 255, 0.6),
-      inset 0 -1px 1px 0 rgba(0, 0, 0, 0.04);
+    @apply relative flex items-center justify-center rounded-[18px];
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .icon-wrapper::after {
@@ -227,7 +223,7 @@
     border-radius: inherit;
     opacity: 0;
     transition: opacity 0.3s ease;
-    background: radial-gradient(circle at 50% 40%, rgba(255,255,255,0.5), transparent 70%);
+    background: rgba(255, 255, 255, 0.15);
     pointer-events: none;
   }
   .group:hover .icon-wrapper::after,
@@ -235,59 +231,41 @@
     opacity: 1;
   }
 
-  /* Duotone icon inner styling */
+  /* Duotone icon inner styling - keeping it bright for dark solid backgrounds */
   .icon-wrapper .ph-duotone {
-    --ph-duotone-opacity: 0.25;
+    --ph-duotone-opacity: 0.6;
   }
 
-  /* === Color variants === */
+  /* === Color variants (Solid, Clean Style) === */
   .icon-blue {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    box-shadow:
-      inset 0 1px 1px 0 rgba(255, 255, 255, 0.7),
-      inset 0 -1px 1px 0 rgba(59, 130, 246, 0.08),
-      0 2px 8px -2px rgba(59, 130, 246, 0.18);
-    color: #2563eb;
+    background-color: #3b82f6; /* Blue 500 */
+    box-shadow: 0 8px 16px -4px rgba(59, 130, 246, 0.3);
+    color: #ffffff;
   }
   .icon-emerald {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    box-shadow:
-      inset 0 1px 1px 0 rgba(255, 255, 255, 0.7),
-      inset 0 -1px 1px 0 rgba(16, 185, 129, 0.08),
-      0 2px 8px -2px rgba(16, 185, 129, 0.18);
-    color: #059669;
+    background-color: #10b981; /* Emerald 500 */
+    box-shadow: 0 8px 16px -4px rgba(16, 185, 129, 0.3);
+    color: #ffffff;
   }
   .icon-amber {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    box-shadow:
-      inset 0 1px 1px 0 rgba(255, 255, 255, 0.7),
-      inset 0 -1px 1px 0 rgba(245, 158, 11, 0.08),
-      0 2px 8px -2px rgba(245, 158, 11, 0.18);
-    color: #d97706;
+    background-color: #f59e0b; /* Amber 500 */
+    box-shadow: 0 8px 16px -4px rgba(245, 158, 11, 0.3);
+    color: #ffffff;
   }
   .icon-rose {
-    background: linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%);
-    box-shadow:
-      inset 0 1px 1px 0 rgba(255, 255, 255, 0.7),
-      inset 0 -1px 1px 0 rgba(244, 63, 94, 0.08),
-      0 2px 8px -2px rgba(244, 63, 94, 0.18);
-    color: #e11d48;
+    background-color: #f43f5e; /* Rose 500 */
+    box-shadow: 0 8px 16px -4px rgba(244, 63, 94, 0.3);
+    color: #ffffff;
   }
   .icon-violet {
-    background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
-    box-shadow:
-      inset 0 1px 1px 0 rgba(255, 255, 255, 0.7),
-      inset 0 -1px 1px 0 rgba(139, 92, 246, 0.08),
-      0 2px 8px -2px rgba(139, 92, 246, 0.18);
-    color: #7c3aed;
+    background-color: #8b5cf6; /* Violet 500 */
+    box-shadow: 0 8px 16px -4px rgba(139, 92, 246, 0.3);
+    color: #ffffff;
   }
   .icon-cyan {
-    background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%);
-    box-shadow:
-      inset 0 1px 1px 0 rgba(255, 255, 255, 0.7),
-      inset 0 -1px 1px 0 rgba(6, 182, 212, 0.08),
-      0 2px 8px -2px rgba(6, 182, 212, 0.18);
-    color: #0891b2;
+    background-color: #06b6d4; /* Cyan 500 */
+    box-shadow: 0 8px 16px -4px rgba(6, 182, 212, 0.3);
+    color: #ffffff;
   }
 
   /* ========== Premium Badge System ========== */

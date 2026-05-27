@@ -178,9 +178,9 @@ export default function KeuanganPage() {
             <Link key={item.href} href={item.href} className="block">
               <div className="group flex h-full flex-col rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-200 hover:shadow-[0_8px_25px_rgba(245,158,11,0.12)]">
                 <div
-                  className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${item.bg} transition-transform duration-300 group-hover:scale-105`}
+                  className={`mb-4 icon-wrapper h-12 w-12 transition-transform duration-300 group-hover:scale-105 ${item.bg === 'bg-blue-50' ? 'icon-blue' : item.bg === 'bg-emerald-50' ? 'icon-emerald' : item.bg === 'bg-amber-50' ? 'icon-amber' : item.bg === 'bg-rose-50' ? 'icon-rose' : 'icon-violet'}`}
                 >
-                  <item.icon weight="duotone" className={`h-6 w-6 ${item.color}`} />
+                  <item.icon weight="duotone" size={22} />
                 </div>
                 <h3 className="text-sm font-bold text-zinc-900 transition-colors group-hover:text-amber-600">
                   {item.title}

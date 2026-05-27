@@ -40,7 +40,7 @@ export default function CRMIndexPage() {
           <Link key={menu.href} href={menu.href} className="block">
             <div className="group flex h-full flex-col rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-200/60 hover:shadow-[0_8px_25px_rgba(245,158,11,0.08)]">
               <div className="mb-4 flex items-start justify-between">
-                <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${menu.bg} transition-transform duration-300 group-hover:scale-105`}><menu.icon weight="duotone" className={`h-5 w-5 ${menu.color}`} /></div>
+                <div className={`icon-wrapper h-11 w-11 transition-transform duration-300 group-hover:scale-105 ${menu.bg === 'bg-blue-50' ? 'icon-blue' : menu.bg === 'bg-emerald-50' ? 'icon-emerald' : menu.bg === 'bg-amber-50' ? 'icon-amber' : menu.bg === 'bg-rose-50' ? 'icon-rose' : 'icon-violet'}`}><menu.icon weight="duotone" size={20} /></div>
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-100 bg-zinc-50 transition-all duration-200 group-hover:border-amber-200 group-hover:bg-amber-50">
                   <ArrowUpRight weight="duotone" className="h-4 w-4 text-zinc-400 transition-colors group-hover:text-amber-500" />
                 </div>
