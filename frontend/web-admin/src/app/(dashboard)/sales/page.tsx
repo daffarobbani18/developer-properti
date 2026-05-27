@@ -133,36 +133,25 @@ export default function SalesAdminPage() {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {salesStats.map((stat) => (
-          <div
-            key={stat.label}
-            className="stat-card group"
-          >
-            <div className="mb-4 flex items-start justify-between">
-              <div
-                className={`icon-wrapper h-12 w-12 ${
-                  stat.bg === "bg-blue-50" ? "icon-blue" : stat.bg === "bg-emerald-50" ? "icon-emerald" : stat.bg === "bg-amber-50" ? "icon-amber" : "icon-rose"
-                }`}
-              >
-                <stat.icon weight="duotone" size={22} />
-              </div>
-              {stat.trend && (
-                <div
-                  className={stat.trendUp ? 'badge-trend-up' : 'badge-trend-down'}
-                >
-                  {stat.trendUp ? (
-                    <TrendUp weight="bold" size={12} />
-                  ) : (
-                    <TrendDown size={12} />
+          <div key={stat.label} className="stat-card group">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-zinc-600 truncate">{stat.label}</p>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <h3 className="text-3xl font-bold text-zinc-900 tracking-tight">{stat.value}</h3>
+                  {stat.trend && (
+                    <div className={`flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${stat.trendUp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                      {stat.trendUp ? <TrendUp weight="bold" /> : <TrendDown weight="bold" />}
+                      {stat.trend}
+                    </div>
                   )}
-                  {stat.trend}
                 </div>
-              )}
+                <p className="mt-1 text-xs text-zinc-500 truncate">{stat.note}</p>
+              </div>
+              <div className={`icon-wrapper h-14 w-14 shrink-0 ${stat.bg === 'bg-blue-50' ? 'icon-blue' : stat.bg === 'bg-emerald-50' ? 'icon-emerald' : stat.bg === 'bg-rose-50' ? 'icon-rose' : 'icon-amber'}`}>
+                <stat.icon weight="duotone" size={28} />
+              </div>
             </div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-              {stat.label}
-            </p>
-            <p className="mt-1.5 text-2xl font-bold text-zinc-900">{stat.value}</p>
-            <p className="mt-1 text-xs text-zinc-500">{stat.note}</p>
             {stat.progress !== undefined && (
               <div className="mt-3 space-y-1">
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">

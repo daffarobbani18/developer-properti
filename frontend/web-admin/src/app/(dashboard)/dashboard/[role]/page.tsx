@@ -304,21 +304,23 @@ export default function RoleDashboardPage({
         {dashboard.stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <div key={stat.label} className="stat-card group">
-              <div className="mb-4 flex items-start justify-between">
-                <div className={`icon-wrapper h-12 w-12 ${stat.iconBg === 'bg-blue-50' ? 'icon-blue' : stat.iconBg === 'bg-emerald-50' ? 'icon-emerald' : stat.iconBg === 'bg-amber-50' ? 'icon-amber' : stat.iconBg === 'bg-rose-50' ? 'icon-rose' : stat.iconBg === 'bg-violet-50' ? 'icon-violet' : 'icon-amber'}`}>
-                  <Icon weight="duotone" size={22} />
+            <div key={stat.label} className="stat-card group flex items-center justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-zinc-600 truncate">{stat.label}</p>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <h3 className="text-3xl font-bold text-zinc-900 tracking-tight">{stat.value}</h3>
+                  {stat.trend && (
+                    <div className={`flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${stat.trendUp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                      {stat.trendUp ? <TrendUp weight="bold" /> : <TrendDown weight="bold" />}
+                      {stat.trend}
+                    </div>
+                  )}
                 </div>
-                {stat.trend && (
-                  <div className={stat.trendUp ? 'badge-trend-up' : 'badge-trend-down'}>
-                    {stat.trendUp ? <TrendUp weight="bold" size={12} /> : <TrendDown weight="bold" size={12} />}
-                    {stat.trend}
-                  </div>
-                )}
+                <p className="mt-1 text-xs text-zinc-500 truncate">{stat.note}</p>
               </div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">{stat.label}</p>
-              <p className="mt-1.5 text-2xl font-bold text-zinc-900">{stat.value}</p>
-              <p className="mt-1 text-xs text-zinc-500">{stat.note}</p>
+              <div className={`icon-wrapper h-14 w-14 shrink-0 ${stat.iconBg === 'bg-blue-50' ? 'icon-blue' : stat.iconBg === 'bg-emerald-50' ? 'icon-emerald' : stat.iconBg === 'bg-amber-50' ? 'icon-amber' : stat.iconBg === 'bg-rose-50' ? 'icon-rose' : stat.iconBg === 'bg-violet-50' ? 'icon-violet' : 'icon-amber'}`}>
+                <Icon weight="duotone" size={28} />
+              </div>
             </div>
           );
         })}

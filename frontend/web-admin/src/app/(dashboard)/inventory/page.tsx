@@ -234,14 +234,14 @@ export default function InventoryAdminPage() {
           { label: "Sedang Booked", value: "12", icon: MapPin, color: "text-amber-600", bg: "bg-amber-50" },
           { label: "Sudah Terjual", value: "93", icon: ShieldCheck, color: "text-purple-600", bg: "bg-purple-50" },
         ].map((stat, idx) => (
-          <div key={idx} className="stat-card group">
-            <div className="mb-4 flex items-start justify-between">
-              <div className={`icon-wrapper h-12 w-12 ${stat.bg === 'bg-blue-50' ? 'icon-blue' : stat.bg === 'bg-emerald-50' ? 'icon-emerald' : stat.bg === 'bg-amber-50' ? 'icon-amber' : stat.bg === 'bg-rose-50' ? 'icon-rose' : 'icon-violet'}`}>
-                <stat.icon weight="duotone" size={24} />
-              </div>
+          <div key={idx} className="stat-card group flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-zinc-600 truncate">{stat.label}</p>
+              <h3 className="mt-1 text-3xl font-bold text-zinc-900 tracking-tight">{stat.value}</h3>
             </div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">{stat.label}</p>
-            <h3 className="mt-1.5 text-2xl font-bold text-zinc-900">{stat.value}</h3>
+            <div className={`icon-wrapper h-14 w-14 shrink-0 ${stat.bg === 'bg-blue-50' ? 'icon-blue' : stat.bg === 'bg-emerald-50' ? 'icon-emerald' : stat.bg === 'bg-amber-50' ? 'icon-amber' : stat.bg === 'bg-rose-50' ? 'icon-rose' : 'icon-violet'}`}>
+              <stat.icon weight="duotone" size={28} />
+            </div>
           </div>
         ))}
       </div>

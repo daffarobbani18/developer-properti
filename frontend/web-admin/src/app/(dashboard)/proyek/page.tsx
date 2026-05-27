@@ -145,23 +145,24 @@ export default function ProyekPage() {
       {/* Summary Stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {summaryStats.map((stat) => (
-          <div key={stat.label} className="stat-card group">
-            <div className="mb-4 flex items-start justify-between">
-              <div className={`icon-wrapper h-12 w-12 ${stat.bg === 'bg-blue-50' ? 'icon-blue' : stat.bg === 'bg-emerald-50' ? 'icon-emerald' : stat.bg === 'bg-amber-50' ? 'icon-amber' : stat.bg === 'bg-rose-50' ? 'icon-rose' : 'icon-violet'}`}>
-                <stat.icon weight="duotone" size={22} />
-              </div>
+          <div key={stat.label} className="stat-card group flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-zinc-600 truncate">{stat.label}</p>
+              <h3 className="mt-1 text-3xl font-bold text-zinc-900 tracking-tight">{stat.value}</h3>
+              {"progress" in stat && stat.progress !== undefined ? (
+                <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-500"
+                    style={{ width: `${stat.progress}%` }}
+                  />
+                </div>
+              ) : (
+                <p className="mt-1 text-xs text-zinc-500 truncate">{stat.note}</p>
+              )}
             </div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{stat.label}</p>
-            <p className="mt-2 text-3xl font-bold text-zinc-900">{stat.value}</p>
-            {"progress" in stat && stat.progress !== undefined && (
-              <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-500"
-                  style={{ width: `${stat.progress}%` }}
-                />
-              </div>
-            )}
-            <p className="mt-1 text-xs text-zinc-500">{stat.note}</p>
+            <div className={`icon-wrapper h-14 w-14 shrink-0 ${stat.bg === 'bg-blue-50' ? 'icon-blue' : stat.bg === 'bg-emerald-50' ? 'icon-emerald' : stat.bg === 'bg-amber-50' ? 'icon-amber' : stat.bg === 'bg-rose-50' ? 'icon-rose' : 'icon-violet'}`}>
+              <stat.icon weight="duotone" size={28} />
+            </div>
           </div>
         ))}
       </div>
