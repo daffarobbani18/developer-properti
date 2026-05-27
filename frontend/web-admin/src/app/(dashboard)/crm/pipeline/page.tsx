@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Phone, User, Home } from "lucide-react";
+import { Phone, User, House } from "@phosphor-icons/react";
 import {
   dummyLeads,
   leadStatusLabel,
@@ -133,15 +133,15 @@ export default function PipelinePage() {
 
                       <div className="space-y-1.5">
                         <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-                          <Home className="h-3 w-3 shrink-0" />
+                          <House weight="duotone" className="h-3 w-3 shrink-0" />
                           <span>{lead.minatUnit}</span>
                         </div>
                         <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-                          <Phone className="h-3 w-3 shrink-0" />
+                          <Phone weight="duotone" className="h-3 w-3 shrink-0" />
                           <span>{lead.telepon}</span>
                         </div>
                         <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-                          <User className="h-3 w-3 shrink-0" />
+                          <User weight="duotone" className="h-3 w-3 shrink-0" />
                           <span>{lead.salesPIC}</span>
                         </div>
                       </div>

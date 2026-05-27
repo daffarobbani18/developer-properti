@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CheckCircle2, Eye, EyeOff, Lock, Mail, ShieldAlert, Code2 } from "lucide-react";
+import { ArrowRight, CheckCircle, Eye, EyeSlash, Lock, Envelope, ShieldWarning, Code } from "@phosphor-icons/react";
 
 type UserRole = "admin" | "inventory" | "sales" | "finance" | "legal" | "supervisor";
 
@@ -87,7 +87,7 @@ export default function App() {
         <div className="absolute inset-0 scale-105 animate-[pulse_20s_ease-in-out_infinite] opacity-40">
           <img
             src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
-            alt="Corporate Building"
+            alt="Corporate Buildings"
             className="w-full h-full object-cover"
           />
         </div>
@@ -119,7 +119,7 @@ export default function App() {
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Mail size={18} className="text-zinc-500 group-focus-within:text-amber-500 transition-colors" />
+                <Envelope weight="duotone" size={18} className="text-zinc-500 group-focus-within:text-amber-500 transition-colors" />
               </div>
               <input
                 type="email"
@@ -134,7 +134,7 @@ export default function App() {
 
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Lock size={18} className="text-zinc-500 group-focus-within:text-amber-500 transition-colors" />
+                <Lock weight="duotone" size={18} className="text-zinc-500 group-focus-within:text-amber-500 transition-colors" />
               </div>
               <input
                 type={showPassword ? "text" : "password"}
@@ -151,7 +151,7 @@ export default function App() {
                 disabled={loginState !== "idle"}
                 className="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-500 hover:text-white transition-colors disabled:opacity-50"
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showPassword ? <EyeSlash weight="duotone" size={18} /> : <Eye weight="duotone" size={18} />}
               </button>
             </div>
 
@@ -173,7 +173,7 @@ export default function App() {
                 onClick={() => setShowDevMode(!showDevMode)}
                 className="text-[10px] inline-flex items-center gap-1 px-2 py-1 rounded border border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-amber-400 hover:border-amber-500/40 hover:bg-zinc-800 transition-colors"
               >
-                <Code2 size={12} /> Dev
+                <Code size={12} /> Dev
               </button>
             </div>
 
@@ -196,13 +196,13 @@ export default function App() {
                 </div>
               ) : loginState === "success" ? (
                 <div className="flex items-center gap-2 animate-[pulse_1s_ease-in-out_infinite]">
-                  <CheckCircle2 size={20} />
+                  <CheckCircle weight="duotone" size={20} />
                   <span>AKSES DIBERIKAN</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 group">
                   <span>MASUK PORTAL</span>
-                  <ArrowRight size={18} className="transform group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight weight="duotone" size={18} className="transform group-hover:translate-x-1 transition-transform" />
                 </div>
               )}
             </button>
@@ -232,7 +232,7 @@ export default function App() {
         </div>
 
         <div className="mt-8 flex items-center justify-center gap-2 text-zinc-500 text-xs font-light px-2 text-center">
-          <ShieldAlert size={14} className="text-amber-600/70 shrink-0" />
+          <ShieldWarning weight="duotone" size={14} className="text-amber-600/70 shrink-0" />
           <span>Akses Terbatas Internal. Dilindungi Enkripsi 256-bit.</span>
         </div>
       </div>

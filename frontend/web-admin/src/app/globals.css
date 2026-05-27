@@ -210,6 +210,142 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
   }
+
+  /* ========== Premium Icon Wrapper System ========== */
+  .icon-wrapper {
+    @apply relative flex items-center justify-center rounded-2xl;
+    /* Inner ring highlight — top-left white glow for emboss effect */
+    box-shadow:
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.6),
+      inset 0 -1px 1px 0 rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .icon-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: radial-gradient(circle at 50% 40%, rgba(255,255,255,0.5), transparent 70%);
+    pointer-events: none;
+  }
+  .group:hover .icon-wrapper::after,
+  .icon-wrapper:hover::after {
+    opacity: 1;
+  }
+
+  /* Duotone icon inner styling */
+  .icon-wrapper .ph-duotone {
+    --ph-duotone-opacity: 0.25;
+  }
+
+  /* === Color variants === */
+  .icon-blue {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    box-shadow:
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.7),
+      inset 0 -1px 1px 0 rgba(59, 130, 246, 0.08),
+      0 2px 8px -2px rgba(59, 130, 246, 0.18);
+    color: #2563eb;
+  }
+  .icon-emerald {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    box-shadow:
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.7),
+      inset 0 -1px 1px 0 rgba(16, 185, 129, 0.08),
+      0 2px 8px -2px rgba(16, 185, 129, 0.18);
+    color: #059669;
+  }
+  .icon-amber {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    box-shadow:
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.7),
+      inset 0 -1px 1px 0 rgba(245, 158, 11, 0.08),
+      0 2px 8px -2px rgba(245, 158, 11, 0.18);
+    color: #d97706;
+  }
+  .icon-rose {
+    background: linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%);
+    box-shadow:
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.7),
+      inset 0 -1px 1px 0 rgba(244, 63, 94, 0.08),
+      0 2px 8px -2px rgba(244, 63, 94, 0.18);
+    color: #e11d48;
+  }
+  .icon-violet {
+    background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+    box-shadow:
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.7),
+      inset 0 -1px 1px 0 rgba(139, 92, 246, 0.08),
+      0 2px 8px -2px rgba(139, 92, 246, 0.18);
+    color: #7c3aed;
+  }
+  .icon-cyan {
+    background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%);
+    box-shadow:
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.7),
+      inset 0 -1px 1px 0 rgba(6, 182, 212, 0.08),
+      0 2px 8px -2px rgba(6, 182, 212, 0.18);
+    color: #0891b2;
+  }
+
+  /* ========== Premium Badge System ========== */
+  .badge-trend-up {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold;
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.15);
+    box-shadow: 0 1px 3px -1px rgba(16, 185, 129, 0.12);
+  }
+  .badge-trend-down {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold;
+    background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+    color: #e11d48;
+    border: 1px solid rgba(244, 63, 94, 0.15);
+    box-shadow: 0 1px 3px -1px rgba(244, 63, 94, 0.12);
+  }
+
+  /* Module label badge (top of hero) */
+  .badge-module {
+    @apply inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] uppercase tracking-[0.15em] font-bold;
+    border: 1px solid;
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
+      0 1px 3px -1px rgba(0, 0, 0, 0.06);
+  }
+  .badge-module-amber {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-color: rgba(245, 158, 11, 0.2);
+    color: #92400e;
+  }
+  .badge-module-blue {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-color: rgba(59, 130, 246, 0.2);
+    color: #1e40af;
+  }
+  .badge-module-emerald {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-color: rgba(16, 185, 129, 0.2);
+    color: #065f46;
+  }
+  .badge-module-violet {
+    background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+    border-color: rgba(139, 92, 246, 0.2);
+    color: #5b21b6;
+  }
+  .badge-module-rose {
+    background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+    border-color: rgba(244, 63, 94, 0.2);
+    color: #9f1239;
+  }
+
+  /* Status badges */
+  .badge-status {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold;
+    border: 1px solid;
+    box-shadow: 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+  }
 }
 
 /* ========== Animations ========== */

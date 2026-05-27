@@ -24,13 +24,13 @@ import { Label } from "@/components/ui/label";
 import {
   Receipt,
   Plus,
-  Search,
-  Filter,
-  Download,
+  MagnifyingGlass,
+  Funnel,
+  DownloadSimple,
   Upload,
-  TrendingDown,
+  TrendDown,
   FileText,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import {
   dummyPengeluaran,
   formatRupiah,
@@ -47,7 +47,7 @@ export default function PengeluaranPage() {
   const [filterKategori, setFilterKategori] = useState<string>("all");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
-  // Filter pengeluaran
+  // Funnel pengeluaran
   const filteredPengeluaran = dummyPengeluaran.filter((p) => {
     const matchSearch =
       p.keterangan.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -82,7 +82,7 @@ export default function PengeluaranPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-red-50 rounded-lg">
-              <Receipt className="w-6 h-6 text-red-600" />
+              <Receipt weight="duotone" className="w-6 h-6 text-red-600" />
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
@@ -96,14 +96,14 @@ export default function PengeluaranPage() {
 
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="clean-glass">
-              <Download className="w-4 h-4 mr-2" />
+              <DownloadSimple weight="duotone" className="w-4 h-4 mr-2" />
               Export
             </Button>
             <Button
               onClick={() => setAddDialogOpen(true)}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus weight="duotone" className="w-4 h-4 mr-2" />
               Tambah
             </Button>
           </div>
@@ -117,7 +117,7 @@ export default function PengeluaranPage() {
                 <span className="text-sm font-medium text-zinc-600">
                   Total Pengeluaran
                 </span>
-                <TrendingDown className="w-5 h-5 text-red-600" />
+                <TrendDown weight="duotone" className="w-5 h-5 text-red-600" />
               </div>
               <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalPengeluaran)}
@@ -135,7 +135,7 @@ export default function PengeluaranPage() {
                   Material
                 </span>
                 <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                  <FileText className="w-4 h-4 text-amber-600" />
+                  <FileText weight="duotone" className="w-4 h-4 text-amber-600" />
                 </div>
               </div>
               <p className="text-2xl font-bold text-zinc-900">
@@ -154,7 +154,7 @@ export default function PengeluaranPage() {
                   Kontraktor
                 </span>
                 <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <FileText className="w-4 h-4 text-blue-600" />
+                  <FileText weight="duotone" className="w-4 h-4 text-blue-600" />
                 </div>
               </div>
               <p className="text-2xl font-bold text-zinc-900">
@@ -173,7 +173,7 @@ export default function PengeluaranPage() {
                   Operasional
                 </span>
                 <div className="w-8 h-8 bg-zinc-100 rounded-lg flex items-center justify-center">
-                  <FileText className="w-4 h-4 text-zinc-600" />
+                  <FileText weight="duotone" className="w-4 h-4 text-zinc-600" />
                 </div>
               </div>
               <p className="text-2xl font-bold text-zinc-900">
@@ -186,12 +186,12 @@ export default function PengeluaranPage() {
           </Card>
         </div>
 
-        {/* Filters & Search */}
+        {/* Filters & MagnifyingGlass */}
         <Card className="clean-glass">
           <div className="p-4 space-y-4">
             <div className="flex flex-col md:flex-row gap-3">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                <MagnifyingGlass weight="duotone" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                 <Input
                   placeholder="Cari keterangan, vendor, atau nomor bukti..."
                   value={searchQuery}
@@ -205,7 +205,7 @@ export default function PengeluaranPage() {
                 onValueChange={setFilterKategori}
               >
                 <SelectTrigger className="w-full md:w-56 clean-glass">
-                  <Filter className="w-4 h-4 mr-2" />
+                  <Funnel weight="duotone" className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="Kategori" />
                 </SelectTrigger>
                 <SelectContent>
@@ -271,7 +271,7 @@ export default function PengeluaranPage() {
                       </div>
                       {pengeluaran.bukti && (
                         <div className="flex items-center gap-1 text-xs text-blue-600 mt-1">
-                          <FileText className="w-3 h-3" />
+                          <FileText weight="duotone" className="w-3 h-3" />
                           Ada bukti
                         </div>
                       )}
@@ -322,7 +322,7 @@ export default function PengeluaranPage() {
 
           {filteredPengeluaran.length === 0 && (
             <div className="p-12 text-center">
-              <Receipt className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <Receipt weight="duotone" className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-zinc-600">Tidak ada pengeluaran ditemukan</p>
             </div>
           )}
@@ -418,7 +418,7 @@ export default function PengeluaranPage() {
                       className="clean-glass flex-1"
                     />
                     <Button type="button" variant="outline" size="icon">
-                      <Upload className="w-4 h-4" />
+                      <Upload weight="duotone" className="w-4 h-4" />
                     </Button>
                   </div>
                   <p className="text-xs text-zinc-500">

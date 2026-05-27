@@ -4,15 +4,8 @@ import { useState, useEffect } from "react";
 
 import Link from "next/link";
 import {
-  Building2,
-  MapPin,
-  Calendar,
-  Users,
-  TrendingUp,
-  Plus,
-  AlertTriangle,
-  ArrowRight,
-} from "lucide-react";
+  UsersThree, Warning, TrendUp, MapPin, Plus, Buildings, ArrowRight, Calendar
+} from "@phosphor-icons/react";
 import {
   dummyProyek,
   formatRupiah,
@@ -95,7 +88,7 @@ export default function ProyekPage() {
       label: "Total Proyek",
       value: String(projects.length),
       note: `${proyekAktif.length} sedang berjalan`,
-      icon: Building2,
+      icon: Buildings,
       bg: "bg-blue-50",
       color: "text-blue-500",
     },
@@ -103,7 +96,7 @@ export default function ProyekPage() {
       label: "Total Unit",
       value: String(totalUnit),
       note: `${unitSelesai} unit selesai`,
-      icon: TrendingUp,
+      icon: TrendUp,
       bg: "bg-emerald-50",
       color: "text-emerald-500",
     },
@@ -111,7 +104,7 @@ export default function ProyekPage() {
       label: "Progress Global",
       value: `${persentaseGlobal}%`,
       note: "rata-rata penyelesaian",
-      icon: TrendingUp,
+      icon: TrendUp,
       bg: "bg-amber-50",
       color: "text-amber-500",
       progress: persentaseGlobal,
@@ -120,7 +113,7 @@ export default function ProyekPage() {
       label: "Site Engineer",
       value: "12",
       note: "aktif di lapangan",
-      icon: Users,
+      icon: UsersThree,
       bg: "bg-rose-50",
       color: "text-rose-500",
     },
@@ -134,7 +127,7 @@ export default function ProyekPage() {
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-blue-700">
-              <Building2 size={11} className="text-blue-500" /> Monitoring Proyek
+              <Buildings weight="duotone" size={11} className="text-blue-500" /> Monitoring Proyek
             </div>
             <h1 className="font-[family-name:var(--font-heading)] text-2xl font-normal tracking-tight text-zinc-900 md:text-3xl">
               Progress Konstruksi & Milestone Unit
@@ -144,7 +137,7 @@ export default function ProyekPage() {
             </p>
           </div>
           <button className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-5 py-2.5 text-sm font-semibold text-amber-600 shadow-sm transition-all hover:bg-amber-100 hover:shadow-md">
-            <Plus size={16} /> Tambah Proyek
+            <Plus weight="duotone" size={16} /> Tambah Proyek
           </button>
         </div>
       </section>
@@ -155,7 +148,7 @@ export default function ProyekPage() {
           <div key={stat.label} className="stat-card group">
             <div className="mb-4 flex items-start justify-between">
               <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.bg}`}>
-                <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                <stat.icon weight="duotone" className={`h-6 w-6 ${stat.color}`} />
               </div>
             </div>
             <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{stat.label}</p>
@@ -202,10 +195,10 @@ function ProyekCard({ proyek }: { proyek: Proyek }) {
               <h3 className="truncate text-base font-bold text-zinc-900 group-hover:text-amber-600 transition-colors">
                 {proyek.nama}
               </h3>
-              {isDelayed && <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />}
+              {isDelayed && <Warning weight="duotone" className="h-4 w-4 shrink-0 text-amber-500" />}
             </div>
             <div className="mt-1 flex items-center gap-1.5 text-xs text-zinc-400">
-              <MapPin size={12} />
+              <MapPin weight="duotone" size={12} />
               <span>{proyek.lokasi}</span>
             </div>
           </div>
@@ -246,11 +239,11 @@ function ProyekCard({ proyek }: { proyek: Proyek }) {
         <div className="flex items-center justify-between border-t border-zinc-100 pt-4">
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
-              <Calendar size={11} />
+              <Calendar weight="duotone" size={11} />
               <span>Mulai: {formatTanggalShort(proyek.tanggalMulai)}</span>
             </div>
             <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
-              <Calendar size={11} />
+              <Calendar weight="duotone" size={11} />
               <span>Target: {formatTanggalShort(proyek.targetSelesai)}</span>
             </div>
           </div>

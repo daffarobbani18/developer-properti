@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Menu, Search, CalendarDays, UserRound, LogOut, Settings, ChevronDown } from "lucide-react";
+import { Bell, List, MagnifyingGlass, CalendarBlank, User, SignOut, Gear, CaretDown } from "@phosphor-icons/react";
 import { readRoleFromAuthPayload, type UserRole } from "@/lib/access";
 import Breadcrumb, { getPageTitle } from "@/components/layout/breadcrumb";
 
@@ -112,7 +112,7 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
   return (
     <header className="sticky top-0 z-30 border-b border-zinc-200/80 bg-white/95 backdrop-blur-xl">
       <div className="flex h-16 items-center justify-between gap-4 px-4 md:px-8">
-        {/* Left: Menu button + Breadcrumb & Title */}
+        {/* Left: List button + Breadcrumb & Title */}
         <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
           {showMenuButton ? (
             <button
@@ -120,7 +120,7 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
               className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-600 shadow-sm transition-all hover:bg-zinc-50 hover:shadow-md md:hidden"
               aria-label="Buka menu navigasi"
             >
-              <Menu size={16} />
+              <List weight="duotone" size={16} />
             </button>
           ) : null}
 
@@ -137,10 +137,10 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
           </div>
         </div>
 
-        {/* Center: Search */}
+        {/* Center: MagnifyingGlass */}
         <div className="hidden min-w-0 max-w-md flex-1 lg:flex">
           <div className="relative w-full">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
+            <MagnifyingGlass weight="duotone" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
             <input
               type="text"
               placeholder="Cari unit, tipe, pelanggan..."
@@ -155,7 +155,7 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
         {/* Right: Date, Notifications, User */}
         <div className="flex items-center gap-2 md:gap-3">
           <div className={`hidden items-center gap-2 rounded-xl border border-zinc-100 bg-zinc-50/80 px-3 py-1.5 text-right md:flex ${!now ? 'opacity-0' : 'opacity-100 transition-opacity'}`}>
-            <CalendarDays size={14} className="text-zinc-400" />
+            <CalendarBlank weight="duotone" size={14} className="text-zinc-400" />
             <div className="leading-tight text-left">
               <p className="text-[10px] font-medium text-zinc-400">{topBarDate || "..."}</p>
               <p className="text-xs font-semibold text-zinc-700">{topBarTime || "..."}</p>
@@ -163,7 +163,7 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
           </div>
 
           <button className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200/80 bg-white text-zinc-500 shadow-sm transition-all hover:bg-zinc-50 hover:shadow-md">
-            <Bell size={16} />
+            <Bell weight="duotone" size={16} />
             <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-rose-500"></span>
           </button>
 
@@ -180,7 +180,7 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
                 <p className="truncate text-sm font-semibold leading-tight text-zinc-800 max-w-[120px]">{userName ?? "Pengguna"}</p>
                 <p className="truncate text-[10px] text-zinc-400">{(userRole && roleLabel(userRole)) ?? "Akses Portal"}</p>
               </div>
-              <ChevronDown size={14} className={`hidden sm:block text-zinc-400 transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''}`} />
+              <CaretDown weight="duotone" size={14} className={`hidden sm:block text-zinc-400 transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Dropdown menu */}
@@ -191,11 +191,11 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
                   <p className="text-xs text-zinc-400 mt-0.5">{(userRole && roleLabel(userRole)) ?? "Akses Portal"}</p>
                 </div>
                 <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900">
-                  <UserRound size={15} className="text-zinc-400" />
+                  <User weight="duotone" size={15} className="text-zinc-400" />
                   Profil Saya
                 </button>
                 <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900">
-                  <Settings size={15} className="text-zinc-400" />
+                  <Gear weight="duotone" size={15} className="text-zinc-400" />
                   Pengaturan
                 </button>
                 <div className="border-t border-zinc-100 mt-1 pt-1">
@@ -203,7 +203,7 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
                     onClick={handleLogout}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-rose-600 transition-colors hover:bg-rose-50"
                   >
-                    <LogOut size={15} />
+                    <SignOut weight="duotone" size={15} />
                     Keluar
                   </button>
                 </div>

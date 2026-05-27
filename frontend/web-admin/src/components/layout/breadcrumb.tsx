@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight, Home } from "lucide-react";
+import { CaretRight, House } from "@phosphor-icons/react";
 
 const pathLabels: Record<string, string> = {
   dashboard: "Dashboard",
@@ -88,11 +88,11 @@ export default function Breadcrumb() {
         href="/"
         className="flex items-center gap-1 text-zinc-400 hover:text-zinc-600 transition-colors"
       >
-        <Home size={14} />
+        <House weight="duotone" size={14} />
       </Link>
       {breadcrumbs.map((crumb) => (
         <span key={crumb.href} className="flex items-center gap-1.5">
-          <ChevronRight size={12} className="text-zinc-300" />
+          <CaretRight weight="duotone" size={12} className="text-zinc-300" />
           {crumb.isLast ? (
             <span className="font-medium text-zinc-700 truncate max-w-[200px]">
               {crumb.label}

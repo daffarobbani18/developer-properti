@@ -4,21 +4,25 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
-  Users,
-  Banknote,
-  FolderKanban,
+  SquaresFour,
+  UsersThree,
+  CurrencyDollar,
+  Kanban,
   HardHat,
-  FileCheck,
+  Stamp,
   X,
-  ChevronDown,
-  KanbanSquare,
-  Home,
+  CaretDown,
+  UsersFour,
+  HouseSimple,
   Receipt,
-  Activity,
-  Building2,
-  LogOut,
-} from "lucide-react";
+  Pulse,
+  Buildings,
+  SignOut,
+  ChartLineUp,
+  Wallet,
+  Invoice,
+  ListChecks,
+} from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -50,7 +54,7 @@ interface MenuGroup {
 const menuItems: MenuGroup[] = [
   {
     group: "Utama",
-    items: [{ label: "Dashboard", href: "/", icon: LayoutDashboard, roles: USER_ROLES }],
+    items: [{ label: "Dashboard", href: "/", icon: SquaresFour, roles: USER_ROLES }],
   },
   {
     group: "Operasional",
@@ -58,32 +62,32 @@ const menuItems: MenuGroup[] = [
       {
         label: "Admin Inventory",
         href: "/inventory",
-        icon: Building2,
+        icon: Buildings,
         roles: ["inventory"],
       },
       {
         label: "Sales & Marketing",
         href: "/sales",
-        icon: Users,
+        icon: UsersThree,
         roles: ["sales"],
         children: [
-          { label: "Leads", href: "/crm/leads", icon: Users, roles: ["sales"] },
-          { label: "Pipeline", href: "/crm/pipeline", icon: KanbanSquare, roles: ["sales"] },
-          { label: "Unit", href: "/crm/unit", icon: Home, roles: ["sales"] },
+          { label: "Leads", href: "/crm/leads", icon: UsersFour, roles: ["sales"] },
+          { label: "Pipeline", href: "/crm/pipeline", icon: Kanban, roles: ["sales"] },
+          { label: "Unit", href: "/crm/unit", icon: HouseSimple, roles: ["sales"] },
           { label: "Transaksi", href: "/crm/transaksi", icon: Receipt, roles: ["sales"] },
-          { label: "Aktivitas", href: "/crm/aktivitas", icon: Activity, roles: ["sales"] },
+          { label: "Aktivitas", href: "/crm/aktivitas", icon: Pulse, roles: ["sales"] },
         ],
       },
       {
         label: "Finance & Accounting",
         href: "/finance",
-        icon: Banknote,
+        icon: CurrencyDollar,
         roles: ["finance"],
         children: [
-          { label: "Cashflow", href: "/keuangan/cashflow", icon: Activity, roles: ["finance"] },
+          { label: "Cashflow", href: "/keuangan/cashflow", icon: ChartLineUp, roles: ["finance"] },
           { label: "Tagihan", href: "/keuangan/tagihan", icon: Receipt, roles: ["finance"] },
-          { label: "Pengeluaran", href: "/keuangan/pengeluaran", icon: Receipt, roles: ["finance"] },
-          { label: "RAB & Realisasi", href: "/keuangan/rab", icon: FolderKanban, roles: ["finance"] },
+          { label: "Pengeluaran", href: "/keuangan/pengeluaran", icon: Wallet, roles: ["finance"] },
+          { label: "RAB & Realisasi", href: "/keuangan/rab", icon: ListChecks, roles: ["finance"] },
         ],
       },
       {
@@ -95,15 +99,15 @@ const menuItems: MenuGroup[] = [
       {
         label: "Legal & Perizinan",
         href: "/legal",
-        icon: FileCheck,
+        icon: Stamp,
         roles: ["legal"],
       },
       {
         label: "Monitoring Proyek",
         href: "/proyek",
-        icon: Building2,
+        icon: Buildings,
         roles: ["supervisor", "inventory"],
-        children: [{ label: "Daftar Proyek", href: "/proyek", icon: Building2, roles: ["supervisor", "inventory"] }],
+        children: [{ label: "Daftar Proyek", href: "/proyek", icon: Buildings, roles: ["supervisor", "inventory"] }],
       },
     ],
   },
@@ -268,10 +272,10 @@ export default function Sidebar({ onClose }: SidebarProps) {
                           )}
                         >
                           <span className="flex items-center gap-3 text-[13px] font-medium">
-                            <item.icon className={cn("h-[17px] w-[17px] shrink-0", isActive ? "text-amber-400" : "text-zinc-500 group-hover:text-zinc-400")} />
+                            <item.icon weight="duotone" className={cn("h-[17px] w-[17px] shrink-0", isActive ? "text-amber-400" : "text-zinc-500 group-hover:text-zinc-400")} />
                             {item.label}
                           </span>
-                          <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-300", isExpanded ? "rotate-180 text-amber-400" : "text-zinc-600")} />
+                          <CaretDown className={cn("h-3.5 w-3.5 transition-transform duration-300", isExpanded ? "rotate-180 text-amber-400" : "text-zinc-600")} />
                         </button>
                         <div
                           className={cn(
@@ -295,7 +299,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
                                         : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]"
                                     )}
                                   >
-                                    <child.icon className={cn("h-[14px] w-[14px] shrink-0", isChildActive ? "text-amber-400" : "text-zinc-600 group-hover:text-zinc-400")} />
+                                    <child.icon weight="duotone" className={cn("h-[14px] w-[14px] shrink-0", isChildActive ? "text-amber-400" : "text-zinc-600 group-hover:text-zinc-400")} />
                                     {child.label}
                                     {isChildActive && <div className="ml-auto h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.6)]" />}
                                   </Link>
@@ -316,7 +320,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
                             : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
                         )}
                       >
-                        <item.icon className={cn("h-[17px] w-[17px] shrink-0", isExactActive ? "text-amber-400" : "text-zinc-500 group-hover:text-zinc-400")} />
+                        <item.icon weight="duotone" className={cn("h-[17px] w-[17px] shrink-0", isExactActive ? "text-amber-400" : "text-zinc-500 group-hover:text-zinc-400")} />
                         <span className={cn("text-[13px] font-medium", isExactActive && "text-amber-400")}>{item.label}</span>
                         {isExactActive && <div className="ml-auto h-5 w-1 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]"></div>}
                       </Link>
@@ -336,7 +340,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           onClick={() => setShowLogoutConfirm(true)}
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-2 text-[13px] font-medium text-zinc-500 transition-all hover:bg-white/[0.06] hover:text-rose-400 hover:border-rose-500/20"
         >
-          <LogOut className="h-4 w-4" /> Keluar
+          <SignOut className="h-4 w-4" /> Keluar
         </button>
         <p className="mt-3 text-center text-[9px] tracking-[0.15em] text-zinc-700 uppercase">Griya Persada &copy; 2026</p>
       </div>

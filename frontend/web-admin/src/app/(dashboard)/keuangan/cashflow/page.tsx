@@ -4,12 +4,12 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  ArrowUpDown,
-  TrendingUp,
-  TrendingDown,
-  Download,
-  AlertTriangle,
-} from "lucide-react";
+  ArrowsDownUp,
+  TrendUp,
+  TrendDown,
+  DownloadSimple,
+  Warning,
+} from "@phosphor-icons/react";
 import {
   AreaChart,
   Area,
@@ -50,7 +50,7 @@ export default function CashflowPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-50 rounded-lg">
-              <ArrowUpDown className="w-6 h-6 text-blue-600" />
+              <ArrowsDownUp weight="duotone" className="w-6 h-6 text-blue-600" />
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
@@ -64,7 +64,7 @@ export default function CashflowPage() {
 
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="clean-glass">
-              <Download className="w-4 h-4 mr-2" />
+              <DownloadSimple weight="duotone" className="w-4 h-4 mr-2" />
               Export PDF
             </Button>
           </div>
@@ -78,7 +78,7 @@ export default function CashflowPage() {
                 <span className="text-sm font-medium text-zinc-600">
                   Total Pemasukan
                 </span>
-                <TrendingUp className="w-5 h-5 text-green-600" />
+                <TrendUp weight="duotone" className="w-5 h-5 text-green-600" />
               </div>
               <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalPemasukan)}
@@ -93,7 +93,7 @@ export default function CashflowPage() {
                 <span className="text-sm font-medium text-zinc-600">
                   Total Pengeluaran
                 </span>
-                <TrendingDown className="w-5 h-5 text-red-600" />
+                <TrendDown weight="duotone" className="w-5 h-5 text-red-600" />
               </div>
               <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalPengeluaran)}
@@ -108,7 +108,7 @@ export default function CashflowPage() {
                 <span className="text-sm font-medium text-zinc-600">
                   Saldo Bulan Ini
                 </span>
-                <ArrowUpDown className="w-5 h-5 text-blue-600" />
+                <ArrowsDownUp weight="duotone" className="w-5 h-5 text-blue-600" />
               </div>
               <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(bulanTerakhir.saldo)}
@@ -125,7 +125,7 @@ export default function CashflowPage() {
                 <span className="text-sm font-medium text-zinc-600">
                   Rata-rata Saldo
                 </span>
-                <TrendingUp className="w-5 h-5 text-purple-600" />
+                <TrendUp weight="duotone" className="w-5 h-5 text-purple-600" />
               </div>
               <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(rataRataSaldo)}
@@ -139,7 +139,7 @@ export default function CashflowPage() {
         {bulanTerakhir.saldo < 0 && (
           <Card className="clean-glass border-red-200 bg-red-50/50">
             <div className="p-4 flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <Warning weight="duotone" className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
               <div>
                 <h3 className="font-semibold text-red-900 mb-1">
                   Peringatan Cashflow Negatif
@@ -361,9 +361,9 @@ export default function CashflowPage() {
                             }`}
                           >
                             {parseFloat(margin) >= 30 ? (
-                              <TrendingUp className="w-3 h-3" />
+                              <TrendUp weight="duotone" className="w-3 h-3" />
                             ) : parseFloat(margin) < 15 ? (
-                              <TrendingDown className="w-3 h-3" />
+                              <TrendDown weight="duotone" className="w-3 h-3" />
                             ) : null}
                             {margin}%
                           </span>

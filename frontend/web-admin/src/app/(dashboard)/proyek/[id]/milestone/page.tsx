@@ -15,17 +15,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Building2,
-  ChevronRight,
-  CheckCircle2,
+  Buildings,
+  CaretRight,
+  CheckCircle,
   Circle,
   ArrowLeft,
   Camera,
   User,
   Calendar,
   Clock,
-  AlertTriangle,
-} from "lucide-react";
+  Warning,
+} from "@phosphor-icons/react";
 import {
   getProyekById,
   getUnitByProyek,
@@ -85,14 +85,14 @@ export default function MilestonePage({ params }: PageProps) {
           <Link href="/proyek" className="hover:text-blue-600 transition-colors">
             Proyek
           </Link>
-          <ChevronRight className="w-4 h-4" />
+          <CaretRight weight="duotone" className="w-4 h-4" />
           <Link
             href={`/proyek/${id}/unit`}
             className="hover:text-blue-600 transition-colors"
           >
             {proyek.nama}
           </Link>
-          <ChevronRight className="w-4 h-4" />
+          <CaretRight weight="duotone" className="w-4 h-4" />
           <span className="text-zinc-900 font-medium">Milestone</span>
         </div>
 
@@ -101,11 +101,11 @@ export default function MilestonePage({ params }: PageProps) {
           <div className="flex items-center gap-3">
             <Link href={`/proyek/${id}/unit`}>
               <Button variant="outline" size="icon" className="clean-glass">
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft weight="duotone" className="w-4 h-4" />
               </Button>
             </Link>
             <div className="p-2 bg-blue-50 rounded-lg">
-              <Building2 className="w-6 h-6 text-blue-600" />
+              <Buildings weight="duotone" className="w-6 h-6 text-blue-600" />
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
@@ -191,7 +191,7 @@ export default function MilestonePage({ params }: PageProps) {
           </div>
         ) : (
           <Card className="clean-glass p-8 text-center">
-            <Circle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+            <Circle weight="duotone" className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <p className="text-zinc-600">
               Belum ada data milestone untuk unit ini.
             </p>
@@ -243,15 +243,15 @@ function MilestoneCard({ milestone, isLast }: MilestoneCardProps) {
           <div className="flex flex-col items-center">
             {milestone.status === "selesai" ? (
               <div className="p-2 bg-green-100 rounded-full">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                <CheckCircle weight="duotone" className="w-5 h-5 text-green-600" />
               </div>
             ) : milestone.status === "progress" ? (
               <div className="p-2 bg-blue-100 rounded-full animate-pulse">
-                <Circle className="w-5 h-5 text-blue-600 fill-blue-600" />
+                <Circle weight="duotone" className="w-5 h-5 text-blue-600 fill-blue-600" />
               </div>
             ) : (
               <div className="p-2 bg-zinc-100 rounded-full">
-                <Circle className="w-5 h-5 text-zinc-400" />
+                <Circle weight="duotone" className="w-5 h-5 text-zinc-400" />
               </div>
             )}
             {!isLast && (
@@ -276,13 +276,13 @@ function MilestoneCard({ milestone, isLast }: MilestoneCardProps) {
                   </Badge>
                   {isLate && (
                     <Badge className="bg-red-100 text-red-700 border-red-200 border text-xs font-medium rounded-md">
-                      <AlertTriangle className="w-3 h-3 mr-1" />
+                      <Warning weight="duotone" className="w-3 h-3 mr-1" />
                       Terlambat
                     </Badge>
                   )}
                   {completedLate && (
                     <Badge className="bg-amber-100 text-amber-700 border-amber-200 border text-xs font-medium rounded-md">
-                      <Clock className="w-3 h-3 mr-1" />
+                      <Clock weight="duotone" className="w-3 h-3 mr-1" />
                       Selesai Terlambat
                     </Badge>
                   )}
@@ -305,7 +305,7 @@ function MilestoneCard({ milestone, isLast }: MilestoneCardProps) {
             {/* Info Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
               <div className="flex items-center gap-2 text-zinc-600">
-                <Calendar className="w-4 h-4" />
+                <Calendar weight="duotone" className="w-4 h-4" />
                 <div>
                   <p className="text-xs text-zinc-500">Target</p>
                   <p className="font-medium text-zinc-900">
@@ -316,7 +316,7 @@ function MilestoneCard({ milestone, isLast }: MilestoneCardProps) {
 
               {milestone.tanggalAktual && (
                 <div className="flex items-center gap-2 text-zinc-600">
-                  <CheckCircle2 className="w-4 h-4" />
+                  <CheckCircle weight="duotone" className="w-4 h-4" />
                   <div>
                     <p className="text-xs text-zinc-500">Selesai</p>
                     <p className="font-medium text-zinc-900">
@@ -328,7 +328,7 @@ function MilestoneCard({ milestone, isLast }: MilestoneCardProps) {
 
               {milestone.engineerPIC && (
                 <div className="flex items-center gap-2 text-zinc-600">
-                  <User className="w-4 h-4" />
+                  <User weight="duotone" className="w-4 h-4" />
                   <div>
                     <p className="text-xs text-zinc-500">PIC</p>
                     <p className="font-medium text-zinc-900">
@@ -340,7 +340,7 @@ function MilestoneCard({ milestone, isLast }: MilestoneCardProps) {
 
               {milestone.fotoCount > 0 && (
                 <div className="flex items-center gap-2 text-zinc-600">
-                  <Camera className="w-4 h-4" />
+                  <Camera weight="duotone" className="w-4 h-4" />
                   <div>
                     <p className="text-xs text-zinc-500">Foto</p>
                     <p className="font-medium text-blue-600">

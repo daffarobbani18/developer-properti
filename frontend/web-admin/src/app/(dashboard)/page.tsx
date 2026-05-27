@@ -2,22 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  ShieldAlert,
-  Map,
-  Users,
-  CircleDollarSign,
-  Scale,
-  HardHat,
-  ArrowRight,
-  Lock,
-  ChevronRight,
-  Fingerprint,
-  Network,
-  Server,
-  Activity,
-  Database,
-  Quote,
-} from "lucide-react";
+  Fingerprint, UsersThree, MapTrifold, HardDrives, Quotes, CurrencyDollar, Lock, Database, Pulse, HardHat, CaretRight, ShieldWarning, Scales, Network, ArrowRight
+} from "@phosphor-icons/react";
 
 type RevealProps = {
   children: React.ReactNode;
@@ -95,7 +81,7 @@ export default function DashboardLandingPage() {
       id: "inventory",
       title: "Admin Inventory",
       subtitle: "Land & Asset Acquisition",
-      icon: Map,
+      icon: MapTrifold,
       color: "text-emerald-500",
       borderGlow: "group-hover:border-emerald-500/50",
       shadowGlow: "group-hover:shadow-[0_0_40px_rgba(16,185,129,0.15)]",
@@ -107,7 +93,7 @@ export default function DashboardLandingPage() {
       id: "sales",
       title: "Sales & Marketing",
       subtitle: "Customer Relationship",
-      icon: Users,
+      icon: UsersThree,
       color: "text-blue-500",
       borderGlow: "group-hover:border-blue-500/50",
       shadowGlow: "group-hover:shadow-[0_0_40px_rgba(59,130,246,0.15)]",
@@ -119,7 +105,7 @@ export default function DashboardLandingPage() {
       id: "finance",
       title: "Finance & Accounting",
       subtitle: "Treasury & Billing",
-      icon: CircleDollarSign,
+      icon: CurrencyDollar,
       color: "text-amber-500",
       borderGlow: "group-hover:border-amber-500/50",
       shadowGlow: "group-hover:shadow-[0_0_40px_rgba(245,158,11,0.15)]",
@@ -131,7 +117,7 @@ export default function DashboardLandingPage() {
       id: "legal",
       title: "Tim Legal",
       subtitle: "Document & Compliance",
-      icon: Scale,
+      icon: Scales,
       color: "text-purple-500",
       borderGlow: "group-hover:border-purple-500/50",
       shadowGlow: "group-hover:shadow-[0_0_40px_rgba(168,85,247,0.15)]",
@@ -215,14 +201,14 @@ export default function DashboardLandingPage() {
 
           <div className="flex items-center gap-6">
             <span className="hidden lg:flex items-center gap-2 text-[10px] font-medium tracking-[0.2em] uppercase text-zinc-500 bg-white/5 px-4 py-2 rounded-full border border-white/5">
-              <Lock size={12} className="text-amber-500" /> AES-256 Encrypted
+              <Lock weight="duotone" size={12} className="text-amber-500" /> AES-256 Encrypted
             </span>
             <a
               href="/login"
               className="group px-6 py-3 bg-zinc-100 text-zinc-900 text-xs font-bold uppercase tracking-widest rounded-sm hover:bg-amber-500 hover:text-white transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.1)] flex items-center gap-3"
             >
               Otorisasi Login
-              <ArrowRight size={14} className="transform group-hover:translate-x-1 transition-transform" />
+              <ArrowRight weight="duotone" size={14} className="transform group-hover:translate-x-1 transition-transform" />
             </a>
           </div>
         </div>
@@ -233,7 +219,7 @@ export default function DashboardLandingPage() {
           <div className="flex flex-col items-center justify-center text-center max-w-4xl mx-auto">
             <div className={`transition-all duration-1000 delay-300 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}`}>
               <div className="inline-flex items-center justify-center gap-3 px-4 py-2 border border-amber-500/20 bg-amber-500/5 backdrop-blur-md rounded-full mb-8 shadow-[inset_0_0_20px_rgba(245,158,11,0.05)]">
-                <Fingerprint size={14} className="text-amber-500" />
+                <Fingerprint weight="duotone" size={14} className="text-amber-500" />
                 <span className="text-amber-500 text-[10px] uppercase tracking-[0.2em] font-semibold">Sistem Manajemen Terpadu</span>
               </div>
 
@@ -248,10 +234,10 @@ export default function DashboardLandingPage() {
 
               <div className="flex flex-wrap justify-center gap-4 text-[10px] uppercase tracking-widest text-zinc-500 font-medium">
                 <span className="flex items-center gap-2 border border-white/10 px-4 py-2 rounded-sm bg-white/5">
-                  <Database size={12} className="text-blue-500" /> Terhubung ke Database Pusat
+                  <Database weight="duotone" size={12} className="text-blue-500" /> Terhubung ke Database Pusat
                 </span>
                 <span className="flex items-center gap-2 border border-white/10 px-4 py-2 rounded-sm bg-white/5">
-                  <Activity size={12} className="text-emerald-500" /> Real-time Sync
+                  <Pulse weight="duotone" size={12} className="text-emerald-500" /> Real-time Sync
                 </span>
               </div>
             </div>
@@ -284,7 +270,7 @@ export default function DashboardLandingPage() {
 
                       <div className="flex items-start gap-5 mb-8 relative z-10 border-b border-white/5 pb-6">
                         <div className={`w-14 h-14 rounded-xl bg-zinc-950 border border-white/5 flex items-center justify-center flex-shrink-0 shadow-[inset_0_2px_10px_rgba(255,255,255,0.05)] transition-colors`}>
-                          <Icon className={role.color} size={28} strokeWidth={1.5} />
+                          <Icon weight="duotone" className={role.color} size={28} strokeWidth={1.5} />
                         </div>
                         <div>
                           <h3 className="text-xl font-serif text-zinc-100 mb-1.5 group-hover:text-white transition-colors">{role.title}</h3>
@@ -295,20 +281,20 @@ export default function DashboardLandingPage() {
                       <div className="relative z-10 flex-grow">
                         {role.description ? (
                           <>
-                            <Quote size={18} className="text-zinc-700 mb-3 rotate-180" />
+                            <Quotes weight="duotone" size={18} className="text-zinc-700 mb-3 rotate-180" />
                             <p className="text-sm font-light text-zinc-400 group-hover:text-zinc-300 transition-colors leading-relaxed text-justify">{role.description}</p>
                           </>
                         ) : (
                           <>
                             <div className="flex items-center gap-2 mb-4">
-                              <Network size={14} className="text-zinc-600" />
+                              <Network weight="duotone" size={14} className="text-zinc-600" />
                               <h4 className="text-[10px] text-zinc-500 uppercase tracking-[0.2em] font-semibold">Tanggung Jawab Modul</h4>
                             </div>
                             <ul className="space-y-3.5">
                               {Array.isArray((role as any).tasks)
                                 ? (role as any).tasks.map((task: string, idx: number) => (
                                     <li key={idx} className="flex items-start gap-3">
-                                      <ChevronRight size={14} className={`${role.color} mt-0.5 flex-shrink-0 opacity-70 group-hover:translate-x-1 transition-transform`} />
+                                      <CaretRight weight="duotone" size={14} className={`${role.color} mt-0.5 flex-shrink-0 opacity-70 group-hover:translate-x-1 transition-transform`} />
                                       <span className="text-xs font-light text-zinc-400 group-hover:text-zinc-300 transition-colors leading-relaxed">{task}</span>
                                     </li>
                                   ))
@@ -332,7 +318,7 @@ export default function DashboardLandingPage() {
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
           <Reveal>
             <div className="w-16 h-16 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto mb-8 shadow-inner shadow-black">
-              <ShieldAlert size={28} className="text-amber-600" strokeWidth={1.5} />
+              <ShieldWarning weight="duotone" size={28} className="text-amber-600" strokeWidth={1.5} />
             </div>
 
             <h2 className="text-3xl font-serif text-white mb-6">Area Restriksi Internal</h2>
@@ -346,9 +332,9 @@ export default function DashboardLandingPage() {
             >
               <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent transform skew-x-12 z-0" />
 
-              <Lock size={16} className="relative z-10" />
+              <Lock weight="duotone" size={16} className="relative z-10" />
               <span className="relative z-10">Autentikasi Sekarang</span>
-              <ArrowRight size={16} className="relative z-10 transform group-hover:translate-x-2 transition-transform" />
+              <ArrowRight weight="duotone" size={16} className="relative z-10 transform group-hover:translate-x-2 transition-transform" />
             </a>
           </Reveal>
         </div>
@@ -357,7 +343,7 @@ export default function DashboardLandingPage() {
       <footer className="py-8 border-t border-white/5 bg-zinc-950 text-center relative z-10">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
-            <Server size={14} className="text-zinc-600" />
+            <HardDrives weight="duotone" size={14} className="text-zinc-600" />
             <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-medium">SIMDP Web Admin v2.4.0</p>
           </div>
           <p className="text-[10px] text-zinc-600 uppercase tracking-widest">&copy; {new Date().getFullYear()} Hak Cipta Dilindungi Undang-Undang.</p>

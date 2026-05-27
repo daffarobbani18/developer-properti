@@ -1,11 +1,11 @@
-"use client";
-
-import { Hammer, AlertTriangle, FileText, TrendingUp, TrendingDown, Users, CheckCircle2, Upload, ArrowUpRight } from "lucide-react";
-
+import {
+  TrendUp, TrendDown, CheckCircle, Warning, FileText,
+  Upload, UsersThree, Hammer, ArrowUpRight,
+} from "@phosphor-icons/react";
 const constructionStats = [
-  { label: "Progress Rata-rata", value: "62%", note: "Fase 4 – Konstruksi", trend: "+8%", trendUp: true, icon: TrendingUp, bg: "bg-blue-50", color: "text-blue-500" },
-  { label: "Unit Selesai", value: "15 / 24", note: "Fase 4A sudah selesai", trend: "+3", trendUp: true, icon: CheckCircle2, bg: "bg-emerald-50", color: "text-emerald-500" },
-  { label: "Kendala Aktif", value: "3", note: "Perlu tindakan segera", trend: "+1", trendUp: false, icon: AlertTriangle, bg: "bg-rose-50", color: "text-rose-500" },
+  { label: "Progress Rata-rata", value: "62%", note: "Fase 4 – Konstruksi", trend: "+8%", trendUp: true, icon: TrendUp, bg: "bg-blue-50", color: "text-blue-500" },
+  { label: "Unit Selesai", value: "15 / 24", note: "Fase 4A sudah selesai", trend: "+3", trendUp: true, icon: CheckCircle, bg: "bg-emerald-50", color: "text-emerald-500" },
+  { label: "Kendala Aktif", value: "3", note: "Perlu tindakan segera", trend: "+1", trendUp: false, icon: Warning, bg: "bg-rose-50", color: "text-rose-500" },
   { label: "SPK Kontraktor", value: "8", note: "Diterbitkan bulan ini", trend: "+2", trendUp: true, icon: FileText, bg: "bg-amber-50", color: "text-amber-500" },
 ];
 
@@ -16,10 +16,10 @@ const milestones = [
 ];
 
 const actionCards = [
-  { title: "Report Kendala", desc: "Laporkan hambatan atau masalah konstruksi", icon: AlertTriangle, bg: "bg-rose-50", color: "text-rose-500" },
+  { title: "Report Kendala", desc: "Laporkan hambatan atau masalah konstruksi", icon: Warning, bg: "bg-rose-50", color: "text-rose-500" },
   { title: "Upload Progress", desc: "Foto & dokumen performa mingguan", icon: Upload, bg: "bg-blue-50", color: "text-blue-500" },
   { title: "Kelola SPK", desc: "Daftar & tracking surat perintah kerja", icon: FileText, bg: "bg-amber-50", color: "text-amber-500" },
-  { title: "Tim Lapangan", desc: "Data pekerja & pengawas lapangan", icon: Users, bg: "bg-emerald-50", color: "text-emerald-500" },
+  { title: "Tim Lapangan", desc: "Data pekerja & pengawas lapangan", icon: UsersThree, bg: "bg-emerald-50", color: "text-emerald-500" },
 ];
 
 const milestoneStatusStyle: Record<string, { badge: string; bar: string }> = {
@@ -36,13 +36,13 @@ export default function FieldSupervisorPage() {
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-amber-700">
-              <Hammer size={11} className="text-amber-500" /> Pengawas Lapangan
+              <Hammer weight="bold" size={11} className="text-amber-500" /> Pengawas Lapangan
             </div>
             <h1 className="font-[family-name:var(--font-heading)] text-2xl font-normal tracking-tight text-zinc-900 md:text-3xl">Monitoring Konstruksi &amp; Progress Lapangan</h1>
             <p className="max-w-2xl text-sm text-zinc-500 leading-relaxed">Track progress konstruksi, kelola SPK kontraktor, upload foto lapangan, dan laporkan kendala/status mingguan.</p>
           </div>
           <button className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-5 py-2.5 text-sm font-semibold text-amber-600 shadow-sm transition-all hover:bg-amber-100 hover:shadow-md">
-            <Upload size={16} /> Upload Laporan
+            <Upload weight="bold" size={16} /> Upload Laporan
           </button>
         </div>
       </section>
@@ -51,10 +51,10 @@ export default function FieldSupervisorPage() {
         {constructionStats.map((stat) => (
           <div key={stat.label} className="stat-card group">
             <div className="mb-4 flex items-start justify-between">
-              <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${stat.bg}`}><stat.icon className={`h-5 w-5 ${stat.color}`} /></div>
+              <div className={`icon-wrapper h-12 w-12 ${stat.bg === 'bg-blue-50' ? 'icon-blue' : stat.bg === 'bg-emerald-50' ? 'icon-emerald' : stat.bg === 'bg-rose-50' ? 'icon-rose' : 'icon-amber'}`}><stat.icon weight="duotone" size={22} /></div>
               {stat.trend && (
-                <div className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${stat.trendUp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                  {stat.trendUp ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+                <div className={stat.trendUp ? 'badge-trend-up' : 'badge-trend-down'}>
+                  {stat.trendUp ? <TrendUp weight="bold" size={12} /> : <TrendDown weight="bold" size={12} />}
                   {stat.trend}
                 </div>
               )}
@@ -69,10 +69,10 @@ export default function FieldSupervisorPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {actionCards.map((action) => (
           <div key={action.title} className="group cursor-pointer rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-200/60 hover:shadow-[0_8px_25px_rgba(245,158,11,0.08)]">
-            <div className={`mb-3 flex h-11 w-11 items-center justify-center rounded-xl ${action.bg} transition-transform duration-300 group-hover:scale-105`}><action.icon className={`h-5 w-5 ${action.color}`} /></div>
+            <div className={`mb-3 icon-wrapper h-11 w-11 ${action.bg === 'bg-rose-50' ? 'icon-rose' : action.bg === 'bg-blue-50' ? 'icon-blue' : action.bg === 'bg-amber-50' ? 'icon-amber' : 'icon-emerald'}`}><action.icon weight="duotone" size={20} /></div>
             <h3 className="text-sm font-bold text-zinc-900 transition-colors group-hover:text-amber-600">{action.title}</h3>
             <p className="mt-1 text-xs leading-relaxed text-zinc-500">{action.desc}</p>
-            <div className="mt-3 flex items-center gap-1 text-[11px] font-medium text-amber-500 opacity-0 transition-opacity group-hover:opacity-100"><ArrowUpRight size={13} /> Buka Modul</div>
+            <div className="mt-3 flex items-center gap-1 text-[11px] font-medium text-amber-500 opacity-0 transition-opacity group-hover:opacity-100"><ArrowUpRight size={13} /> Akses</div>
           </div>
         ))}
       </div>
@@ -97,7 +97,7 @@ export default function FieldSupervisorPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-medium text-zinc-400">{milestone.progress}% selesai</p>
-                    {milestone.progress === 100 && <CheckCircle2 size={14} className="text-emerald-500" />}
+                    {milestone.progress === 100 && <CheckCircle weight="duotone" size={14} className="text-emerald-500" />}
                   </div>
                 </div>
               </div>

@@ -38,7 +38,7 @@ export default function AppShell({ children, title }: AppShellProps) {
       {/* Mobile Sidebar (Sheet) */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="w-64 border-r border-white/10 bg-zinc-950 p-0 text-white">
-          <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
+          <SheetTitle className="sr-only">List Navigasi</SheetTitle>
           <Sidebar onClose={() => setMobileOpen(false)} />
         </SheetContent>
       </Sheet>

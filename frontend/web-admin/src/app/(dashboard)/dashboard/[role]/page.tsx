@@ -5,20 +5,20 @@ import { notFound } from "next/navigation";
 import { use } from "react";
 import {
   ArrowUpRight,
-  BadgeCheck,
-  TrendingUp,
-  TrendingDown,
-  Users,
-  Banknote,
-  Building2,
+  SealCheck,
+  TrendUp,
+  TrendDown,
+  UsersThree,
+  CurrencyDollar,
+  Buildings,
   HardHat,
-  Scale,
-  Activity,
+  Scales,
+  Pulse,
   Clock,
   Phone,
   MapPin,
-  AlertTriangle,
-} from "lucide-react";
+  Warning,
+} from "@phosphor-icons/react";
 import {
   AreaChart,
   Area,
@@ -98,12 +98,12 @@ const proyekChartData = [
   { name: "Feb", Progress: avgProgressProyek },
 ];
 
-// ─── Recent activity ─────────────────────────────────────────
+// ─── Recent Pulse ─────────────────────────────────────────
 const recentActivities = [
-  { icon: Users, label: "Lead baru: Lia Permata", time: "2 menit lalu", color: "text-blue-500", bg: "bg-blue-50" },
-  { icon: Banknote, label: "Verifikasi DP: Siti Nurhaliza — Rp 50jt", time: "15 menit lalu", color: "text-emerald-500", bg: "bg-emerald-50" },
+  { icon: UsersThree, label: "Lead baru: Lia Permata", time: "2 menit lalu", color: "text-blue-500", bg: "bg-blue-50" },
+  { icon: CurrencyDollar, label: "Verifikasi DP: Siti Nurhaliza — Rp 50jt", time: "15 menit lalu", color: "text-emerald-500", bg: "bg-emerald-50" },
   { icon: MapPin, label: "Site visit: Ahmad Fauzi — Blok B", time: "1 jam lalu", color: "text-violet-500", bg: "bg-violet-50" },
-  { icon: AlertTriangle, label: "Kendala: Material terlambat Blok A", time: "2 jam lalu", color: "text-rose-500", bg: "bg-rose-50" },
+  { icon: Warning, label: "Kendala: Material terlambat Blok A", time: "2 jam lalu", color: "text-rose-500", bg: "bg-rose-50" },
   { icon: Phone, label: "Follow-up: Budi Santoso — call kembali", time: "3 jam lalu", color: "text-amber-500", bg: "bg-amber-50" },
 ];
 
@@ -141,7 +141,7 @@ const roleSnapshots: Record<Role, Array<{ title: string; items: Array<{ label: s
   ],
   sales: [
     { title: "Hot Leads", items: dummyLeads.filter((lead) => lead.status !== "baru").slice(0, 4).map((lead) => ({ label: lead.nama, meta: `${lead.status} • PIC ${lead.salesPIC}` })) },
-    { title: "Aktivitas Terbaru", items: dummyAktivitas.slice(0, 4).map((activity) => ({ label: activity.namaLead, meta: `${activity.tipe} • ${activity.tanggal}` })) },
+    { title: "Aktivitas Terbaru", items: dummyAktivitas.slice(0, 4).map((Pulse) => ({ label: Pulse.namaLead, meta: `${Pulse.tipe} • ${Pulse.tanggal}` })) },
   ],
   finance: [
     { title: "Tagihan Prioritas", items: dummyTagihan.slice(0, 4).map((tagihan) => ({ label: `${tagihan.customerNama} • ${tagihan.unit}`, meta: `${tagihan.status} • ${currencyShort(tagihan.nominal)}` })) },
@@ -173,9 +173,9 @@ const ROLE_DASHBOARD: Record<Role, {
     subtitle: "Ringkasan operasional lintas divisi untuk keputusan cepat.",
     heroGradient: "from-amber-500/8 via-transparent to-transparent",
     stats: [
-      { label: "Leads Aktif", value: String(totalLeads), note: `${newLeads} leads baru`, trend: "+18%", trendUp: true, icon: Users, iconBg: "bg-blue-50", iconColor: "text-blue-500" },
-      { label: "Kas Bersih", value: formatCurrencyCompact(latestCashflow.saldo), note: `${latestCashflow.bulan}`, trend: "-5%", trendUp: false, icon: Banknote, iconBg: "bg-emerald-50", iconColor: "text-emerald-500" },
-      { label: "Unit Terjual", value: String(soldUnits), note: `dari ${totalUnits} total`, trend: "+12%", trendUp: true, icon: Building2, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
+      { label: "Leads Aktif", value: String(totalLeads), note: `${newLeads} leads baru`, trend: "+18%", trendUp: true, icon: UsersThree, iconBg: "bg-blue-50", iconColor: "text-blue-500" },
+      { label: "Kas Bersih", value: formatCurrencyCompact(latestCashflow.saldo), note: `${latestCashflow.bulan}`, trend: "-5%", trendUp: false, icon: CurrencyDollar, iconBg: "bg-emerald-50", iconColor: "text-emerald-500" },
+      { label: "Unit Terjual", value: String(soldUnits), note: `dari ${totalUnits} total`, trend: "+12%", trendUp: true, icon: Buildings, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
     ],
     quickLinks: [
       { label: "Ringkasan Internal", href: "#snapshot-data", desc: "Lihat snapshot lintas divisi" },
@@ -189,9 +189,9 @@ const ROLE_DASHBOARD: Record<Role, {
     subtitle: "Kontrol data lahan, unit kavling, dan site plan.",
     heroGradient: "from-blue-500/8 via-transparent to-transparent",
     stats: [
-      { label: "Proyek Aktif", value: String(totalProyek), note: "terdaftar", trend: "+2", trendUp: true, icon: Building2, iconBg: "bg-blue-50", iconColor: "text-blue-500" },
+      { label: "Proyek Aktif", value: String(totalProyek), note: "terdaftar", trend: "+2", trendUp: true, icon: Buildings, iconBg: "bg-blue-50", iconColor: "text-blue-500" },
       { label: "Unit Terdaftar", value: String(totalUnits), note: `${bookedUnits} booked`, trend: "+5", trendUp: true, icon: MapPin, iconBg: "bg-emerald-50", iconColor: "text-emerald-500" },
-      { label: "Progress", value: `${avgProgressProyek}%`, note: "rata-rata proyek", trend: "+8%", trendUp: true, icon: Activity, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
+      { label: "Progress", value: `${avgProgressProyek}%`, note: "rata-rata proyek", trend: "+8%", trendUp: true, icon: Pulse, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
     ],
     quickLinks: [
       { label: "Kelola Inventory", href: "/inventory", desc: "Update unit dan harga" },
@@ -205,7 +205,7 @@ const ROLE_DASHBOARD: Record<Role, {
     subtitle: "Fokus ke leads, booking unit, dan jadwal site visit.",
     heroGradient: "from-emerald-500/8 via-transparent to-transparent",
     stats: [
-      { label: "Leads Baru", value: String(newLeads), note: `dari ${totalLeads} total`, trend: "+24%", trendUp: true, icon: Users, iconBg: "bg-blue-50", iconColor: "text-blue-500" },
+      { label: "Leads Baru", value: String(newLeads), note: `dari ${totalLeads} total`, trend: "+24%", trendUp: true, icon: UsersThree, iconBg: "bg-blue-50", iconColor: "text-blue-500" },
       { label: "Follow Up", value: String(leadsFollowUp), note: `${leadsSurvey} siap survey`, trend: "+3", trendUp: true, icon: Phone, iconBg: "bg-emerald-50", iconColor: "text-emerald-500" },
       { label: "Booking", value: String(bookedUnits), note: `${totalTransaksi} transaksi`, trend: "+2", trendUp: true, icon: MapPin, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
     ],
@@ -222,8 +222,8 @@ const ROLE_DASHBOARD: Record<Role, {
     heroGradient: "from-cyan-500/8 via-transparent to-transparent",
     stats: [
       { label: "Pending", value: String(pendingTagihan), note: "belum lunas", trend: "-2", trendUp: true, icon: Clock, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
-      { label: "Terlambat", value: String(overdueTagihan), note: "follow-up segera", trend: "+1", trendUp: false, icon: AlertTriangle, iconBg: "bg-rose-50", iconColor: "text-rose-500" },
-      { label: "Kas Bersih", value: formatCurrencyCompact(latestCashflow.saldo), note: `bulan berjalan`, trend: "-5%", trendUp: false, icon: Banknote, iconBg: "bg-emerald-50", iconColor: "text-emerald-500" },
+      { label: "Terlambat", value: String(overdueTagihan), note: "follow-up segera", trend: "+1", trendUp: false, icon: Warning, iconBg: "bg-rose-50", iconColor: "text-rose-500" },
+      { label: "Kas Bersih", value: formatCurrencyCompact(latestCashflow.saldo), note: `bulan berjalan`, trend: "-5%", trendUp: false, icon: CurrencyDollar, iconBg: "bg-emerald-50", iconColor: "text-emerald-500" },
     ],
     quickLinks: [
       { label: "Buka Finance", href: "/finance", desc: "Verifikasi & kuitansi" },
@@ -237,9 +237,9 @@ const ROLE_DASHBOARD: Record<Role, {
     subtitle: "Monitoring legalitas dokumen pelanggan dan proyek.",
     heroGradient: "from-violet-500/8 via-transparent to-transparent",
     stats: [
-      { label: "Transaksi Proses", value: String(totalTransaksi), note: "proses legal", trend: "+2", trendUp: true, icon: Scale, iconBg: "bg-violet-50", iconColor: "text-violet-500" },
-      { label: "Unit Terjual", value: String(soldUnits), note: "dokumen lanjutan", trend: "+1", trendUp: true, icon: Building2, iconBg: "bg-emerald-50", iconColor: "text-emerald-500" },
-      { label: "Kendala", value: String(totalKendalaAktif), note: "belum selesai", trend: "-1", trendUp: true, icon: AlertTriangle, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
+      { label: "Transaksi Proses", value: String(totalTransaksi), note: "proses legal", trend: "+2", trendUp: true, icon: Scales, iconBg: "bg-violet-50", iconColor: "text-violet-500" },
+      { label: "Unit Terjual", value: String(soldUnits), note: "dokumen lanjutan", trend: "+1", trendUp: true, icon: Buildings, iconBg: "bg-emerald-50", iconColor: "text-emerald-500" },
+      { label: "Kendala", value: String(totalKendalaAktif), note: "belum selesai", trend: "-1", trendUp: true, icon: Warning, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
     ],
     quickLinks: [
       { label: "Buka Legal", href: "/legal", desc: "Dokumen legal" },
@@ -254,8 +254,8 @@ const ROLE_DASHBOARD: Record<Role, {
     heroGradient: "from-rose-500/8 via-transparent to-transparent",
     stats: [
       { label: "Progress", value: `${avgProgressProyek}%`, note: "konstruksi aktif", trend: "+8%", trendUp: true, icon: HardHat, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
-      { label: "Kendala", value: String(totalKendalaAktif), note: "tindakan lapangan", trend: "+1", trendUp: false, icon: AlertTriangle, iconBg: "bg-rose-50", iconColor: "text-rose-500" },
-      { label: "Unit", value: String(totalUnitProyek), note: `${totalProyek} proyek`, trend: "+3", trendUp: true, icon: Building2, iconBg: "bg-blue-50", iconColor: "text-blue-500" },
+      { label: "Kendala", value: String(totalKendalaAktif), note: "tindakan lapangan", trend: "+1", trendUp: false, icon: Warning, iconBg: "bg-rose-50", iconColor: "text-rose-500" },
+      { label: "Unit", value: String(totalUnitProyek), note: `${totalProyek} proyek`, trend: "+3", trendUp: true, icon: Buildings, iconBg: "bg-blue-50", iconColor: "text-blue-500" },
     ],
     quickLinks: [
       { label: "Supervisor", href: "/supervisor", desc: "Laporan lapangan" },
@@ -306,12 +306,12 @@ export default function RoleDashboardPage({
           return (
             <div key={stat.label} className="stat-card group">
               <div className="mb-4 flex items-start justify-between">
-                <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${stat.iconBg}`}>
-                  <Icon size={20} className={stat.iconColor} />
+                <div className={`icon-wrapper h-12 w-12 ${stat.iconBg === 'bg-blue-50' ? 'icon-blue' : stat.iconBg === 'bg-emerald-50' ? 'icon-emerald' : stat.iconBg === 'bg-amber-50' ? 'icon-amber' : stat.iconBg === 'bg-rose-50' ? 'icon-rose' : stat.iconBg === 'bg-violet-50' ? 'icon-violet' : 'icon-amber'}`}>
+                  <Icon weight="duotone" size={22} />
                 </div>
                 {stat.trend && (
-                  <div className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${stat.trendUp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                    {stat.trendUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                  <div className={stat.trendUp ? 'badge-trend-up' : 'badge-trend-down'}>
+                    {stat.trendUp ? <TrendUp weight="bold" size={12} /> : <TrendDown weight="bold" size={12} />}
                     {stat.trend}
                   </div>
                 )}
@@ -324,7 +324,7 @@ export default function RoleDashboardPage({
         })}
       </div>
 
-      {/* Chart + Activity Feed */}
+      {/* Chart + Pulse Feed */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.5fr_1fr]">
         {/* Area Chart */}
         <div className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
@@ -411,7 +411,7 @@ export default function RoleDashboardPage({
           </div>
         </div>
 
-        {/* Activity Feed */}
+        {/* Pulse Feed */}
         <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm">
           <div className="border-b border-zinc-100 px-6 py-4">
             <h3 className="text-sm font-bold text-zinc-900">Aktivitas Terbaru</h3>
@@ -422,8 +422,8 @@ export default function RoleDashboardPage({
               const ActIcon = act.icon;
               return (
                 <div key={idx} className="flex items-start gap-3.5 px-6 py-3.5 transition-colors hover:bg-zinc-50/50" style={{ animationDelay: `${idx * 100}ms` }}>
-                  <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${act.bg}`}>
-                    <ActIcon size={14} className={act.color} />
+                  <div className={`mt-0.5 icon-wrapper h-8 w-8 shrink-0 ${act.bg === 'bg-blue-50' ? 'icon-blue' : act.bg === 'bg-emerald-50' ? 'icon-emerald' : act.bg === 'bg-violet-50' ? 'icon-violet' : act.bg === 'bg-rose-50' ? 'icon-rose' : 'icon-amber'}`}>
+                    <ActIcon weight="duotone" size={15} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-zinc-700 leading-snug">{act.label}</p>
@@ -449,7 +449,7 @@ export default function RoleDashboardPage({
                 <p className="text-sm font-semibold text-zinc-900 transition-colors group-hover:text-amber-600">{item.label}</p>
                 <p className="mt-1 flex-1 text-xs leading-relaxed text-zinc-500">{item.desc}</p>
                 <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-amber-200/60 bg-amber-50/60 px-2.5 py-1 text-[10px] font-medium text-amber-600 transition-colors group-hover:bg-amber-100 w-fit">
-                  <BadgeCheck className="h-3 w-3" /> Buka Modul
+                  <SealCheck weight="duotone" className="h-3.5 w-3.5" /> Buka Modul
                 </div>
               </div>
             </Link>

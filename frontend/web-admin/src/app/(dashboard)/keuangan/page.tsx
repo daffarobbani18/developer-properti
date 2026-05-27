@@ -2,14 +2,8 @@
 
 import Link from "next/link";
 import {
-  Wallet,
-  ArrowUpDown,
-  FileText,
-  Receipt,
-  TrendingUp,
-  DollarSign,
-  ArrowUpRight,
-} from "lucide-react";
+  CurrencyDollar, Wallet, ArrowUpRight, TrendUp, FileText, Receipt, ArrowsDownUp
+} from "@phosphor-icons/react";
 import {
   formatRupiah,
   laporanBulanan,
@@ -21,7 +15,7 @@ const menuItems = [
   {
     title: "Cashflow",
     description: "Analisis arus kas pemasukan & pengeluaran",
-    icon: ArrowUpDown,
+    icon: ArrowsDownUp,
     href: "/keuangan/cashflow",
     bg: "bg-blue-50",
     color: "text-blue-500",
@@ -45,7 +39,7 @@ const menuItems = [
   {
     title: "RAB & Realisasi",
     description: "Pantau anggaran vs realisasi biaya",
-    icon: TrendingUp,
+    icon: TrendUp,
     href: "/keuangan/rab",
     bg: "bg-violet-50",
     color: "text-violet-500",
@@ -70,7 +64,7 @@ export default function KeuanganPage() {
       value: formatRupiah(laporanBulanan.totalPemasukan),
       note: laporanBulanan.periode,
       noteColor: "text-zinc-500",
-      icon: TrendingUp,
+      icon: TrendUp,
       bg: "bg-emerald-50",
       color: "text-emerald-500",
     },
@@ -88,7 +82,7 @@ export default function KeuanganPage() {
       value: formatRupiah(laporanBulanan.labaKotor),
       note: `+${marginPct}% margin`,
       noteColor: "text-emerald-600",
-      icon: DollarSign,
+      icon: CurrencyDollar,
       bg: "bg-blue-50",
       color: "text-blue-500",
     },
@@ -137,7 +131,7 @@ export default function KeuanganPage() {
         <div className="hero-pattern absolute inset-0 pointer-events-none rounded-2xl opacity-50" />
         <div className="relative space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-amber-700">
-            <Wallet size={11} className="text-amber-500" /> Manajemen Keuangan
+            <Wallet weight="duotone" size={11} className="text-amber-500" /> Manajemen Keuangan
           </div>
           <h1 className="font-[family-name:var(--font-heading)] text-2xl font-normal tracking-tight text-zinc-900 md:text-3xl">
             Keuangan &amp; Laporan Keuangan
@@ -160,7 +154,7 @@ export default function KeuanganPage() {
               <div
                 className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.bg}`}
               >
-                <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                <stat.icon weight="duotone" className={`h-6 w-6 ${stat.color}`} />
               </div>
             </div>
             <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
@@ -174,7 +168,7 @@ export default function KeuanganPage() {
         ))}
       </div>
 
-      {/* Module Menu */}
+      {/* Module List */}
       <div>
         <h2 className="mb-4 text-lg font-bold text-zinc-900">
           Modul Keuangan
@@ -186,7 +180,7 @@ export default function KeuanganPage() {
                 <div
                   className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${item.bg} transition-transform duration-300 group-hover:scale-105`}
                 >
-                  <item.icon className={`h-6 w-6 ${item.color}`} />
+                  <item.icon weight="duotone" className={`h-6 w-6 ${item.color}`} />
                 </div>
                 <h3 className="text-sm font-bold text-zinc-900 transition-colors group-hover:text-amber-600">
                   {item.title}
@@ -195,7 +189,7 @@ export default function KeuanganPage() {
                   {item.description}
                 </p>
                 <div className="mt-4 flex items-center gap-1 text-[11px] font-medium text-amber-500 opacity-0 transition-opacity group-hover:opacity-100">
-                  <ArrowUpRight size={13} /> Buka Modul
+                  <ArrowUpRight weight="duotone" size={13} /> Buka Modul
                 </div>
               </div>
             </Link>

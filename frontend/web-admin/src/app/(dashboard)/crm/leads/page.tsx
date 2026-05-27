@@ -30,14 +30,14 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Search,
+  MagnifyingGlass,
   Plus,
   Phone,
-  Mail,
-  Filter,
+  Envelope,
+  Funnel,
   X,
   Eye,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import {
   dummyLeads,
   leadStatusLabel,
@@ -130,13 +130,13 @@ export default function LeadsPage() {
         ))}
       </div>
 
-      {/* Filters & Search Bar */}
+      {/* Filters & MagnifyingGlass Bar */}
       <Card className="mb-6 bg-white border border-zinc-200/50 shadow-sm rounded-xl">
         <CardContent className="p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            {/* Search */}
+            {/* MagnifyingGlass */}
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+              <MagnifyingGlass weight="duotone" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
               <Input
                 placeholder="Cari nama atau nomor HP..."
                 value={search}
@@ -145,10 +145,10 @@ export default function LeadsPage() {
               />
             </div>
 
-            {/* Status Filter */}
+            {/* Status Funnel */}
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-full sm:w-40 h-10 rounded-lg border-zinc-200/80 bg-white/60 text-sm">
-                <Filter className="mr-2 h-3.5 w-3.5 text-zinc-400" />
+                <Funnel weight="duotone" className="mr-2 h-3.5 w-3.5 text-zinc-400" />
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -161,7 +161,7 @@ export default function LeadsPage() {
               </SelectContent>
             </Select>
 
-            {/* Source Filter */}
+            {/* Source Funnel */}
             <Select value={filterSource} onValueChange={setFilterSource}>
               <SelectTrigger className="w-full sm:w-40 h-10 rounded-lg border-zinc-200/80 bg-white/60 text-sm">
                 <SelectValue placeholder="Sumber" />
@@ -184,7 +184,7 @@ export default function LeadsPage() {
                 onClick={clearFilters}
                 className="h-10 rounded-lg text-zinc-500 hover:text-zinc-700 hover:bg-white/90"
               >
-                <X className="mr-1 h-3.5 w-3.5" />
+                <X weight="duotone" className="mr-1 h-3.5 w-3.5" />
                 Reset
               </Button>
             )}
@@ -193,7 +193,7 @@ export default function LeadsPage() {
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
               <DialogTrigger asChild>
                 <Button className="h-10 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm shadow-blue-600/20 transition-all duration-200">
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus weight="duotone" className="mr-2 h-4 w-4" />
                   Tambah Lead
                 </Button>
               </DialogTrigger>
@@ -295,11 +295,11 @@ export default function LeadsPage() {
                     <TableCell>
                       <div className="flex flex-col gap-0.5">
                         <span className="inline-flex items-center gap-1 text-xs text-zinc-600">
-                          <Phone className="h-3 w-3" />
+                          <Phone weight="duotone" className="h-3 w-3" />
                           {lead.telepon}
                         </span>
                         <span className="inline-flex items-center gap-1 text-xs text-zinc-400">
-                          <Mail className="h-3 w-3" />
+                          <Envelope weight="duotone" className="h-3 w-3" />
                           {lead.email}
                         </span>
                       </div>
@@ -331,7 +331,7 @@ export default function LeadsPage() {
                           setSelectedLead(lead);
                         }}
                       >
-                        <Eye className="h-4 w-4 text-zinc-400" />
+                        <Eye weight="duotone" className="h-4 w-4 text-zinc-400" />
                       </Button>
                     </TableCell>
                   </TableRow>

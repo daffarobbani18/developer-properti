@@ -21,15 +21,15 @@ import {
 } from "@/components/ui/select";
 import {
   FileText,
-  Search,
-  Filter,
-  CheckCircle2,
+  MagnifyingGlass,
+  Funnel,
+  CheckCircle,
   XCircle,
   Clock,
-  Download,
+  DownloadSimple,
   Upload,
   Eye,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import {
   dummyTagihan,
   formatRupiah,
@@ -50,7 +50,7 @@ export default function TagihanPage() {
   const [selectedTagihan, setSelectedTagihan] = useState<Tagihan | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
 
-  // Filter tagihan
+  // Funnel tagihan
   const filteredTagihan = tagihanList.filter((t) => {
     const matchSearch =
       t.customerNama.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -95,7 +95,7 @@ export default function TagihanPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-50 rounded-lg">
-              <FileText className="w-6 h-6 text-green-600" />
+              <FileText weight="duotone" className="w-6 h-6 text-green-600" />
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
@@ -108,7 +108,7 @@ export default function TagihanPage() {
           </div>
 
           <Button className="bg-green-600 hover:bg-green-700 text-white">
-            <Download className="w-4 h-4 mr-2" />
+            <DownloadSimple weight="duotone" className="w-4 h-4 mr-2" />
             Export Laporan
           </Button>
         </div>
@@ -121,7 +121,7 @@ export default function TagihanPage() {
                 <span className="text-sm font-medium text-zinc-600">
                   Belum Bayar
                 </span>
-                <Clock className="w-5 h-5 text-amber-600" />
+                <Clock weight="duotone" className="w-5 h-5 text-amber-600" />
               </div>
               <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalBelumBayar)}
@@ -139,7 +139,7 @@ export default function TagihanPage() {
                 <span className="text-sm font-medium text-zinc-600">
                   Terlambat
                 </span>
-                <XCircle className="w-5 h-5 text-red-600" />
+                <XCircle weight="duotone" className="w-5 h-5 text-red-600" />
               </div>
               <p className="text-2xl font-bold text-red-700">
                 {formatRupiah(totalTerlambat)}
@@ -156,7 +156,7 @@ export default function TagihanPage() {
                 <span className="text-sm font-medium text-zinc-600">
                   Lunas Bulan Ini
                 </span>
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                <CheckCircle weight="duotone" className="w-5 h-5 text-green-600" />
               </div>
               <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalLunas)}
@@ -173,7 +173,7 @@ export default function TagihanPage() {
                 <span className="text-sm font-medium text-zinc-600">
                   Total Piutang
                 </span>
-                <FileText className="w-5 h-5 text-blue-600" />
+                <FileText weight="duotone" className="w-5 h-5 text-blue-600" />
               </div>
               <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalBelumBayar + totalTerlambat)}
@@ -183,12 +183,12 @@ export default function TagihanPage() {
           </Card>
         </div>
 
-        {/* Filters & Search */}
+        {/* Filters & MagnifyingGlass */}
         <Card className="clean-glass">
           <div className="p-4 space-y-4">
             <div className="flex flex-col md:flex-row gap-3">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                <MagnifyingGlass weight="duotone" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                 <Input
                   placeholder="Cari nama customer, nomor tagihan, atau unit..."
                   value={searchQuery}
@@ -199,7 +199,7 @@ export default function TagihanPage() {
 
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="w-full md:w-48 clean-glass">
-                  <Filter className="w-4 h-4 mr-2" />
+                  <Funnel weight="duotone" className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -212,7 +212,7 @@ export default function TagihanPage() {
 
               <Select value={filterTipe} onValueChange={setFilterTipe}>
                 <SelectTrigger className="w-full md:w-48 clean-glass">
-                  <FileText className="w-4 h-4 mr-2" />
+                  <FileText weight="duotone" className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="Tipe" />
                 </SelectTrigger>
                 <SelectContent>
@@ -320,7 +320,7 @@ export default function TagihanPage() {
                         size="sm"
                         onClick={() => openDetail(tagihan)}
                       >
-                        <Eye className="w-4 h-4" />
+                        <Eye weight="duotone" className="w-4 h-4" />
                       </Button>
                     </td>
                   </tr>
@@ -331,7 +331,7 @@ export default function TagihanPage() {
 
           {filteredTagihan.length === 0 && (
             <div className="p-12 text-center">
-              <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <FileText weight="duotone" className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-zinc-600">Tidak ada tagihan ditemukan</p>
             </div>
           )}
@@ -456,14 +456,14 @@ export default function TagihanPage() {
                     </label>
                     <div className="flex gap-3">
                       <Button variant="outline" className="flex-1 clean-glass">
-                        <Upload className="w-4 h-4 mr-2" />
+                        <Upload weight="duotone" className="w-4 h-4 mr-2" />
                         Upload Bukti
                       </Button>
                       <Button
                         onClick={handleKonfirmasiPembayaran}
                         className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                       >
-                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                        <CheckCircle weight="duotone" className="w-4 h-4 mr-2" />
                         Konfirmasi Lunas
                       </Button>
                     </div>
@@ -471,7 +471,7 @@ export default function TagihanPage() {
                 ) : (
                   <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
+                      <CheckCircle weight="duotone" className="w-5 h-5 text-green-600" />
                       <div>
                         <p className="font-semibold text-green-900">
                           Tagihan Sudah Lunas

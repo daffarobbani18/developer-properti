@@ -30,12 +30,8 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import {
-  Plus,
-  Eye,
-  CreditCard,
-  FileText,
-  ArrowRight,
-} from "lucide-react";
+  Eye, CreditCard, FileText, Plus, ArrowRight
+} from "@phosphor-icons/react";
 import {
   dummyTransaksi,
   skemaLabel,
@@ -93,7 +89,7 @@ export default function TransaksiPage() {
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
             <Button className="h-10 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm shadow-blue-600/20 transition-all duration-200">
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus weight="duotone" className="mr-2 h-4 w-4" />
               Booking Baru
             </Button>
           </DialogTrigger>
@@ -249,7 +245,7 @@ export default function TransaksiPage() {
                         setSelectedTrx(trx);
                       }}
                     >
-                      <Eye className="h-4 w-4 text-zinc-400" />
+                      <Eye weight="duotone" className="h-4 w-4 text-zinc-400" />
                     </Button>
                   </TableCell>
                 </TableRow>

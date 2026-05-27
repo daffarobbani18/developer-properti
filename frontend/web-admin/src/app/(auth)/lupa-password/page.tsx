@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Mail } from "lucide-react";
+import {
+  ArrowLeft, Envelope
+} from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,7 +59,7 @@ export default function LupaPasswordPage() {
             /* Success State */
             <div className="text-center py-4">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 mb-4">
-                <Mail className="h-6 w-6 text-emerald-600" />
+                <Envelope weight="duotone" className="h-6 w-6 text-emerald-600" />
               </div>
               <h3 className="font-[family-name:var(--font-heading)] text-lg font-semibold text-slate-900 mb-1">
                 Email Terkirim
@@ -72,7 +74,7 @@ export default function LupaPasswordPage() {
                   variant="outline"
                   className="rounded-lg border-slate-200/80 hover:bg-white/90 transition-all duration-200"
                 >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  <ArrowLeft weight="duotone" className="mr-2 h-4 w-4" />
                   Kembali ke Login
                 </Button>
               </Link>
@@ -123,7 +125,7 @@ export default function LupaPasswordPage() {
                   href="/login"
                   className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200"
                 >
-                  <ArrowLeft className="h-3.5 w-3.5" />
+                  <ArrowLeft weight="duotone" className="h-3.5 w-3.5" />
                   Kembali ke Login
                 </Link>
               </div>

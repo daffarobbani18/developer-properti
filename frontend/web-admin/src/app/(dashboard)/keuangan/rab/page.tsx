@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle2,
-  Download,
+  TrendUp,
+  Warning,
+  CheckCircle,
+  DownloadSimple,
   FileText,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import {
   dummyRAB,
   formatRupiah,
@@ -31,7 +31,7 @@ export default function RABPage() {
   const persentaseGlobal = (totalRealisasi / totalAnggaran) * 100;
   const sisaAnggaran = totalAnggaran - totalRealisasi;
 
-  // Filter by status
+  // Funnel by status
   const filteredRAB = dummyRAB.filter((item) => {
     if (selectedTab === "warning") return item.persentase >= 80;
     if (selectedTab === "safe") return item.persentase < 80;
@@ -49,8 +49,8 @@ export default function RABPage() {
 
   const getStatusIcon = (percentage: number) => {
     if (percentage >= 80)
-      return <AlertTriangle className="w-4 h-4 text-amber-600" />;
-    return <CheckCircle2 className="w-4 h-4 text-green-600" />;
+      return <Warning weight="duotone" className="w-4 h-4 text-amber-600" />;
+    return <CheckCircle weight="duotone" className="w-4 h-4 text-green-600" />;
   };
 
   const getProgressColor = (percentage: number) => {
@@ -67,7 +67,7 @@ export default function RABPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-purple-50 rounded-lg">
-              <TrendingUp className="w-6 h-6 text-purple-600" />
+              <TrendUp weight="duotone" className="w-6 h-6 text-purple-600" />
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
@@ -80,7 +80,7 @@ export default function RABPage() {
           </div>
 
           <Button variant="outline" size="sm" className="clean-glass">
-            <Download className="w-4 h-4 mr-2" />
+            <DownloadSimple weight="duotone" className="w-4 h-4 mr-2" />
             Export Laporan
           </Button>
         </div>
@@ -93,7 +93,7 @@ export default function RABPage() {
                 <span className="text-sm font-medium text-zinc-600">
                   Total Anggaran (RAB)
                 </span>
-                <FileText className="w-5 h-5 text-blue-600" />
+                <FileText weight="duotone" className="w-5 h-5 text-blue-600" />
               </div>
               <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalAnggaran)}
@@ -110,7 +110,7 @@ export default function RABPage() {
                 <span className="text-sm font-medium text-zinc-600">
                   Total Realisasi
                 </span>
-                <TrendingUp className="w-5 h-5 text-purple-600" />
+                <TrendUp weight="duotone" className="w-5 h-5 text-purple-600" />
               </div>
               <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalRealisasi)}
@@ -127,7 +127,7 @@ export default function RABPage() {
                 <span className="text-sm font-medium text-zinc-600">
                   Sisa Anggaran
                 </span>
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                <CheckCircle weight="duotone" className="w-5 h-5 text-green-600" />
               </div>
               <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(sisaAnggaran)}
@@ -144,7 +144,7 @@ export default function RABPage() {
                 <span className="text-sm font-medium text-zinc-600">
                   Pos Peringatan
                 </span>
-                <AlertTriangle className="w-5 h-5 text-amber-600" />
+                <Warning weight="duotone" className="w-5 h-5 text-amber-600" />
               </div>
               <p className="text-2xl font-bold text-zinc-900">{warningCount}</p>
               <p className="text-xs text-amber-600 mt-1">
@@ -183,7 +183,7 @@ export default function RABPage() {
           </div>
         </Card>
 
-        {/* Filter Tabs */}
+        {/* Funnel Tabs */}
         <div className="flex gap-2 flex-wrap">
           <Button
             variant={selectedTab === "all" ? "default" : "outline"}
@@ -203,7 +203,7 @@ export default function RABPage() {
                 : ""
             }
           >
-            <AlertTriangle className="w-4 h-4 mr-2" />
+            <Warning weight="duotone" className="w-4 h-4 mr-2" />
             Peringatan ({warningCount})
           </Button>
           <Button
@@ -213,7 +213,7 @@ export default function RABPage() {
               selectedTab === "safe" ? "bg-green-600 hover:bg-green-700" : ""
             }
           >
-            <CheckCircle2 className="w-4 h-4 mr-2" />
+            <CheckCircle weight="duotone" className="w-4 h-4 mr-2" />
             Aman ({dummyRAB.length - warningCount})
           </Button>
         </div>
@@ -292,7 +292,7 @@ export default function RABPage() {
                 {/* Warning */}
                 {item.persentase >= 90 && (
                   <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                    <Warning weight="duotone" className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-red-700">
                       Anggaran hampir habis! Perlu persetujuan untuk pengeluaran
                       tambahan di pos ini.
@@ -302,7 +302,7 @@ export default function RABPage() {
 
                 {item.persentase >= 80 && item.persentase < 90 && (
                   <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <Warning weight="duotone" className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-amber-700">
                       Mendekati batas anggaran. Pantau pengeluaran di pos ini.
                     </p>
@@ -390,9 +390,9 @@ export default function RABPage() {
                     </td>
                     <td className="py-3 px-4 text-center">
                       {item.persentase >= 80 ? (
-                        <AlertTriangle className="w-5 h-5 text-amber-600 mx-auto" />
+                        <Warning weight="duotone" className="w-5 h-5 text-amber-600 mx-auto" />
                       ) : (
-                        <CheckCircle2 className="w-5 h-5 text-green-600 mx-auto" />
+                        <CheckCircle weight="duotone" className="w-5 h-5 text-green-600 mx-auto" />
                       )}
                     </td>
                   </tr>

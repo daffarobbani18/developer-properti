@@ -14,18 +14,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Building2,
-  ChevronRight,
-  AlertTriangle,
+  Buildings,
+  CaretRight,
+  Warning,
   ArrowLeft,
-  Search,
-  Filter,
-  CheckCircle2,
+  MagnifyingGlass,
+  Funnel,
+  CheckCircle,
   Clock,
   User,
   Calendar,
   Plus,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import {
   getProyekById,
   getKendalaByProyek,
@@ -68,7 +68,7 @@ export default function KendalaPage({ params }: PageProps) {
     );
   }
 
-  // Filter
+  // Funnel
   const filteredKendala = allKendala.filter((k) => {
     const matchSearch =
       k.judul.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -92,14 +92,14 @@ export default function KendalaPage({ params }: PageProps) {
           <Link href="/proyek" className="hover:text-blue-600 transition-colors">
             Proyek
           </Link>
-          <ChevronRight className="w-4 h-4" />
+          <CaretRight weight="duotone" className="w-4 h-4" />
           <Link
             href={`/proyek/${id}/unit`}
             className="hover:text-blue-600 transition-colors"
           >
             {proyek.nama}
           </Link>
-          <ChevronRight className="w-4 h-4" />
+          <CaretRight weight="duotone" className="w-4 h-4" />
           <span className="text-zinc-900 font-medium">Laporan Kendala</span>
         </div>
 
@@ -108,11 +108,11 @@ export default function KendalaPage({ params }: PageProps) {
           <div className="flex items-center gap-3">
             <Link href={`/proyek/${id}/unit`}>
               <Button variant="outline" size="icon" className="clean-glass">
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft weight="duotone" className="w-4 h-4" />
               </Button>
             </Link>
             <div className="p-2 bg-red-50 rounded-lg">
-              <AlertTriangle className="w-6 h-6 text-red-600" />
+              <Warning weight="duotone" className="w-6 h-6 text-red-600" />
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
@@ -123,7 +123,7 @@ export default function KendalaPage({ params }: PageProps) {
           </div>
 
           <Button className="bg-red-600 hover:bg-red-700">
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus weight="duotone" className="w-4 h-4 mr-2" />
             Lapor Kendala
           </Button>
         </div>
@@ -134,7 +134,7 @@ export default function KendalaPage({ params }: PageProps) {
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-zinc-600">Baru</span>
-                <AlertTriangle className="w-5 h-5 text-red-600" />
+                <Warning weight="duotone" className="w-5 h-5 text-red-600" />
               </div>
               <p className="text-2xl font-bold text-zinc-900">{totalBaru}</p>
             </div>
@@ -146,7 +146,7 @@ export default function KendalaPage({ params }: PageProps) {
                 <span className="text-sm font-medium text-zinc-600">
                   Ditindaklanjuti
                 </span>
-                <Clock className="w-5 h-5 text-amber-600" />
+                <Clock weight="duotone" className="w-5 h-5 text-amber-600" />
               </div>
               <p className="text-2xl font-bold text-zinc-900">{totalDitindak}</p>
             </div>
@@ -156,7 +156,7 @@ export default function KendalaPage({ params }: PageProps) {
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-zinc-600">Selesai</span>
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                <CheckCircle weight="duotone" className="w-5 h-5 text-green-600" />
               </div>
               <p className="text-2xl font-bold text-zinc-900">{totalSelesai}</p>
             </div>
@@ -168,7 +168,7 @@ export default function KendalaPage({ params }: PageProps) {
                 <span className="text-sm font-medium text-zinc-600">
                   Prioritas Tinggi
                 </span>
-                <AlertTriangle className="w-5 h-5 text-red-600" />
+                <Warning weight="duotone" className="w-5 h-5 text-red-600" />
               </div>
               <p className="text-2xl font-bold text-zinc-900">{totalTinggi}</p>
             </div>
@@ -179,7 +179,7 @@ export default function KendalaPage({ params }: PageProps) {
         <Card className="clean-glass">
           <div className="p-4 flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+              <MagnifyingGlass weight="duotone" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
               <Input
                 placeholder="Cari kendala..."
                 value={searchQuery}
@@ -190,7 +190,7 @@ export default function KendalaPage({ params }: PageProps) {
 
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-full sm:w-48 clean-glass">
-                <Filter className="w-4 h-4 mr-2" />
+                <Funnel weight="duotone" className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -203,7 +203,7 @@ export default function KendalaPage({ params }: PageProps) {
 
             <Select value={filterKategori} onValueChange={setFilterKategori}>
               <SelectTrigger className="w-full sm:w-48 clean-glass">
-                <Filter className="w-4 h-4 mr-2" />
+                <Funnel weight="duotone" className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="Kategori" />
               </SelectTrigger>
               <SelectContent>
@@ -267,7 +267,7 @@ export default function KendalaPage({ params }: PageProps) {
                   {/* Info Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                     <div className="flex items-center gap-2 text-zinc-600">
-                      <Calendar className="w-4 h-4" />
+                      <Calendar weight="duotone" className="w-4 h-4" />
                       <div>
                         <p className="text-xs text-zinc-500">Tanggal Lapor</p>
                         <p className="font-medium text-zinc-900">
@@ -277,7 +277,7 @@ export default function KendalaPage({ params }: PageProps) {
                     </div>
 
                     <div className="flex items-center gap-2 text-zinc-600">
-                      <User className="w-4 h-4" />
+                      <User weight="duotone" className="w-4 h-4" />
                       <div>
                         <p className="text-xs text-zinc-500">Dilaporkan Oleh</p>
                         <p className="font-medium text-zinc-900">
@@ -287,7 +287,7 @@ export default function KendalaPage({ params }: PageProps) {
                     </div>
 
                     <div className="flex items-center gap-2 text-zinc-600">
-                      <Filter className="w-4 h-4" />
+                      <Funnel weight="duotone" className="w-4 h-4" />
                       <div>
                         <p className="text-xs text-zinc-500">Kategori</p>
                         <p className="font-medium text-zinc-900">
@@ -301,7 +301,7 @@ export default function KendalaPage({ params }: PageProps) {
                   {kendala.ditindaklanjutiOleh && (
                     <div className="pt-3 border-t border-zinc-200/60">
                       <div className="flex items-center gap-2 text-sm">
-                        <User className="w-4 h-4 text-amber-600" />
+                        <User weight="duotone" className="w-4 h-4 text-amber-600" />
                         <span className="text-zinc-600">
                           Ditindaklanjuti oleh:{" "}
                           <span className="font-medium text-zinc-900">
@@ -329,7 +329,7 @@ export default function KendalaPage({ params }: PageProps) {
             ))
           ) : (
             <Card className="clean-glass p-8 text-center">
-              <AlertTriangle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <Warning weight="duotone" className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-zinc-600">Tidak ada kendala ditemukan.</p>
             </Card>
           )}

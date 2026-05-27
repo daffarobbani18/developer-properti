@@ -3,9 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { 
-  ArrowUpRight, FileCheck2, ShieldCheck, Clock3, AlertTriangle, 
-  BadgeCheck, FileText, Scale, Search, Filter, Eye
-} from "lucide-react";
+  ArrowUpRight, FileText, ShieldCheck, Clock, Warning, 
+  SealCheck, Scales, MagnifyingGlass, Funnel, Eye
+} from "@phosphor-icons/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,9 +20,9 @@ import {
 } from "@/lib/legal-data";
 
 const legalStats = [
-  { label: "Izin Aktif", value: "12", note: "dari 14 dokumen terdaftar", icon: FileCheck2, bg: "bg-emerald-50", color: "text-emerald-500" },
-  { label: "Segera Expired", value: "2", note: "perlu follow-up segera", icon: Clock3, bg: "bg-amber-50", color: "text-amber-500" },
-  { label: "Dokumen Risiko", value: "1", note: "butuh revisi lampiran", icon: AlertTriangle, bg: "bg-rose-50", color: "text-rose-500" },
+  { label: "Izin Aktif", value: "12", note: "dari 14 dokumen terdaftar", icon: FileText, bg: "bg-emerald-50", color: "text-emerald-500" },
+  { label: "Segera Expired", value: "2", note: "perlu follow-up segera", icon: Clock, bg: "bg-amber-50", color: "text-amber-500" },
+  { label: "Dokumen Risiko", value: "1", note: "butuh revisi lampiran", icon: Warning, bg: "bg-rose-50", color: "text-rose-500" },
 ];
 
 const legalTasks = [
@@ -59,7 +59,7 @@ export default function LegalPage() {
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-violet-700">
-              <Scale size={11} className="text-violet-500" /> Legal &amp; Perizinan
+              <Scales weight="bold" size={11} className="text-violet-500" /> Legal &amp; Perizinan
             </div>
             <h1 className="font-[family-name:var(--font-heading)] text-2xl font-normal tracking-tight text-zinc-900 md:text-3xl">Monitoring Dokumen &amp; Perizinan</h1>
             <p className="max-w-2xl text-sm text-zinc-500 leading-relaxed">Kelola dokumen hukum (KTP/NPWP pelanggan), proses PPJB, AJB, dan balik nama sertifikat unit.</p>
@@ -83,7 +83,9 @@ export default function LegalPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {legalStats.map((stat) => (
               <div key={stat.label} className="stat-card group">
-                <div className="mb-4"><div className={`flex h-11 w-11 items-center justify-center rounded-xl ${stat.bg}`}><stat.icon className={`h-5 w-5 ${stat.color}`} /></div></div>
+                <div className="mb-4"><div className={`icon-wrapper h-12 w-12 ${stat.bg === 'bg-emerald-50' ? 'icon-emerald' : stat.bg === 'bg-amber-50' ? 'icon-amber' : 'icon-rose'}`}>
+                <stat.icon weight="duotone" size={22} />
+              </div></div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">{stat.label}</p>
                 <p className="mt-1.5 text-2xl font-bold text-zinc-900">{stat.value}</p>
                 <p className="mt-1 text-xs text-zinc-500">{stat.note}</p>
@@ -115,7 +117,7 @@ export default function LegalPage() {
             <div className="overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm">
               <div className="border-b border-zinc-100 px-6 py-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50"><BadgeCheck size={16} className="text-emerald-500" /></div>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50"><ShieldCheck weight="duotone" size={18} className="text-emerald-600 mb-2" /></div>
                   <div><p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Panduan</p><h3 className="text-sm font-bold text-zinc-900">Langkah Validasi</h3></div>
                 </div>
               </div>
@@ -135,7 +137,7 @@ export default function LegalPage() {
           <Card className="p-4 border-zinc-200/60 shadow-sm rounded-xl bg-white">
             <div className="flex flex-col md:flex-row gap-4 mb-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                 <Input
                   placeholder="Cari nama dokumen atau instansi..."
                   value={searchDoc}
@@ -145,7 +147,7 @@ export default function LegalPage() {
               </div>
               <Select defaultValue="all">
                 <SelectTrigger className="w-full md:w-48 rounded-lg border-zinc-200/80 bg-white">
-                  <Filter className="w-4 h-4 mr-2" />
+                  <Funnel className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -188,8 +190,8 @@ export default function LegalPage() {
                         </Badge>
                       </td>
                       <td className="p-4">
-                        <Button variant="ghost" size="sm" className="h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                          <Eye className="w-4 h-4 mr-1" /> Detail
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg">
+                          <Eye weight="bold" size={16} />
                         </Button>
                       </td>
                     </tr>
@@ -205,7 +207,7 @@ export default function LegalPage() {
           <Card className="p-4 border-zinc-200/60 shadow-sm rounded-xl bg-white">
             <div className="flex flex-col md:flex-row gap-4 mb-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                 <Input
                   placeholder="Cari nama pembeli atau unit..."
                   value={searchUnit}

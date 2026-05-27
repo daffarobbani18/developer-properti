@@ -7,14 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import {
-  Building2,
-  Home,
-  ChevronRight,
-  AlertCircle,
-  CheckCircle2,
+  Buildings,
+  House,
+  CaretRight,
+  WarningCircle,
+  CheckCircle,
   Clock,
   ArrowLeft,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import {
   getProyekById,
   getUnitByProyek,
@@ -36,7 +36,7 @@ export default function UnitProgressPage({ params }: PageProps) {
       <div className="space-y-6">
         <div className="">
           <Card className="clean-glass p-8 text-center">
-            <AlertCircle className="w-12 h-12 text-zinc-400 mx-auto mb-3" />
+            <WarningCircle weight="duotone" className="w-12 h-12 text-zinc-400 mx-auto mb-3" />
             <h2 className="text-xl font-semibold text-zinc-900">
               Proyek Tidak Ditemukan
             </h2>
@@ -72,9 +72,9 @@ export default function UnitProgressPage({ params }: PageProps) {
           >
             Proyek
           </Link>
-          <ChevronRight className="w-4 h-4" />
+          <CaretRight weight="duotone" className="w-4 h-4" />
           <span className="text-zinc-900 font-medium">{proyek.nama}</span>
-          <ChevronRight className="w-4 h-4" />
+          <CaretRight weight="duotone" className="w-4 h-4" />
           <span className="text-zinc-900 font-medium">Unit</span>
         </div>
 
@@ -83,11 +83,11 @@ export default function UnitProgressPage({ params }: PageProps) {
           <div className="flex items-center gap-3">
             <Link href="/proyek">
               <Button variant="outline" size="icon" className="clean-glass">
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft weight="duotone" className="w-4 h-4" />
               </Button>
             </Link>
             <div className="p-2 bg-blue-50 rounded-lg">
-              <Building2 className="w-6 h-6 text-blue-600" />
+              <Buildings weight="duotone" className="w-6 h-6 text-blue-600" />
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
@@ -105,7 +105,7 @@ export default function UnitProgressPage({ params }: PageProps) {
           <Card className="clean-glass">
             <div className="p-6 flex items-center gap-4">
               <div className="p-3 bg-green-50 rounded-lg">
-                <CheckCircle2 className="w-6 h-6 text-green-600" />
+                <CheckCircle weight="duotone" className="w-6 h-6 text-green-600" />
               </div>
               <div>
                 <p className="text-sm text-zinc-600">Selesai (100%)</p>
@@ -119,7 +119,7 @@ export default function UnitProgressPage({ params }: PageProps) {
           <Card className="clean-glass">
             <div className="p-6 flex items-center gap-4">
               <div className="p-3 bg-amber-50 rounded-lg">
-                <Clock className="w-6 h-6 text-amber-600" />
+                <Clock weight="duotone" className="w-6 h-6 text-amber-600" />
               </div>
               <div>
                 <p className="text-sm text-zinc-600">Perlu Perhatian</p>
@@ -137,7 +137,7 @@ export default function UnitProgressPage({ params }: PageProps) {
           <Card className="clean-glass">
             <div className="p-6 flex items-center gap-4">
               <div className="p-3 bg-blue-50 rounded-lg">
-                <Home className="w-6 h-6 text-blue-600" />
+                <House weight="duotone" className="w-6 h-6 text-blue-600" />
               </div>
               <div>
                 <p className="text-sm text-zinc-600">On Track</p>
@@ -171,9 +171,9 @@ export default function UnitProgressPage({ params }: PageProps) {
 
 function UnitCard({ unit, proyekId }: { unit: Unit; proyekId: string }) {
   const statusIcon = {
-    on_track: CheckCircle2,
+    on_track: CheckCircle,
     warning: Clock,
-    terlambat: AlertCircle,
+    terlambat: WarningCircle,
   };
 
   const statusText = {
@@ -199,7 +199,7 @@ function UnitCard({ unit, proyekId }: { unit: Unit; proyekId: string }) {
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
-              <Home className="w-5 h-5 text-zinc-600" />
+              <House weight="duotone" className="w-5 h-5 text-zinc-600" />
               <div>
                 <h3 className="font-bold text-lg text-zinc-900">
                   {unit.nomorUnit}
@@ -207,7 +207,7 @@ function UnitCard({ unit, proyekId }: { unit: Unit; proyekId: string }) {
                 <p className="text-xs text-zinc-600">{unit.tipe}</p>
               </div>
             </div>
-            <Icon className={`w-5 h-5 ${statusIconColor[unit.status]}`} />
+            <Icon weight="duotone" className={`w-5 h-5 ${statusIconColor[unit.status]}`} />
           </div>
 
           {/* Progress */}

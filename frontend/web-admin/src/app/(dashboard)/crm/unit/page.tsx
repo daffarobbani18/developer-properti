@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { LayoutGrid, List, Search, Home, Maximize2 } from "lucide-react";
+import { SquaresFour, List, MagnifyingGlass, House, CornersOut } from "@phosphor-icons/react";
 import {
   dummyUnits,
   unitStatusLabel,
@@ -106,7 +106,7 @@ export default function UnitPage() {
         <CardContent className="p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+              <MagnifyingGlass weight="duotone" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
               <Input
                 placeholder="Cari nomor unit..."
                 value={search}
@@ -155,7 +155,7 @@ export default function UnitPage() {
                     : "text-zinc-500 hover:text-zinc-700"
                 }`}
               >
-                <LayoutGrid className="h-4 w-4" />
+                <SquaresFour weight="duotone" className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
@@ -167,7 +167,7 @@ export default function UnitPage() {
                     : "text-zinc-500 hover:text-zinc-700"
                 }`}
               >
-                <List className="h-4 w-4" />
+                <List weight="duotone" className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function UnitPage() {
                 >
                   <CardHeader className="pb-3">
                     <CardTitle className="font-[family-name:var(--font-heading)] text-base font-semibold text-zinc-900 flex items-center gap-2">
-                      <Home className="h-4 w-4 text-blue-600" />
+                      <House weight="duotone" className="h-4 w-4 text-blue-600" />
                       Blok {blok}
                       <Badge className="text-xs bg-zinc-100 text-zinc-600 font-medium rounded-md border-0 ml-1">
                         {blokUnits.length} unit
@@ -341,8 +341,8 @@ export default function UnitPage() {
                     Booking Unit Ini
                   </Button>
                   <Button variant="outline" className="rounded-lg border-zinc-200/80">
-                    <Maximize2 className="mr-2 h-4 w-4" />
-                    Edit Harga
+                    <CornersOut weight="duotone" className="mr-2 h-4 w-4" />
+                    PencilSimple Harga
                   </Button>
                 </div>
               )}

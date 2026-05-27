@@ -6,16 +6,16 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Building2,
-  ChevronRight,
+  Buildings,
+  CaretRight,
   ArrowLeft,
-  Users,
+  UsersThree,
   Phone,
-  Mail,
+  Envelope,
   MapPin,
   Plus,
   UserPlus,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import {
   getProyekById,
   getSiteEngineerByProyek,
@@ -55,14 +55,14 @@ export default function TimPage({ params }: PageProps) {
           <Link href="/proyek" className="hover:text-blue-600 transition-colors">
             Proyek
           </Link>
-          <ChevronRight className="w-4 h-4" />
+          <CaretRight weight="duotone" className="w-4 h-4" />
           <Link
             href={`/proyek/${id}/unit`}
             className="hover:text-blue-600 transition-colors"
           >
             {proyek.nama}
           </Link>
-          <ChevronRight className="w-4 h-4" />
+          <CaretRight weight="duotone" className="w-4 h-4" />
           <span className="text-zinc-900 font-medium">Tim Lapangan</span>
         </div>
 
@@ -71,11 +71,11 @@ export default function TimPage({ params }: PageProps) {
           <div className="flex items-center gap-3">
             <Link href={`/proyek/${id}/unit`}>
               <Button variant="outline" size="icon" className="clean-glass">
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft weight="duotone" className="w-4 h-4" />
               </Button>
             </Link>
             <div className="p-2 bg-blue-50 rounded-lg">
-              <Users className="w-6 h-6 text-blue-600" />
+              <UsersThree weight="duotone" className="w-6 h-6 text-blue-600" />
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
@@ -86,7 +86,7 @@ export default function TimPage({ params }: PageProps) {
           </div>
 
           <Button className="bg-blue-600 hover:bg-blue-700">
-            <UserPlus className="w-4 h-4 mr-2" />
+            <UserPlus weight="duotone" className="w-4 h-4 mr-2" />
             Assign Site Engineer
           </Button>
         </div>
@@ -133,7 +133,7 @@ export default function TimPage({ params }: PageProps) {
                       <p className="text-sm text-zinc-600">Site Engineer</p>
                       {engineer.blokTugas && (
                         <Badge className="mt-2 bg-blue-100 text-blue-700 border-blue-200 border text-xs font-medium rounded-md">
-                          <MapPin className="w-3 h-3 mr-1" />
+                          <MapPin weight="duotone" className="w-3 h-3 mr-1" />
                           Blok {engineer.blokTugas}
                         </Badge>
                       )}
@@ -143,13 +143,13 @@ export default function TimPage({ params }: PageProps) {
                   {/* Contact Info */}
                   <div className="space-y-2 pt-3 border-t border-zinc-200/60">
                     <div className="flex items-center gap-3 text-sm text-zinc-600">
-                      <Phone className="w-4 h-4 text-zinc-400" />
+                      <Phone weight="duotone" className="w-4 h-4 text-zinc-400" />
                       <span className="font-medium text-zinc-900">
                         {engineer.telepon}
                       </span>
                     </div>
                     <div className="flex items-center gap-3 text-sm text-zinc-600">
-                      <Mail className="w-4 h-4 text-zinc-400" />
+                      <Envelope weight="duotone" className="w-4 h-4 text-zinc-400" />
                       <span className="font-medium text-zinc-900">
                         {engineer.email}
                       </span>
@@ -180,10 +180,10 @@ export default function TimPage({ params }: PageProps) {
           </div>
         ) : (
           <Card className="clean-glass p-8 text-center">
-            <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+            <UsersThree weight="duotone" className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <p className="text-zinc-600">Belum ada Site Engineer ditugaskan.</p>
             <Button className="mt-4 bg-blue-600 hover:bg-blue-700">
-              <UserPlus className="w-4 h-4 mr-2" />
+              <UserPlus weight="duotone" className="w-4 h-4 mr-2" />
               Assign Site Engineer
             </Button>
           </Card>

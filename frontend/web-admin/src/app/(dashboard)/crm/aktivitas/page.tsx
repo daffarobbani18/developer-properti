@@ -23,14 +23,14 @@ import {
 } from "@/components/ui/dialog";
 import {
   Phone,
-  MessageCircle,
+  ChatCircle,
   MapPin,
-  Mail,
-  Users,
+  Envelope,
+  UsersThree,
   Plus,
-  CalendarClock,
+  CalendarCheck,
   User,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import {
   dummyAktivitas,
   tipeAktivitasLabel,
@@ -41,10 +41,10 @@ import {
 
 const tipeIcons: Record<TipeAktivitas, React.ElementType> = {
   telepon: Phone,
-  whatsapp: MessageCircle,
+  whatsapp: ChatCircle,
   kunjungan: MapPin,
-  email: Mail,
-  meeting: Users,
+  email: Envelope,
+  meeting: UsersThree,
 };
 
 const allTipes: TipeAktivitas[] = [
@@ -97,7 +97,7 @@ export default function AktivitasPage() {
         <h1 className="text-2xl font-bold text-zinc-900">CRM — Aktivitas Sales</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main — Activity Timeline */}
+          {/* Main — Pulse Timeline */}
           <div className="lg:col-span-2 space-y-6">
             {/* Filters */}
           <Card className="bg-white/80 backdrop-blur-md border border-zinc-200/50 shadow-sm rounded-xl">
@@ -133,7 +133,7 @@ export default function AktivitasPage() {
                 <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
                   <DialogTrigger asChild>
                     <Button className="h-10 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm shadow-blue-600/20 transition-all duration-200">
-                      <Plus className="mr-2 h-4 w-4" />
+                      <Plus weight="duotone" className="mr-2 h-4 w-4" />
                       Catat Aktivitas
                     </Button>
                   </DialogTrigger>
@@ -213,7 +213,7 @@ export default function AktivitasPage() {
             </CardContent>
           </Card>
 
-          {/* Activity Timeline */}
+          {/* Pulse Timeline */}
           {grouped.length === 0 ? (
             <Card className="bg-white/80 backdrop-blur-md border border-zinc-200/50 shadow-sm rounded-xl">
               <CardContent className="py-12 text-center text-sm text-zinc-400">
@@ -244,7 +244,7 @@ export default function AktivitasPage() {
                             <div
                               className={`flex h-9 w-9 items-center justify-center rounded-lg shrink-0 ${tipeAktivitasColor[a.tipe]}`}
                             >
-                              <Icon className="h-4 w-4" />
+                              <Icon weight="duotone" className="h-4 w-4" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-2">
@@ -259,7 +259,7 @@ export default function AktivitasPage() {
                                   </Badge>
                                 </div>
                                 <div className="flex items-center gap-1.5 text-xs text-zinc-400 shrink-0">
-                                  <User className="h-3 w-3" />
+                                  <User weight="duotone" className="h-3 w-3" />
                                   {a.salesPIC}
                                 </div>
                               </div>
@@ -268,7 +268,7 @@ export default function AktivitasPage() {
                               </p>
                               {a.jadwalFollowUp && (
                                 <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-blue-50/80 border border-blue-200/40 px-2.5 py-1 text-xs text-blue-600">
-                                  <CalendarClock className="h-3 w-3" />
+                                  <CalendarCheck weight="duotone" className="h-3 w-3" />
                                   Follow up: {formatTanggal(a.jadwalFollowUp)}
                                 </div>
                               )}
@@ -289,7 +289,7 @@ export default function AktivitasPage() {
           <Card className="bg-white/80 backdrop-blur-md border border-zinc-200/50 shadow-sm rounded-xl">
             <CardContent className="p-4">
               <h3 className="font-[family-name:var(--font-heading)] text-sm font-semibold text-zinc-900 mb-3 flex items-center gap-2">
-                <CalendarClock className="h-4 w-4 text-blue-600" />
+                <CalendarCheck weight="duotone" className="h-4 w-4 text-blue-600" />
                 Jadwal Follow Up
               </h3>
               {upcoming.length === 0 ? (
@@ -308,7 +308,7 @@ export default function AktivitasPage() {
                         <div
                           className={`flex h-7 w-7 items-center justify-center rounded-md shrink-0 ${tipeAktivitasColor[a.tipe]}`}
                         >
-                          <Icon className="h-3.5 w-3.5" />
+                          <Icon weight="duotone" className="h-3.5 w-3.5" />
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-zinc-900 truncate">

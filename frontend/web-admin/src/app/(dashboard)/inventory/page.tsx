@@ -2,29 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  AlertCircle,
-  Bath,
-  Bell,
-  Box,
-  BedDouble,
-  CalendarDays,
-  ChevronRight,
-  Edit,
-  Home,
-  LayoutDashboard,
-  Map,
-  MapPin,
-  Maximize,
-  MoreVertical,
-  Menu,
-  Plus,
-  Search,
-  ShieldCheck,
-  Trash2,
-  UploadCloud,
-  UserRound,
-  X,
-} from "lucide-react";
+  User, PencilSimple, Trash, CloudArrowUp, MagnifyingGlass, SquaresFour, Bathtub, List, CornersOut, Bed, X, Plus, ShieldCheck, MapTrifold, CalendarBlank, House, Bell, MapPin, CaretRight, Package, DotsThreeVertical, WarningCircle
+} from "@phosphor-icons/react";
 
 type PropertyType = {
   id: string | number;
@@ -95,7 +74,7 @@ export default function InventoryAdminPage() {
           });
           const pts = await ptRes.json();
           
-          // Map backend format to frontend format if there's any data
+          // MapTrifold backend format to frontend format if there's any data
           if (pts && pts.length > 0) {
             setPropertyTypes(pts.map((p: any) => ({
               id: p.id,
@@ -188,7 +167,7 @@ export default function InventoryAdminPage() {
         body: JSON.stringify(payload)
       });
       setIsTypeModalOpen(false);
-      window.location.reload(); // Refresh data
+      window.location.reload(); // ArrowsClockwise data
     } catch (e) {
       console.error(e);
     }
@@ -223,7 +202,7 @@ export default function InventoryAdminPage() {
         body: JSON.stringify(payload)
       });
       setIsUnitModalOpen(false);
-      window.location.reload(); // Refresh data
+      window.location.reload(); // ArrowsClockwise data
     } catch (e) {
       console.error(e);
     }
@@ -238,7 +217,7 @@ export default function InventoryAdminPage() {
 
       <div className="mb-8 flex items-center gap-4 rounded-xl border border-rose-100 bg-rose-50 p-4">
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-rose-100">
-          <AlertCircle className="text-rose-600" size={20} />
+          <WarningCircle weight="duotone" className="text-rose-600" size={20} />
         </div>
         <div>
           <h4 className="text-sm font-bold text-rose-900">Peringatan Stok Menipis</h4>
@@ -250,15 +229,15 @@ export default function InventoryAdminPage() {
 
       <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: "Total Unit Kavling", value: "150", icon: Box, color: "text-blue-600", bg: "bg-blue-50" },
-          { label: "Unit Tersedia", value: "45", icon: Home, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { label: "Total Unit Kavling", value: "150", icon: Package, color: "text-blue-600", bg: "bg-blue-50" },
+          { label: "Unit Tersedia", value: "45", icon: House, color: "text-emerald-600", bg: "bg-emerald-50" },
           { label: "Sedang Booked", value: "12", icon: MapPin, color: "text-amber-600", bg: "bg-amber-50" },
           { label: "Sudah Terjual", value: "93", icon: ShieldCheck, color: "text-purple-600", bg: "bg-purple-50" },
         ].map((stat, idx) => (
           <div key={idx} className="stat-card group">
             <div className="mb-4 flex items-start justify-between">
               <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.bg}`}>
-                <stat.icon className={stat.color} size={24} />
+                <stat.icon weight="duotone" className={stat.color} size={24} />
               </div>
             </div>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">{stat.label}</p>
@@ -298,7 +277,7 @@ export default function InventoryAdminPage() {
           onClick={() => setIsTypeModalOpen(true)}
           className="flex items-center gap-2 rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-amber-600/20 transition-all hover:bg-amber-700"
         >
-          <Plus size={18} /> Tambah Tipe
+          <Plus weight="duotone" size={18} /> Tambah Tipe
         </button>
       </div>
 
@@ -314,7 +293,7 @@ export default function InventoryAdminPage() {
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-zinc-300 transition-transform duration-500 group-hover:scale-105">
-                  <Home size={64} strokeWidth={1} />
+                  <House weight="duotone" size={64} strokeWidth={1} />
                 </div>
               )}
               <div className="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-zinc-700 shadow-sm backdrop-blur-sm">
@@ -325,22 +304,22 @@ export default function InventoryAdminPage() {
               <h4 className="mb-4 text-xl font-[family-name:var(--font-heading)] text-zinc-900">{type.name}</h4>
               <div className="mb-6 grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-2 text-sm text-zinc-600">
-                  <Maximize size={16} className="text-amber-600" /> LT {type.lt} m²
+                  <CornersOut weight="duotone" size={16} className="text-amber-600" /> LT {type.lt} m²
                 </div>
                 <div className="flex items-center gap-2 text-sm text-zinc-600">
-                  <Box size={16} className="text-amber-600" /> LB {type.lb} m²
+                  <Package weight="duotone" size={16} className="text-amber-600" /> LB {type.lb} m²
                 </div>
                 <div className="flex items-center gap-2 text-sm text-zinc-600">
-                  <BedDouble size={16} className="text-amber-600" /> {type.bed} Kamar
+                  <Bed weight="duotone" size={16} className="text-amber-600" /> {type.bed} Kamar
                 </div>
                 <div className="flex items-center gap-2 text-sm text-zinc-600">
-                  <Bath size={16} className="text-amber-600" /> {type.bath} Mandi
+                  <Bathtub weight="duotone" size={16} className="text-amber-600" /> {type.bath} Mandi
                 </div>
               </div>
               <div className="flex items-center justify-between border-t border-zinc-100 pt-4">
                 <p className="text-lg font-bold text-zinc-900">{formatRupiah(type.price)}</p>
                 <button className="text-zinc-400 transition-colors hover:text-amber-600">
-                  <Edit size={18} />
+                  <PencilSimple weight="duotone" size={18} />
                 </button>
               </div>
             </div>
@@ -359,7 +338,7 @@ export default function InventoryAdminPage() {
         </div>
         <div className="flex w-full items-center gap-3 sm:w-auto">
           <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
+            <MagnifyingGlass weight="duotone" className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
             <input
               type="text"
               placeholder="Cari ID Blok..."
@@ -370,7 +349,7 @@ export default function InventoryAdminPage() {
             onClick={() => setIsUnitModalOpen(true)}
             className="flex whitespace-nowrap items-center gap-2 rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-amber-600/20 transition-all hover:bg-amber-700"
           >
-            <Plus size={18} /> Tambah Unit
+            <Plus weight="duotone" size={18} /> Tambah Unit
           </button>
         </div>
       </div>
@@ -410,10 +389,10 @@ export default function InventoryAdminPage() {
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                       <button className="rounded-md border border-zinc-200 bg-white p-2 text-zinc-400 hover:text-blue-600">
-                        <Edit size={16} />
+                        <PencilSimple weight="duotone" size={16} />
                       </button>
                       <button className="rounded-md border border-zinc-200 bg-white p-2 text-zinc-400 hover:text-rose-600">
-                        <Trash2 size={16} />
+                        <Trash weight="duotone" size={16} />
                       </button>
                     </div>
                   </td>
@@ -437,7 +416,7 @@ export default function InventoryAdminPage() {
         <div className="lg:col-span-2">
           <div className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-amber-200 bg-amber-50/30 p-12 text-center transition-colors hover:bg-amber-50">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-amber-100 bg-white shadow-sm">
-              <UploadCloud size={28} className="text-amber-500" />
+              <CloudArrowUp weight="duotone" size={28} className="text-amber-500" />
             </div>
             <h3 className="mb-2 text-lg font-bold text-zinc-900">Unggah Denah Baru</h3>
             <p className="mb-6 max-w-sm text-sm text-zinc-500">
@@ -454,13 +433,13 @@ export default function InventoryAdminPage() {
           <div className="space-y-4">
             <div className="flex items-center gap-4 rounded-xl border border-zinc-100 bg-zinc-50 p-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-400">
-                <Map size={20} />
+                <MapTrifold weight="duotone" size={20} />
               </div>
               <div className="flex-1">
                 <h4 className="text-sm font-bold text-zinc-900">Master Plan Tahap 1</h4>
                 <p className="text-xs text-zinc-500">Diperbarui 2 hari lalu</p>
               </div>
-              <MoreVertical size={16} className="cursor-pointer text-zinc-400" />
+              <DotsThreeVertical weight="duotone" size={16} className="cursor-pointer text-zinc-400" />
             </div>
           </div>
         </div>
@@ -474,10 +453,10 @@ export default function InventoryAdminPage() {
       <div className="mb-6 overflow-x-auto border-b border-zinc-200">
         <nav className="-mb-px flex space-x-6 sm:space-x-8">
           {[
-            { id: "dashboard", icon: LayoutDashboard, label: "Overview" },
-            { id: "types", icon: Home, label: "Tipe Rumah" },
-            { id: "units", icon: Box, label: "Kavling & Unit" },
-            { id: "siteplan", icon: Map, label: "Site Plan" },
+            { id: "dashboard", icon: SquaresFour, label: "Overview" },
+            { id: "types", icon: House, label: "Tipe Rumah" },
+            { id: "units", icon: Package, label: "Kavling & Unit" },
+            { id: "siteplan", icon: MapTrifold, label: "Site Plan" },
           ].map((item) => {
             const Icon = item.icon;
             const isActive = activeMenu === item.id;
@@ -491,7 +470,7 @@ export default function InventoryAdminPage() {
                     : "border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700"
                 }`}
               >
-                <Icon size={18} className={isActive ? "text-amber-500" : "text-zinc-400 group-hover:text-zinc-500"} />
+                <Icon weight="duotone" size={18} className={isActive ? "text-amber-500" : "text-zinc-400 group-hover:text-zinc-500"} />
                 {item.label}
               </button>
             );
@@ -512,7 +491,7 @@ export default function InventoryAdminPage() {
             <div className="flex items-center justify-between rounded-t-2xl border-b border-zinc-100 bg-zinc-50/50 px-6 py-4">
               <h3 className="text-lg font-bold text-zinc-900">Input Master Tipe Baru</h3>
               <button onClick={() => setIsTypeModalOpen(false)} className="p-1 text-zinc-400 transition-colors hover:text-rose-500">
-                <X size={20} />
+                <X weight="duotone" size={20} />
               </button>
             </div>
             <div className="space-y-5 p-6">
@@ -625,7 +604,7 @@ export default function InventoryAdminPage() {
             <div className="flex items-center justify-between rounded-t-2xl border-b border-zinc-100 bg-zinc-50/50 px-6 py-4">
               <h3 className="text-lg font-bold text-zinc-900">Registrasi Unit Kavling</h3>
               <button onClick={() => setIsUnitModalOpen(false)} className="p-1 text-zinc-400 transition-colors hover:text-rose-500">
-                <X size={20} />
+                <X weight="duotone" size={20} />
               </button>
             </div>
             <div className="space-y-5 p-6">
