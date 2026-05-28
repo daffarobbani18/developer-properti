@@ -22,6 +22,9 @@ import {
   Wallet,
   Invoice,
   ListChecks,
+  House,
+  Package,
+  MapTrifold,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -60,9 +63,27 @@ const menuItems: MenuGroup[] = [
     group: "Operasional",
     items: [
       {
-        label: "Admin Inventory",
-        href: "/admin/master",
+        label: "Daftar Proyek",
+        href: "/admin/proyek",
         icon: Buildings,
+        roles: ["inventory", "admin"],
+      },
+      {
+        label: "Tipe Rumah",
+        href: "/admin/tipe-rumah",
+        icon: House,
+        roles: ["inventory", "admin"],
+      },
+      {
+        label: "Kavling & Unit",
+        href: "/admin/kavling-unit",
+        icon: Package,
+        roles: ["inventory", "admin"],
+      },
+      {
+        label: "Site Plan",
+        href: "/admin/site-plan",
+        icon: MapTrifold,
         roles: ["inventory", "admin"],
       },
       {
@@ -102,13 +123,7 @@ const menuItems: MenuGroup[] = [
         icon: Stamp,
         roles: ["legal"],
       },
-      {
-        label: "Monitoring Proyek",
-        href: "/admin/proyek",
-        icon: Buildings,
-        roles: ["inventory", "admin"],
-        children: [{ label: "Daftar Proyek", href: "/admin/proyek", icon: Buildings, roles: ["inventory", "admin"] }],
-      },
+
       {
         label: "Proyek Lapangan",
         href: "/supervisor/proyek",

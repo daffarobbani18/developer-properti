@@ -45,7 +45,7 @@ const formatRupiah = (number: number) =>
   }).format(number);
 
 export default function InventoryAdminPage() {
-  const [activeMenu, setActiveMenu] = useState("dashboard");
+  const [activeMenu, setActiveMenu] = useState("siteplan");
   const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
   const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
   
@@ -449,34 +449,7 @@ export default function InventoryAdminPage() {
 
   return (
     <>
-      {/* Internal Tabs Navigation */}
-      <div className="mb-6 overflow-x-auto border-b border-zinc-200">
-        <nav className="-mb-px flex space-x-6 sm:space-x-8">
-          {[
-            { id: "dashboard", icon: SquaresFour, label: "Overview" },
-            { id: "types", icon: House, label: "Tipe Rumah" },
-            { id: "units", icon: Package, label: "Kavling & Unit" },
-            { id: "siteplan", icon: MapTrifold, label: "Site Plan" },
-          ].map((item) => {
-            const Icon = item.icon;
-            const isActive = activeMenu === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveMenu(item.id)}
-                className={`group inline-flex whitespace-nowrap items-center gap-2 border-b-2 py-3 px-1 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "border-amber-500 text-amber-600"
-                    : "border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-700"
-                }`}
-              >
-                <Icon weight="duotone" size={18} className={isActive ? "text-amber-500" : "text-zinc-400 group-hover:text-zinc-500"} />
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
-      </div>
+
 
       <div className="animate-in fade-in duration-500">
         {activeMenu === "dashboard" && renderDashboard()}
