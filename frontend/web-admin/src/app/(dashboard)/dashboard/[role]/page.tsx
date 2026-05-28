@@ -149,7 +149,7 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
   const leadsFollowUp = dummyLeads.filter((lead) => lead.status === "follow-up").length;
   const leadsSurvey = dummyLeads.filter((lead) => lead.status === "survey").length;
   const totalTransaksi = dummyTransaksi.length;
-  const latestCashflow = dummyCashflow[dummyCashflow.length - 1];
+  const latestCashflow = dummyCashflow[dummyCashflow.length - 1] || { saldo: 0 };
   const pendingTagihan = dummyTagihan.filter((item) => item.status === "belum_bayar" || item.status === "terlambat").length;
   const overdueTagihan = dummyTagihan.filter((item) => item.status === "terlambat").length;
   const totalPengeluaran = dummyPengeluaran.reduce((sum, item) => sum + item.nominal, 0);
@@ -164,8 +164,10 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
     Pengeluaran: item.pengeluaran / 1_000_000,
     Saldo: item.saldo / 1_000_000,
   }));
-  cashflowChartData[cashflowChartData.length - 1].Pemasukan = (totalRevenue / 1_000_000) || cashflowChartData[cashflowChartData.length - 1].Pemasukan;
-  cashflowChartData[cashflowChartData.length - 1].Saldo = cashflowChartData[cashflowChartData.length - 1].Pemasukan - cashflowChartData[cashflowChartData.length - 1].Pengeluaran;
+  if (cashflowChartData.length > 0) {
+    cashflowChartData[cashflowChartData.length - 1].Pemasukan = (totalRevenue / 1_000_000) || cashflowChartData[cashflowChartData.length - 1].Pemasukan;
+    cashflowChartData[cashflowChartData.length - 1].Saldo = cashflowChartData[cashflowChartData.length - 1].Pemasukan - cashflowChartData[cashflowChartData.length - 1].Pengeluaran;
+  }
 
   const proyekChartData = [
     { name: "Sep", Progress: 25 },

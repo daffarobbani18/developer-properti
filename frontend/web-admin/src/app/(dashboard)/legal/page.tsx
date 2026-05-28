@@ -78,7 +78,7 @@ export default function LegalPage() {
                 const doc = b.legalDocuments?.find((d: any) => d.documentType === type);
                 if (!doc) return "belum_mulai";
                 if (doc.status === "Selesai") return "selesai";
-                if (doc.status === "Diproses") return "sedang_proses";
+                if (doc.status === "Diproses") return "proses";
                 return "belum_mulai";
               };
 

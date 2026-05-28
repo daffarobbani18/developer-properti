@@ -7,12 +7,13 @@ import { ArrowRight, CheckCircle, Eye, EyeSlash, Lock, Envelope, ShieldWarning, 
 type UserRole = "admin" | "inventory" | "sales" | "finance" | "legal" | "supervisor";
 
 const DEV_ACCOUNTS = [
-  { label: "Admin / Direktur", email: "admin@simdp.dev", password: "Admin@123", role: "admin" as UserRole, redirectTo: "/dashboard/admin" },
-  { label: "Admin Inventory", email: "inventory@simdp.dev", password: "Inventory@123", role: "inventory" as UserRole, redirectTo: "/dashboard/inventory" },
-  { label: "Sales & Marketing", email: "sales@simdp.dev", password: "Sales@123", role: "sales" as UserRole, redirectTo: "/dashboard/sales" },
-  { label: "Finance & Accounting", email: "finance@simdp.dev", password: "Finance@123", role: "finance" as UserRole, redirectTo: "/dashboard/finance" },
-  { label: "Tim Legal", email: "legal@simdp.dev", password: "Legal@123", role: "legal" as UserRole, redirectTo: "/dashboard/legal" },
-  { label: "Pengawas Lapangan", email: "supervisor@simdp.dev", password: "Supervisor@123", role: "supervisor" as UserRole, redirectTo: "/dashboard/supervisor" },
+  { label: "Superadmin", email: "superadmin@erp.com", password: "password123", role: "admin" as UserRole, redirectTo: "/dashboard/admin" },
+  { label: "Director", email: "director@erp.com", password: "password123", role: "admin" as UserRole, redirectTo: "/dashboard/admin" },
+  { label: "Admin Inventory", email: "inventory@erp.com", password: "password123", role: "inventory" as UserRole, redirectTo: "/dashboard/inventory" },
+  { label: "Sales & Marketing", email: "sales@erp.com", password: "password123", role: "sales" as UserRole, redirectTo: "/dashboard/sales" },
+  { label: "Finance & Accounting", email: "finance@erp.com", password: "password123", role: "finance" as UserRole, redirectTo: "/dashboard/finance" },
+  { label: "Tim Legal", email: "legal@erp.com", password: "password123", role: "legal" as UserRole, redirectTo: "/dashboard/legal" },
+  { label: "Pengawas Lapangan", email: "spv@erp.com", password: "password123", role: "supervisor" as UserRole, redirectTo: "/dashboard/supervisor" },
 ];
 
 const DEFAULT_REDIRECT = "/dashboard/admin";
@@ -22,7 +23,7 @@ export default function App() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [loginState, setLoginState] = useState<"idle" | "loading" | "success">("idle");
+  const [loginState, setLoginState] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberSession, setRememberSession] = useState(false);
@@ -49,6 +50,12 @@ export default function App() {
     const targetRoute = getRoleRedirect(email);
 
     window.setTimeout(() => {
+      if (!matchedAccount || matchedAccount.password !== password) {
+        setLoginState("error");
+        window.setTimeout(() => setLoginState("idle"), 2500);
+        return;
+      }
+
       setLoginState("success");
 
       window.setTimeout(() => {
@@ -183,6 +190,8 @@ export default function App() {
               className={`relative w-full h-14 mt-6 rounded-xl overflow-hidden flex justify-center items-center gap-3 text-sm font-semibold tracking-widest uppercase transition-all duration-500 ${
                 loginState === "success"
                   ? "bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                  : loginState === "error"
+                  ? "bg-rose-500/10 border border-rose-500/50 text-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.2)]"
                   : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-500 hover:to-amber-600 shadow-[0_10px_20px_rgba(245,158,11,0.2)] hover:shadow-[0_10px_30px_rgba(245,158,11,0.4)]"
               }`}
             >
@@ -198,6 +207,11 @@ export default function App() {
                 <div className="flex items-center gap-2 animate-[pulse_1s_ease-in-out_infinite]">
                   <CheckCircle weight="duotone" size={20} />
                   <span>AKSES DIBERIKAN</span>
+                </div>
+              ) : loginState === "error" ? (
+                <div className="flex items-center gap-2 animate-[shake_0.5s_ease-in-out]">
+                  <ShieldWarning weight="duotone" size={20} />
+                  <span>AKSES DITOLAK</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 group">

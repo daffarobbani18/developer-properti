@@ -392,7 +392,7 @@ export default function TagihanPage() {
                     </td>
                     <td className="py-3 px-4">
                       <Badge variant="secondary">
-                        {tipeTagihanLabels[tagihan.tipeTagihan] || tagihan.tipeTagihan}
+                        {tipeTagihanLabels[tagihan.tipeTagihan as keyof typeof tipeTagihanLabels] || tagihan.tipeTagihan}
                       </Badge>
                     </td>
                     <td className="py-3 px-4 text-sm text-right font-semibold text-zinc-900">
@@ -487,7 +487,7 @@ export default function TagihanPage() {
                   <div>
                     <label className="text-sm text-zinc-600">Tipe Tagihan</label>
                     <p className="font-semibold text-zinc-900">
-                      {tipeTagihanLabels[selectedTagihan.tipeTagihan] || selectedTagihan.tipeTagihan}
+                      {tipeTagihanLabels[selectedTagihan.tipeTagihan as keyof typeof tipeTagihanLabels] || selectedTagihan.tipeTagihan}
                     </p>
                   </div>
                   <div>

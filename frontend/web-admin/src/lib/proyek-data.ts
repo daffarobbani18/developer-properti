@@ -93,59 +93,9 @@ export interface SiteEngineer {
 // Dummy Data
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export const dummyProyek: Proyek[] = [
-  {
-    id: "PRJ001",
-    nama: "Grand Residence Cluster",
-    lokasi: "BSD City, Tangerang",
-    totalUnit: 24,
-    unitSelesai: 8,
-    persentaseSelesai: 33,
-    statusProyek: "konstruksi",
-    jumlahKontraktor: 5,
-    tanggalMulai: "2024-01-15",
-    targetSelesai: "2025-06-30",
-    nilaiKontrak: 12_000_000_000,
-  },
-  {
-    id: "PRJ002",
-    nama: "Harmony Village",
-    lokasi: "Cibubur, Jakarta Timur",
-    totalUnit: 18,
-    unitSelesai: 12,
-    persentaseSelesai: 67,
-    statusProyek: "finishing",
-    jumlahKontraktor: 4,
-    tanggalMulai: "2023-09-01",
-    targetSelesai: "2024-12-31",
-    nilaiKontrak: 9_500_000_000,
-  },
-  {
-    id: "PRJ003",
-    nama: "Green Park Estate",
-    lokasi: "Sentul City, Bogor",
-    totalUnit: 30,
-    unitSelesai: 2,
-    persentaseSelesai: 7,
-    statusProyek: "konstruksi",
-    jumlahKontraktor: 6,
-    tanggalMulai: "2024-03-10",
-    targetSelesai: "2025-12-31",
-    nilaiKontrak: 18_000_000_000,
-  },
-];
+export const dummyProyek: Proyek[] = [];
 
-export const dummyUnit: Unit[] = [
-  // PRJ001 - Grand Residence Cluster (24 units)
-  { id: "U001", proyekId: "PRJ001", nomorUnit: "A1", blok: "A", tipe: "Tipe 45", persentaseSelesai: 80, status: "on_track", milestoneSelesai: 6, totalMilestone: 8, targetSelesai: "2024-12-31" },
-  { id: "U002", proyekId: "PRJ001", nomorUnit: "A2", blok: "A", tipe: "Tipe 45", persentaseSelesai: 75, status: "on_track", milestoneSelesai: 6, totalMilestone: 8, targetSelesai: "2024-12-31" },
-  { id: "U003", proyekId: "PRJ001", nomorUnit: "A3", blok: "A", tipe: "Tipe 60", persentaseSelesai: 62, status: "warning", milestoneSelesai: 5, totalMilestone: 8, targetSelesai: "2024-11-30" },
-  { id: "U004", proyekId: "PRJ001", nomorUnit: "A4", blok: "A", tipe: "Tipe 60", persentaseSelesai: 40, status: "terlambat", milestoneSelesai: 3, totalMilestone: 8, targetSelesai: "2024-10-15" },
-  { id: "U005", proyekId: "PRJ001", nomorUnit: "B1", blok: "B", tipe: "Tipe 70", persentaseSelesai: 50, status: "on_track", milestoneSelesai: 4, totalMilestone: 8, targetSelesai: "2025-01-31" },
-  { id: "U006", proyekId: "PRJ001", nomorUnit: "B2", blok: "B", tipe: "Tipe 70", persentaseSelesai: 45, status: "on_track", milestoneSelesai: 4, totalMilestone: 8, targetSelesai: "2025-01-31" },
-  { id: "U007", proyekId: "PRJ001", nomorUnit: "B3", blok: "B", tipe: "Tipe 45", persentaseSelesai: 25, status: "on_track", milestoneSelesai: 2, totalMilestone: 8, targetSelesai: "2025-03-31" },
-  { id: "U008", proyekId: "PRJ001", nomorUnit: "B4", blok: "B", tipe: "Tipe 45", persentaseSelesai: 12, status: "on_track", milestoneSelesai: 1, totalMilestone: 8, targetSelesai: "2025-04-30" },
-];
+export const dummyUnit: Unit[] = [];
 
 const milestoneStandar = [
   "Pekerjaan Persiapan",
@@ -158,99 +108,11 @@ const milestoneStandar = [
   "Serah Terima",
 ];
 
-export const dummyMilestone: Milestone[] = [
-  // Unit U001 (A1) - Progress tinggi
-  { id: "M001", unitId: "U001", nama: milestoneStandar[0], urutan: 1, status: "selesai", tanggalTarget: "2024-02-01", tanggalAktual: "2024-01-28", persentase: 100, fotoCount: 3, engineerPIC: "Budi Santoso" },
-  { id: "M002", unitId: "U001", nama: milestoneStandar[1], urutan: 2, status: "selesai", tanggalTarget: "2024-03-15", tanggalAktual: "2024-03-10", persentase: 100, fotoCount: 5, engineerPIC: "Budi Santoso" },
-  { id: "M003", unitId: "U001", nama: milestoneStandar[2], urutan: 3, status: "selesai", tanggalTarget: "2024-05-01", tanggalAktual: "2024-04-28", persentase: 100, fotoCount: 4, engineerPIC: "Budi Santoso" },
-  { id: "M004", unitId: "U001", nama: milestoneStandar[3], urutan: 4, status: "selesai", tanggalTarget: "2024-06-15", tanggalAktual: "2024-06-12", persentase: 100, fotoCount: 6, engineerPIC: "Budi Santoso" },
-  { id: "M005", unitId: "U001", nama: milestoneStandar[4], urutan: 5, status: "selesai", tanggalTarget: "2024-07-30", tanggalAktual: "2024-07-25", persentase: 100, fotoCount: 4, engineerPIC: "Budi Santoso" },
-  { id: "M006", unitId: "U001", nama: milestoneStandar[5], urutan: 6, status: "selesai", tanggalTarget: "2024-09-10", tanggalAktual: "2024-09-05", persentase: 100, fotoCount: 7, engineerPIC: "Budi Santoso" },
-  { id: "M007", unitId: "U001", nama: milestoneStandar[6], urutan: 7, status: "progress", tanggalTarget: "2024-11-01", persentase: 60, fotoCount: 2, engineerPIC: "Budi Santoso" },
-  { id: "M008", unitId: "U001", nama: milestoneStandar[7], urutan: 8, status: "belum_mulai", tanggalTarget: "2024-12-31", persentase: 0, fotoCount: 0 },
-  
-  // Unit U004 (A4) - Terlambat
-  { id: "M032", unitId: "U004", nama: milestoneStandar[0], urutan: 1, status: "selesai", tanggalTarget: "2024-02-01", tanggalAktual: "2024-02-15", persentase: 100, fotoCount: 2, engineerPIC: "Siti Aminah", catatan: "Terlambat karena cuaca" },
-  { id: "M033", unitId: "U004", nama: milestoneStandar[1], urutan: 2, status: "selesai", tanggalTarget: "2024-03-20", tanggalAktual: "2024-04-10", persentase: 100, fotoCount: 3, engineerPIC: "Siti Aminah", catatan: "Material terlambat" },
-  { id: "M034", unitId: "U004", nama: milestoneStandar[2], urutan: 3, status: "selesai", tanggalTarget: "2024-05-10", tanggalAktual: "2024-06-05", persentase: 100, fotoCount: 2, engineerPIC: "Siti Aminah" },
-  { id: "M035", unitId: "U004", nama: milestoneStandar[3], urutan: 4, status: "progress", tanggalTarget: "2024-07-01", persentase: 40, fotoCount: 1, engineerPIC: "Siti Aminah", catatan: "Perlu percepatan" },
-  { id: "M036", unitId: "U004", nama: milestoneStandar[4], urutan: 5, status: "belum_mulai", tanggalTarget: "2024-08-15", persentase: 0, fotoCount: 0 },
-  { id: "M037", unitId: "U004", nama: milestoneStandar[5], urutan: 6, status: "belum_mulai", tanggalTarget: "2024-09-20", persentase: 0, fotoCount: 0 },
-  { id: "M038", unitId: "U004", nama: milestoneStandar[6], urutan: 7, status: "belum_mulai", tanggalTarget: "2024-10-10", persentase: 0, fotoCount: 0 },
-  { id: "M039", unitId: "U004", nama: milestoneStandar[7], urutan: 8, status: "belum_mulai", tanggalTarget: "2024-10-15", persentase: 0, fotoCount: 0 },
-];
+export const dummyMilestone: Milestone[] = [];
 
-export const dummyKendala: Kendala[] = [
-  {
-    id: "K001",
-    proyekId: "PRJ001",
-    unitId: "U004",
-    judul: "Keterlambatan Material Bata Ringan",
-    deskripsi: "Supplier bata ringan belum mengirim material sesuai jadwal. Estimasi keterlambatan 2 minggu.",
-    kategori: "material",
-    status: "ditindaklanjuti",
-    tanggalLapor: "2024-05-10",
-    dilaporkanOleh: "Siti Aminah",
-    ditindaklanjutiOleh: "Andi Wijaya",
-    prioritas: "tinggi",
-  },
-  {
-    id: "K002",
-    proyekId: "PRJ001",
-    unitId: "U003",
-    judul: "Pekerjaan Dinding Tidak Sesuai Spesifikasi",
-    deskripsi: "Ketebalan plester dinding kurang dari standar (hanya 1,5 cm, seharusnya 2 cm). Perlu perbaikan.",
-    kategori: "spek",
-    status: "selesai",
-    tanggalLapor: "2024-06-05",
-    dilaporkanOleh: "Budi Santoso",
-    ditindaklanjutiOleh: "Kontraktor PT Jaya",
-    tanggalSelesai: "2024-06-12",
-    solusi: "Sudah diperbaiki dan sesuai spek",
-    prioritas: "sedang",
-  },
-  {
-    id: "K003",
-    proyekId: "PRJ001",
-    unitId: "U005",
-    judul: "Hujan Ekstrem Menghambat Pengecoran",
-    deskripsi: "Cuaca hujan deras selama 3 hari berturut-turut menghambat proses pengecoran pondasi.",
-    kategori: "cuaca",
-    status: "baru",
-    tanggalLapor: "2024-11-18",
-    dilaporkanOleh: "Budi Santoso",
-    prioritas: "sedang",
-  },
-];
+export const dummyKendala: Kendala[] = [];
 
-export const dummySiteEngineer: SiteEngineer[] = [
-  {
-    id: "SE001",
-    nama: "Budi Santoso",
-    telepon: "081234567890",
-    email: "budi.s@example.com",
-    proyekId: "PRJ001",
-    blokTugas: "A",
-    jumlahUnitTugas: 4,
-  },
-  {
-    id: "SE002",
-    nama: "Siti Aminah",
-    telepon: "081234567891",
-    email: "siti.a@example.com",
-    proyekId: "PRJ001",
-    blokTugas: "B",
-    jumlahUnitTugas: 4,
-  },
-  {
-    id: "SE003",
-    nama: "Andi Wijaya",
-    telepon: "081234567892",
-    email: "andi.w@example.com",
-    proyekId: "PRJ002",
-    jumlahUnitTugas: 18,
-  },
-];
+export const dummySiteEngineer: SiteEngineer[] = [];
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Helper Functions
