@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { prisma } from "../database/prisma";
-import { authenticate } from "../middlewares/auth.middleware";
+import { prisma } from "../database/prisma.js";
+import { authenticate } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -24,7 +24,7 @@ router.get("/", authenticate, async (req, res) => {
 router.get("/:id", authenticate, async (req, res) => {
   try {
     const project = await prisma.project.findUnique({
-      where: { id: req.params.id },
+      where: { id: String(req.params.id) },
       include: {
         propertyTypes: true,
         units: true,
@@ -54,7 +54,7 @@ router.post("/", authenticate, async (req, res) => {
 router.put("/:id", authenticate, async (req, res) => {
   try {
     const project = await prisma.project.update({
-      where: { id: req.params.id },
+      where: { id: String(req.params.id) },
       data: req.body,
     });
     res.json(project);

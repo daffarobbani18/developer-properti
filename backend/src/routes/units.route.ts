@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { prisma } from "../database/prisma";
-import { authenticate } from "../middlewares/auth.middleware";
+import { prisma } from "../database/prisma.js";
+import { authenticate } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -36,7 +36,7 @@ router.post("/", authenticate, async (req, res) => {
 router.put("/:id", authenticate, async (req, res) => {
   try {
     const unit = await prisma.unit.update({
-      where: { id: req.params.id },
+      where: { id: String(req.params.id) },
       data: req.body,
     });
     res.json(unit);
@@ -49,7 +49,7 @@ router.put("/:id", authenticate, async (req, res) => {
 router.delete("/:id", authenticate, async (req, res) => {
   try {
     await prisma.unit.delete({
-      where: { id: req.params.id },
+      where: { id: String(req.params.id) },
     });
     res.json({ success: true });
   } catch (error) {

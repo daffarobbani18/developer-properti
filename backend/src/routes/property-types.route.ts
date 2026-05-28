@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { prisma } from "../database/prisma";
-import { authenticate } from "../middlewares/auth.middleware";
+import { prisma } from "../database/prisma.js";
+import { authenticate } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -20,8 +20,8 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const propertyType = await prisma.propertyType.findUnique({
-      where: { id: req.params.id },
-      include: { Unit: true }
+      where: { id: String(req.params.id) },
+      include: { units: true }
     });
     if (!propertyType) {
       return res.status(404).json({ error: "Property type not found" });
@@ -48,7 +48,7 @@ router.post("/", authenticate, async (req, res) => {
 router.put("/:id", authenticate, async (req, res) => {
   try {
     const propertyType = await prisma.propertyType.update({
-      where: { id: req.params.id },
+      where: { id: String(req.params.id) },
       data: req.body,
     });
     res.json(propertyType);
@@ -61,7 +61,7 @@ router.put("/:id", authenticate, async (req, res) => {
 router.delete("/:id", authenticate, async (req, res) => {
   try {
     await prisma.propertyType.delete({
-      where: { id: req.params.id },
+      where: { id: String(req.params.id) },
     });
     res.json({ success: true });
   } catch (error) {

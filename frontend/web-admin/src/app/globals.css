@@ -120,6 +120,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -127,6 +128,7 @@
 
 /* ========== Enhanced Design System Utilities ========== */
 @layer utilities {
+
   /* Clean glass effect */
   .clean-glass {
     @apply bg-white/80 backdrop-blur-md border border-slate-200/50 shadow-sm;
@@ -151,12 +153,10 @@
 
   /* Skeleton shimmer animation */
   .skeleton-shimmer {
-    background: linear-gradient(
-      90deg,
-      rgba(0, 0, 0, 0.04) 0%,
-      rgba(0, 0, 0, 0.08) 40%,
-      rgba(0, 0, 0, 0.04) 80%
-    );
+    background: linear-gradient(90deg,
+        rgba(0, 0, 0, 0.04) 0%,
+        rgba(0, 0, 0, 0.08) 40%,
+        rgba(0, 0, 0, 0.04) 80%);
     background-size: 200% 100%;
     animation: shimmer 1.5s ease-in-out infinite;
   }
@@ -165,6 +165,7 @@
   .stat-card {
     @apply rounded-xl border border-zinc-100 bg-white p-4 shadow-sm transition-all duration-300;
   }
+
   .stat-card:hover {
     @apply shadow-md -translate-y-0.5;
     box-shadow:
@@ -174,7 +175,7 @@
 
   /* Hero section pattern */
   .hero-pattern {
-    background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.03) 1px, transparent 0);
+    background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.03) 1px, transparent 0);
     background-size: 24px 24px;
   }
 
@@ -182,12 +183,13 @@
   .module-hero {
     @apply relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-sm;
   }
+
   .module-hero::before {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: radial-gradient(ellipse at top right, var(--hero-accent, rgba(245,158,11,0.05)), transparent 60%);
+    background: radial-gradient(ellipse at top right, var(--hero-accent, rgba(245, 158, 11, 0.05)), transparent 60%);
     pointer-events: none;
   }
 
@@ -200,13 +202,16 @@
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
+
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 3px;
   }
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
   }
@@ -216,6 +221,7 @@
     @apply relative flex items-center justify-center rounded-[14px];
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
+
   .icon-wrapper::after {
     content: "";
     position: absolute;
@@ -226,6 +232,7 @@
     background: rgba(255, 255, 255, 0.15);
     pointer-events: none;
   }
+
   .group:hover .icon-wrapper::after,
   .icon-wrapper:hover::after {
     opacity: 1;
@@ -238,32 +245,43 @@
 
   /* === Color variants (Solid, Clean Style) === */
   .icon-blue {
-    background-color: #3b82f6; /* Blue 500 */
+    background-color: #3b82f6;
+    /* Blue 500 */
     box-shadow: 0 8px 16px -4px rgba(59, 130, 246, 0.3);
     color: #ffffff;
   }
+
   .icon-emerald {
-    background-color: #10b981; /* Emerald 500 */
+    background-color: #10b981;
+    /* Emerald 500 */
     box-shadow: 0 8px 16px -4px rgba(16, 185, 129, 0.3);
     color: #ffffff;
   }
+
   .icon-amber {
-    background-color: #f59e0b; /* Amber 500 */
+    background-color: #f59e0b;
+    /* Amber 500 */
     box-shadow: 0 8px 16px -4px rgba(245, 158, 11, 0.3);
     color: #ffffff;
   }
+
   .icon-rose {
-    background-color: #f43f5e; /* Rose 500 */
+    background-color: #f43f5e;
+    /* Rose 500 */
     box-shadow: 0 8px 16px -4px rgba(244, 63, 94, 0.3);
     color: #ffffff;
   }
+
   .icon-violet {
-    background-color: #8b5cf6; /* Violet 500 */
+    background-color: #8b5cf6;
+    /* Violet 500 */
     box-shadow: 0 8px 16px -4px rgba(139, 92, 246, 0.3);
     color: #ffffff;
   }
+
   .icon-cyan {
-    background-color: #06b6d4; /* Cyan 500 */
+    background-color: #06b6d4;
+    /* Cyan 500 */
     box-shadow: 0 8px 16px -4px rgba(6, 182, 212, 0.3);
     color: #ffffff;
   }
@@ -276,6 +294,7 @@
     border: 1px solid rgba(16, 185, 129, 0.15);
     box-shadow: 0 1px 3px -1px rgba(16, 185, 129, 0.12);
   }
+
   .badge-trend-down {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold;
     background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
@@ -292,26 +311,31 @@
       inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
       0 1px 3px -1px rgba(0, 0, 0, 0.06);
   }
+
   .badge-module-amber {
     background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
     border-color: rgba(245, 158, 11, 0.2);
     color: #92400e;
   }
+
   .badge-module-blue {
     background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
     border-color: rgba(59, 130, 246, 0.2);
     color: #1e40af;
   }
+
   .badge-module-emerald {
     background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
     border-color: rgba(16, 185, 129, 0.2);
     color: #065f46;
   }
+
   .badge-module-violet {
     background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
     border-color: rgba(139, 92, 246, 0.2);
     color: #5b21b6;
   }
+
   .badge-module-rose {
     background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
     border-color: rgba(244, 63, 94, 0.2);
@@ -328,8 +352,13 @@
 
 /* ========== Animations ========== */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes fade-in-up {
@@ -337,6 +366,7 @@
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -344,8 +374,13 @@
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slide-in-right {
@@ -353,6 +388,7 @@
     opacity: 0;
     transform: translateX(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -364,6 +400,7 @@
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -374,12 +411,15 @@
   .animate-fade-in-up {
     animation: fade-in-up 0.5s ease-out forwards;
   }
+
   .animate-fade-in {
     animation: fade-in 0.3s ease-out forwards;
   }
+
   .animate-slide-in-right {
     animation: slide-in-right 0.4s ease-out forwards;
   }
+
   .animate-scale-in {
     animation: scale-in 0.3s ease-out forwards;
   }

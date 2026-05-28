@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { Router } from "express";
 import multer from "multer";
-import { authenticate } from "../middlewares/auth.middleware";
+import { authenticate } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
