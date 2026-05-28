@@ -22,6 +22,7 @@ model User {
   roleId    String
   role      Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
   constructionProgresses ConstructionProgress[]
+  commissions Commission[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -137,6 +138,7 @@ model Booking {
   invoices       Invoice[]
   legalDocuments LegalDocument[]
   basts          Bast[]
+  commissions    Commission[]
   
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -216,4 +218,22 @@ model Bast {
   
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+}
+
+model Commission {
+  id              String    @id @default(uuid())
+  bookingId       String
+  salesUserId     String
+  percentage      Float
+  nominalAmount   Float
+  status          String    @default("Pending") // Pending, Approved, Paid
+  approvedAt      DateTime?
+  disbursedAt     DateTime?
+  notes           String?
+  
+  booking         Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  salesUser       User      @relation(fields: [salesUserId], references: [id], onDelete: Restrict)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
