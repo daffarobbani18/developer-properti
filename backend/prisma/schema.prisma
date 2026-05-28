@@ -47,10 +47,15 @@ model PropertyType {
   name            String
   luasTanah       Float
   luasBangunan    Float
-  bedrooms        Int
-  bathrooms       Int
-  price           Float
-  imageUrl        String?        // NEW: URL for property image
+  bedrooms        Int            // Lama
+  bathrooms       Int            // Lama
+  price           Float          // Lama
+  imageUrl        String?        
+  
+  // Field Baru (Fase 2)
+  kamarTidur      Int            @default(0)
+  kamarMandi      Int            @default(0)
+  basePrice       Float          @default(0)
   
   project         Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   units           Unit[]
@@ -63,13 +68,22 @@ model Unit {
   id              String         @id @default(uuid())
   projectId       String
   propertyTypeId  String
-  blok            String
-  nomorUnit       String
-  price           Float
-  status          String         @default("Tersedia") // Tersedia, Booked, Terjual
+  blok            String         // Lama dan Baru
+  nomorUnit       String         // Lama
+  price           Float          // Lama
+  status          String         @default("Tersedia") // Lama
+  
+  // Field Baru (Fase 2)
+  kawasan         String         @default("Area 1")
+  nomor           String         @default("")
+  statusPembangunan String       @default("Pesan Bangun") // Pesan Bangun, Siap Huni
+  statusPenjualan String         @default("Tersedia") // Tersedia, Booked, Terjual
+  priceMarkup     Float          @default(0)
+  totalPrice      Float          @default(0)
   
   project         Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   propertyType    PropertyType   @relation(fields: [propertyTypeId], references: [id], onDelete: Cascade)
+  bookings        Booking[]
   
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -85,4 +99,34 @@ model SitePlan {
   
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
+}
+
+model Lead {
+  id          String    @id @default(uuid())
+  name        String
+  phone       String
+  email       String?
+  source      String
+  statusCrm   String    @default("New")
+  notes       String?
+  
+  bookings    Booking[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Booking {
+  id             String    @id @default(uuid())
+  leadId         String
+  unitId         String
+  bookingFee     Float
+  paymentMethod  String
+  status         String    @default("Menunggu Verifikasi")
+  
+  lead           Lead      @relation(fields: [leadId], references: [id], onDelete: Restrict)
+  unit           Unit      @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }

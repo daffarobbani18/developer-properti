@@ -12,8 +12,8 @@ app.use(express.json());
 
 import authRoutes from "./routes/auth.route.js";
 import projectRoutes from "./routes/projects.route.js";
-import propertyTypeRoutes from "./routes/property-types.route.js";
-import unitRoutes from "./routes/units.route.js";
+import salesRoutes from "./routes/sales.routes.js";
+import inventoryRoutes from "./routes/inventory.routes.js";
 import sitePlanRoutes from "./routes/site-plans.route.js";
 import uploadRoutes from "./routes/upload.route.js";
 import path from "path";
@@ -25,8 +25,8 @@ setupSwagger(app);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
-app.use("/api/property-types", propertyTypeRoutes);
-app.use("/api/units", unitRoutes);
+app.use("/api/sales", salesRoutes);
+app.use("/api/inventory", inventoryRoutes);
 app.use("/api/site-plans", sitePlanRoutes);
 app.use("/api/upload", uploadRoutes);
 
