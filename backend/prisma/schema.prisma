@@ -124,6 +124,11 @@ model Booking {
   paymentMethod  String
   status         String    @default("Menunggu Verifikasi")
   
+  // Field Baru (Fase 4 - Finance)
+  verifiedAt     DateTime?
+  receiptUrl     String?
+  financeNotes   String?
+  
   lead           Lead      @relation(fields: [leadId], references: [id], onDelete: Restrict)
   unit           Unit      @relation(fields: [unitId], references: [id], onDelete: Restrict)
   
