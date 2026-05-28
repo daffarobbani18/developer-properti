@@ -132,6 +132,39 @@ model Booking {
   lead           Lead      @relation(fields: [leadId], references: [id], onDelete: Restrict)
   unit           Unit      @relation(fields: [unitId], references: [id], onDelete: Restrict)
   
+  invoices       Invoice[]
+  
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+}
+
+model Invoice {
+  id              String    @id @default(uuid())
+  bookingId       String
+  invoiceNumber   String    @unique
+  invoiceType     String    // e.g., 'DP', 'Cicilan KPR', 'Cash Bertahap'
+  amountDue       Float
+  dueDate         DateTime
+  status          String    @default("Unpaid")
+  
+  booking         Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  payments        Payment[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Payment {
+  id              String    @id @default(uuid())
+  invoiceId       String
+  amountPaid      Float
+  paymentDate     DateTime
+  paymentMethod   String
+  referenceNumber String?
+  status          String    @default("Verified")
+  
+  invoice         Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
