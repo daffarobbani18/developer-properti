@@ -61,9 +61,9 @@ const menuItems: MenuGroup[] = [
     items: [
       {
         label: "Admin Inventory",
-        href: "/inventory",
+        href: "/admin/master",
         icon: Buildings,
-        roles: ["inventory"],
+        roles: ["inventory", "admin"],
       },
       {
         label: "Sales & Marketing",
@@ -71,11 +71,11 @@ const menuItems: MenuGroup[] = [
         icon: UsersThree,
         roles: ["sales"],
         children: [
-          { label: "Leads", href: "/crm/leads", icon: UsersFour, roles: ["sales"] },
-          { label: "Pipeline", href: "/crm/pipeline", icon: Kanban, roles: ["sales"] },
-          { label: "Unit", href: "/crm/unit", icon: HouseSimple, roles: ["sales"] },
-          { label: "Transaksi", href: "/crm/transaksi", icon: Receipt, roles: ["sales"] },
-          { label: "Aktivitas", href: "/crm/aktivitas", icon: Pulse, roles: ["sales"] },
+          { label: "Leads", href: "/sales/leads", icon: UsersFour, roles: ["sales"] },
+          { label: "Pipeline", href: "/sales/pipeline", icon: Kanban, roles: ["sales"] },
+          { label: "Unit", href: "/sales/unit", icon: HouseSimple, roles: ["sales"] },
+          { label: "Transaksi", href: "/sales/transaksi", icon: Receipt, roles: ["sales"] },
+          { label: "Aktivitas", href: "/sales/aktivitas", icon: Pulse, roles: ["sales"] },
         ],
       },
       {
@@ -84,10 +84,10 @@ const menuItems: MenuGroup[] = [
         icon: CurrencyDollar,
         roles: ["finance"],
         children: [
-          { label: "Cashflow", href: "/keuangan/cashflow", icon: ChartLineUp, roles: ["finance"] },
-          { label: "Tagihan", href: "/keuangan/tagihan", icon: Receipt, roles: ["finance"] },
-          { label: "Pengeluaran", href: "/keuangan/pengeluaran", icon: Wallet, roles: ["finance"] },
-          { label: "RAB & Realisasi", href: "/keuangan/rab", icon: ListChecks, roles: ["finance"] },
+          { label: "Cashflow", href: "/finance/cashflow", icon: ChartLineUp, roles: ["finance"] },
+          { label: "Tagihan", href: "/finance/tagihan", icon: Receipt, roles: ["finance"] },
+          { label: "Pengeluaran", href: "/finance/pengeluaran", icon: Wallet, roles: ["finance"] },
+          { label: "RAB & Realisasi", href: "/finance/rab", icon: ListChecks, roles: ["finance"] },
         ],
       },
       {
@@ -98,16 +98,23 @@ const menuItems: MenuGroup[] = [
       },
       {
         label: "Legal & Perizinan",
-        href: "/legal",
+        href: "/legal/dokumen",
         icon: Stamp,
         roles: ["legal"],
       },
       {
         label: "Monitoring Proyek",
-        href: "/proyek",
+        href: "/admin/proyek",
         icon: Buildings,
-        roles: ["supervisor", "inventory"],
-        children: [{ label: "Daftar Proyek", href: "/proyek", icon: Buildings, roles: ["supervisor", "inventory"] }],
+        roles: ["inventory", "admin"],
+        children: [{ label: "Daftar Proyek", href: "/admin/proyek", icon: Buildings, roles: ["inventory", "admin"] }],
+      },
+      {
+        label: "Proyek Lapangan",
+        href: "/supervisor/proyek",
+        icon: Buildings,
+        roles: ["supervisor"],
+        children: [{ label: "Daftar Proyek", href: "/supervisor/proyek", icon: Buildings, roles: ["supervisor"] }],
       },
     ],
   },

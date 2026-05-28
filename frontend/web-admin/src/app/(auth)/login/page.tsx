@@ -7,16 +7,16 @@ import { ArrowRight, CheckCircle, Eye, EyeSlash, Lock, Envelope, ShieldWarning, 
 type UserRole = "admin" | "inventory" | "sales" | "finance" | "legal" | "supervisor";
 
 const DEV_ACCOUNTS = [
-  { label: "Superadmin", email: "superadmin@erp.com", password: "password123", role: "admin" as UserRole, redirectTo: "/dashboard/admin" },
-  { label: "Director", email: "director@erp.com", password: "password123", role: "admin" as UserRole, redirectTo: "/dashboard/admin" },
-  { label: "Admin Inventory", email: "inventory@erp.com", password: "password123", role: "inventory" as UserRole, redirectTo: "/dashboard/inventory" },
-  { label: "Sales & Marketing", email: "sales@erp.com", password: "password123", role: "sales" as UserRole, redirectTo: "/dashboard/sales" },
-  { label: "Finance & Accounting", email: "finance@erp.com", password: "password123", role: "finance" as UserRole, redirectTo: "/dashboard/finance" },
-  { label: "Tim Legal", email: "legal@erp.com", password: "password123", role: "legal" as UserRole, redirectTo: "/dashboard/legal" },
-  { label: "Pengawas Lapangan", email: "spv@erp.com", password: "password123", role: "supervisor" as UserRole, redirectTo: "/dashboard/supervisor" },
+  { label: "Superadmin", email: "superadmin@erp.com", password: "password123", role: "admin" as UserRole, redirectTo: "/admin/dashboard" },
+  { label: "Director", email: "director@erp.com", password: "password123", role: "admin" as UserRole, redirectTo: "/admin/dashboard" },
+  { label: "Admin Inventory", email: "inventory@erp.com", password: "password123", role: "inventory" as UserRole, redirectTo: "/admin/dashboard" },
+  { label: "Sales & Marketing", email: "sales@erp.com", password: "password123", role: "sales" as UserRole, redirectTo: "/sales/dashboard" },
+  { label: "Finance & Accounting", email: "finance@erp.com", password: "password123", role: "finance" as UserRole, redirectTo: "/finance/dashboard" },
+  { label: "Tim Legal", email: "legal@erp.com", password: "password123", role: "legal" as UserRole, redirectTo: "/legal/dashboard" },
+  { label: "Pengawas Lapangan", email: "spv@erp.com", password: "password123", role: "supervisor" as UserRole, redirectTo: "/supervisor/dashboard" },
 ];
 
-const DEFAULT_REDIRECT = "/dashboard/admin";
+const DEFAULT_REDIRECT = "/admin/dashboard";
 const DEFAULT_ROLE: UserRole = "admin";
 
 export default function App() {

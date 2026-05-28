@@ -5,21 +5,21 @@ export const USER_ROLES: UserRole[] = ["admin", "inventory", "sales", "finance",
 export const PUBLIC_PATHS = ["/login", "/lupa-password"] as const;
 
 export const ROLE_HOME: Record<UserRole, string> = {
-  admin: "/dashboard/admin",
-  inventory: "/dashboard/inventory",
-  sales: "/dashboard/sales",
-  finance: "/dashboard/finance",
-  legal: "/dashboard/legal",
-  supervisor: "/dashboard/supervisor",
+  admin: "/admin/dashboard", // Using admin as SuperAdmin if exists
+  inventory: "/admin/dashboard", // Inventory acts as Admin
+  sales: "/sales/dashboard",
+  finance: "/finance/dashboard",
+  legal: "/legal/dashboard",
+  supervisor: "/supervisor/dashboard",
 };
 
 export const ROLE_ALLOWED_PREFIXES: Record<UserRole, string[]> = {
-  admin: ["/dashboard/admin"],
-  inventory: ["/dashboard/inventory", "/inventory", "/proyek"],
-  sales: ["/dashboard/sales", "/sales", "/crm"],
-  finance: ["/dashboard/finance", "/finance", "/keuangan"],
-  legal: ["/dashboard/legal", "/legal"],
-  supervisor: ["/dashboard/supervisor", "/supervisor", "/proyek"],
+  admin: ["/admin"],
+  inventory: ["/admin"],
+  sales: ["/sales"],
+  finance: ["/finance"],
+  legal: ["/legal"],
+  supervisor: ["/supervisor"],
 };
 
 export const isUserRole = (value: string | null | undefined): value is UserRole => {

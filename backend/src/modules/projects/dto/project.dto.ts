@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 
 export const createProjectDto = z.object({
   body: z.object({
@@ -7,6 +7,8 @@ export const createProjectDto = z.object({
     totalUnits: z.number().int().nonnegative().optional(),
     targetSelesai: z.string().datetime().optional(),
     status: z.string().optional(),
+    jumlahKontraktor: z.number().int().nonnegative().optional(),
+    nilaiKontrak: z.number().nonnegative().optional(),
   }),
 });
 

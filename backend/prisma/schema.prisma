@@ -34,6 +34,8 @@ model Project {
   totalUnits      Int            @default(0)
   targetSelesai   DateTime?
   status          String         @default("perencanaan") // perencanaan, konstruksi, finishing, selesai
+  jumlahKontraktor Int           @default(0)
+  nilaiKontrak    Float          @default(0)
   
   propertyTypes   PropertyType[]
   units           Unit[]
