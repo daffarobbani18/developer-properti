@@ -37,6 +37,13 @@ model Project {
   jumlahKontraktor Int           @default(0)
   nilaiKontrak    Float          @default(0)
   
+  // Field Baru (Fase 5 - Relational Inventory)
+  kontraktorName  String?
+  estimasiAnggaran Float?
+  nomorIzin       String?
+  description     String?
+  imageUrl        String?
+  
   propertyTypes   PropertyType[]
   units           Unit[]
   sitePlans       SitePlan[]
@@ -84,6 +91,9 @@ model Unit {
   statusPenjualan String         @default("Tersedia") // Tersedia, Booked, Terjual
   priceMarkup     Float          @default(0)
   totalPrice      Float          @default(0)
+  
+  // Field Baru (Fase 5 - Relational Inventory)
+  luasTanahAktual Float?
   
   project         Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   propertyType    PropertyType   @relation(fields: [propertyTypeId], references: [id], onDelete: Cascade)

@@ -1,4 +1,4 @@
-﻿import { prisma } from "../../core/config/prisma.js";
+import { prisma } from "../../core/config/prisma.js";
 
 export class ProjectsService {
   static async getAllProjects() {
@@ -32,6 +32,12 @@ export class ProjectsService {
     return await prisma.project.update({
       where: { id },
       data,
+    });
+  }
+
+  static async deleteProject(id: string) {
+    return await prisma.project.delete({
+      where: { id },
     });
   }
 }

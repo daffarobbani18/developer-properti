@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 import Link from "next/link";
 import {
-  UsersThree, Warning, TrendUp, MapPin, Plus, Buildings, ArrowRight, Calendar, X, CircleNotch
+  UsersThree, Warning, TrendUp, MapPin, Plus, Buildings, ArrowRight, Calendar, X, CircleNotch, UploadSimple, PencilSimple, Trash, WarningCircle
 } from "@phosphor-icons/react";
 import {
   dummyProyek,
@@ -40,11 +41,20 @@ export default function ProyekPage() {
     totalUnits: "",
     targetSelesai: "",
     status: "perencanaan",
-    jumlahKontraktor: "",
-    nilaiKontrak: "",
+    kontraktorName: "",
+    estimasiAnggaran: "",
+    nomorIzin: "",
+    description: "",
+    imageUrl: "",
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [editProjectId, setEditProjectId] = useState<string | null>(null);
+  const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<Proyek | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const fetchProjects = async () => {
       try {
         setLoading(true);
@@ -98,29 +108,96 @@ export default function ProyekPage() {
       const loginData = await loginRes.json();
       const token = loginData.token;
 
+      let finalImageUrl = projectForm.imageUrl;
+
+      // Handle Image Upload First
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("image", selectedFile);
+        
+        const uploadRes = await fetch("http://localhost:4000/api/upload", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${token}` },
+          body: formData,
+        });
+
+        if (!uploadRes.ok) {
+          throw new Error("Gagal mengupload gambar proyek");
+        }
+        const uploadData = await uploadRes.json();
+        finalImageUrl = uploadData.url;
+      }
+
       if (!token) return;
 
       const payload = {
         name: projectForm.name,
         location: projectForm.location,
-        totalUnits: Number(projectForm.totalUnits) || 0,
-        targetSelesai: projectForm.targetSelesai ? new Date(projectForm.targetSelesai).toISOString() : undefined,
+        totalUnits: parseInt(projectForm.totalUnits) || 0,
+        targetSelesai: projectForm.targetSelesai ? new Date(projectForm.targetSelesai).toISOString() : null,
         status: projectForm.status,
-        jumlahKontraktor: Number(projectForm.jumlahKontraktor) || 0,
-        nilaiKontrak: Number(projectForm.nilaiKontrak) || 0,
+        kontraktorName: projectForm.kontraktorName,
+        estimasiAnggaran: parseFloat(projectForm.estimasiAnggaran) || 0,
+        nomorIzin: projectForm.nomorIzin,
+        description: projectForm.description,
+        imageUrl: finalImageUrl,
       };
 
-      await fetch("http://localhost:4000/api/projects", {
-        method: "POST",
+      const url = editProjectId 
+        ? `http://localhost:4000/api/projects/${editProjectId}` 
+        : "http://localhost:4000/api/projects";
+      const method = editProjectId ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(payload)
       });
-
+      
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(`Gagal: ${err.message || res.statusText || "Internal Server Error"}`);
+        return;
+      }
+      
       setIsProjectModalOpen(false);
-      setProjectForm({ name: "", location: "", totalUnits: "", targetSelesai: "", status: "perencanaan", jumlahKontraktor: "", nilaiKontrak: "" });
+      setEditProjectId(null);
+      setProjectForm({ name: "", location: "", totalUnits: "", targetSelesai: "", status: "perencanaan", kontraktorName: "", estimasiAnggaran: "", nomorIzin: "", description: "", imageUrl: "" });
+      setSelectedFile(null);
       window.location.reload();
     } catch (e) {
       console.error(e);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteProjectId) return;
+    try {
+      setSubmitting(true);
+      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
+      });
+      const loginData = await loginRes.json();
+      if (!loginData.token) return;
+
+      const res = await fetch(`http://localhost:4000/api/projects/${deleteProjectId}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${loginData.token}` },
+      });
+
+      if (res.ok) {
+        setDeleteProjectId(null);
+        setProjectToDelete(null);
+        window.location.reload();
+      } else {
+        alert("Gagal menghapus proyek");
+      }
+    } catch (err) {
+      console.error(err);
     } finally {
       setSubmitting(false);
     }
@@ -223,17 +300,40 @@ export default function ProyekPage() {
       {/* Proyek Cards */}
       <div>
         <h2 className="mb-4 text-lg font-bold text-zinc-900">Daftar Proyek</h2>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((proyek) => (
-            <ProyekCard key={proyek.id} proyek={proyek} />
+            <ProyekCard 
+              key={proyek.id} 
+              proyek={proyek} 
+              onEdit={(p) => {
+                setEditProjectId(p.id);
+                setProjectForm({
+                  name: p.nama,
+                  location: p.lokasi,
+                  totalUnits: String(p.totalUnit),
+                  targetSelesai: p.targetSelesai ? new Date(p.targetSelesai).toISOString().split('T')[0] : "",
+                  status: p.statusProyek,
+                  kontraktorName: p.kontraktorName || "",
+                  estimasiAnggaran: String(p.estimasiAnggaran || ""),
+                  nomorIzin: p.nomorIzin || "",
+                  description: p.description || "",
+                  imageUrl: p.imageUrl || "",
+                });
+                setIsProjectModalOpen(true);
+              }}
+              onDelete={(p) => {
+                setProjectToDelete(p);
+                setDeleteProjectId(p.id);
+              }}
+            />
           ))}
         </div>
       </div>
 
       {/* Modal Tambah Proyek */}
-      {isProjectModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg animate-in zoom-in-95 rounded-2xl bg-white shadow-2xl duration-200">
+      {isProjectModalOpen && mounted && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg flex flex-col max-h-[90vh] animate-in zoom-in-95 rounded-2xl bg-white shadow-2xl duration-200">
             <div className="flex items-center justify-between rounded-t-2xl border-b border-zinc-100 bg-zinc-50/50 px-6 py-4">
               <h3 className="text-lg font-bold text-zinc-900">Registrasi Proyek Baru</h3>
               <button onClick={() => setIsProjectModalOpen(false)} className="p-1 text-zinc-400 transition-colors hover:text-rose-500">
@@ -284,37 +384,97 @@ export default function ProyekPage() {
               </div>
               <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Jumlah Kontraktor</label>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Nama Kontraktor</label>
                   <input
-                    type="number"
-                    value={projectForm.jumlahKontraktor}
-                    onChange={(e) => setProjectForm({ ...projectForm, jumlahKontraktor: e.target.value })}
-                    placeholder="0"
+                    type="text"
+                    value={projectForm.kontraktorName}
+                    onChange={(e) => setProjectForm({ ...projectForm, kontraktorName: e.target.value })}
+                    placeholder="PT Bangun Bersama"
                     className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Nilai Kontrak</label>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Estimasi Anggaran (RAB)</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-500">Rp</span>
+                    <input
+                      type="text"
+                      value={projectForm.estimasiAnggaran}
+                      onChange={(e) => {
+                        const rawValue = e.target.value.replace(/\D/g, "");
+                        const formattedValue = rawValue ? new Intl.NumberFormat("id-ID").format(Number(rawValue)) : "";
+                        setProjectForm({ ...projectForm, estimasiAnggaran: formattedValue });
+                      }}
+                      placeholder="0"
+                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3 pl-10 pr-4 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Nomor Izin (IMB/PBG)</label>
                   <input
-                    type="number"
-                    value={projectForm.nilaiKontrak}
-                    onChange={(e) => setProjectForm({ ...projectForm, nilaiKontrak: e.target.value })}
-                    placeholder="0"
+                    type="text"
+                    value={projectForm.nomorIzin}
+                    onChange={(e) => setProjectForm({ ...projectForm, nomorIzin: e.target.value })}
+                    placeholder="IMB/123/2026"
                     className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                   />
                 </div>
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Status Awal</label>
+                  <select
+                    value={projectForm.status}
+                    onChange={(e) => setProjectForm({ ...projectForm, status: e.target.value })}
+                    className="w-full appearance-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                  >
+                    <option value="perencanaan">Perencanaan (Planning)</option>
+                    <option value="konstruksi">Konstruksi (Ongoing)</option>
+                    <option value="finishing">Finishing (Completed)</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Status Awal</label>
-                <select
-                  value={projectForm.status}
-                  onChange={(e) => setProjectForm({ ...projectForm, status: e.target.value })}
-                  className="w-full appearance-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-                >
-                  <option value="perencanaan">Perencanaan</option>
-                  <option value="konstruksi">Konstruksi</option>
-                  <option value="finishing">Finishing</option>
-                </select>
+
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Foto Cover / Siteplan Proyek</label>
+                <div className="flex items-center gap-4">
+                  {projectForm.imageUrl && !selectedFile && (
+                    <img src={projectForm.imageUrl} alt="Preview" className="h-16 w-16 rounded-lg object-cover border border-zinc-200" />
+                  )}
+                  {selectedFile && (
+                    <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-xs text-amber-700 text-center p-1 overflow-hidden">
+                      {selectedFile?.name}
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-300 bg-zinc-50 px-4 py-3 text-sm text-zinc-600 transition-all hover:border-amber-500 hover:bg-amber-50 hover:text-amber-700">
+                      <UploadSimple weight="duotone" size={20} />
+                      {selectedFile ? "Ganti File Gambar" : "Upload File Gambar"}
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files.length > 0) {
+                            setSelectedFile(e.target.files[0]);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Deskripsi Proyek (Opsional)</label>
+                <textarea
+                  value={projectForm.description}
+                  onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })}
+                  placeholder="Kawasan hunian eksklusif dengan fasilitas..."
+                  rows={3}
+                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                ></textarea>
               </div>
             </div>
             <div className="flex justify-end gap-3 rounded-b-2xl border-t border-zinc-100 bg-zinc-50/50 px-6 py-4">
@@ -334,21 +494,89 @@ export default function ProyekPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteProjectId && mounted && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="p-8 text-center">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-rose-50 mb-6">
+                <Trash weight="duotone" className="h-10 w-10 text-rose-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-zinc-900 mb-2">Hapus Proyek?</h2>
+              <p className="text-zinc-500 mb-2">
+                Anda yakin ingin menghapus proyek <span className="font-bold text-zinc-800">"{projectToDelete?.nama}"</span>?
+              </p>
+              
+              {(projectToDelete?.totalUnit || 0) > 0 && (
+                <div className="mt-4 bg-rose-50 border border-rose-100 rounded-xl p-4 flex gap-3 text-left">
+                  <WarningCircle weight="fill" className="text-rose-500 h-5 w-5 shrink-0 mt-0.5" />
+                  <div className="text-sm text-rose-700">
+                    <p className="font-bold mb-1">Peringatan Kritis!</p>
+                    <p>Proyek ini memiliki <b>{projectToDelete?.totalUnit} unit</b> dan tipe rumah terkait. Menghapus proyek akan <b>menghapus semua data unit dan tipe rumah</b> tersebut selamanya.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 p-4 bg-zinc-50 border-t border-zinc-100">
+              <button
+                onClick={() => {
+                  setDeleteProjectId(null);
+                  setProjectToDelete(null);
+                }}
+                disabled={submitting}
+                className="rounded-xl px-5 py-3 text-sm font-bold text-zinc-600 bg-white border border-zinc-200 hover:bg-zinc-50 transition-colors disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={submitting}
+                className="flex items-center justify-center gap-2 rounded-xl bg-rose-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-rose-500/30 hover:bg-rose-600 transition-all disabled:opacity-50"
+              >
+                {submitting ? <CircleNotch weight="bold" className="animate-spin h-5 w-5" /> : "Ya, Hapus Proyek"}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
 }
 
-function ProyekCard({ proyek }: { proyek: Proyek }) {
+function ProyekCard({ proyek, onEdit, onDelete }: { proyek: Proyek, onEdit: (p: Proyek) => void, onDelete: (p: Proyek) => void }) {
   const isDelayed = proyek.persentaseSelesai < 50 && proyek.statusProyek === "konstruksi";
   const rawColor = statusProyekColor[proyek.statusProyek] ?? "";
   const badgeStyle = statusBadgeStyle[rawColor] ?? "bg-zinc-100 text-zinc-600";
   const barGradient = progressBarColor[rawColor] ?? "from-zinc-300 to-zinc-400";
 
   return (
-    <Link href={`/admin/proyek/${proyek.id}/unit`} className="block">
-      <div className="group h-full cursor-pointer overflow-hidden rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-200 hover:shadow-[0_8px_30px_rgba(245,158,11,0.12)]">
+    <div className="block h-full">
+      <div className="group relative h-full overflow-hidden rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-200 hover:shadow-[0_8px_30px_rgba(245,158,11,0.12)]">
+        {/* Actions (Edit/Delete) */}
+        <div className="absolute top-4 right-4 flex items-center gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 z-10">
+          <button 
+            onClick={(e) => { e.preventDefault(); onEdit(proyek); }}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm border border-zinc-200 text-zinc-500 hover:text-blue-600 hover:border-blue-200 shadow-sm transition-all hover:scale-110"
+            title="Edit Proyek"
+          >
+            <PencilSimple weight="bold" size={14} />
+          </button>
+          <button 
+            onClick={(e) => { e.preventDefault(); onDelete(proyek); }}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm border border-zinc-200 text-zinc-500 hover:text-rose-600 hover:border-rose-200 shadow-sm transition-all hover:scale-110"
+            title="Hapus Proyek"
+          >
+            <Trash weight="bold" size={14} />
+          </button>
+        </div>
+
+        <Link href={`/admin/proyek/${proyek.id}/unit`} className="block">
         {/* Header */}
         <div className="mb-5 flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -418,8 +646,9 @@ function ProyekCard({ proyek }: { proyek: Proyek }) {
         <div className="mt-4 flex items-center justify-end gap-1 text-xs font-medium text-amber-500 opacity-0 transition-opacity group-hover:opacity-100">
           Lihat Detail Unit <ArrowRight size={13} />
         </div>
+        </Link>
       </div>
-    </Link>
+    </div>
   );
 }
 

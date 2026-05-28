@@ -9,6 +9,11 @@ export const createProjectDto = z.object({
     status: z.string().optional(),
     jumlahKontraktor: z.number().int().nonnegative().optional(),
     nilaiKontrak: z.number().nonnegative().optional(),
+    kontraktorName: z.string().optional(),
+    estimasiAnggaran: z.number().nonnegative().optional(),
+    nomorIzin: z.string().optional(),
+    description: z.string().optional(),
+    imageUrl: z.string().nullable().optional(),
   }),
 });
 
@@ -19,5 +24,10 @@ export const updateProjectDto = z.object({
     totalUnits: z.number().int().nonnegative().optional(),
     targetSelesai: z.string().datetime().optional(),
     status: z.string().optional(),
+    kontraktorName: z.string().optional(),
+    estimasiAnggaran: z.number().nonnegative().optional(),
+    nomorIzin: z.string().optional(),
+    description: z.string().optional(),
+    imageUrl: z.string().nullable().optional(),
   }),
 });

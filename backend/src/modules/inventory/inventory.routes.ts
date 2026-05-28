@@ -70,6 +70,37 @@ router.get("/types", InventoryController.getAllTypes);
 
 /**
  * @swagger
+ * /api/inventory/types/{id}:
+ *   put:
+ *     summary: Memperbarui Tipe Properti
+ *     tags: [Inventory]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Tipe properti berhasil diperbarui
+ *   delete:
+ *     summary: Menghapus Tipe Properti
+ *     tags: [Inventory]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Tipe properti berhasil dihapus
+ */
+router.put("/types/:id", InventoryController.updateType);
+router.delete("/types/:id", InventoryController.deleteType);
+
+/**
+ * @swagger
  * /api/inventory/units:
  *   post:
  *     summary: Mendaftarkan Unit Kavling baru

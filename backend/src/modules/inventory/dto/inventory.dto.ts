@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 
 export const createPropertyTypeDto = z.object({
   body: z.object({
@@ -22,5 +22,6 @@ export const createUnitDto = z.object({
     statusPembangunan: z.string().optional(),
     statusPenjualan: z.string().optional(),
     priceMarkup: z.number().nonnegative().optional(),
+    luasTanahAktual: z.number().nonnegative().optional(),
   }),
 });

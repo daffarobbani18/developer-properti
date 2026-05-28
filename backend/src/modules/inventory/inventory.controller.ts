@@ -27,6 +27,7 @@ export class InventoryController {
         kamarTidur: Number(kamarTidur || 0),
         kamarMandi: Number(kamarMandi || 0),
         basePrice: Number(basePrice),
+        imageUrl: req.body.imageUrl || null,
       });
 
       res.status(201).json({
@@ -35,6 +36,55 @@ export class InventoryController {
       });
     } catch (error: any) {
       console.error("createType error:", error);
+      res.status(500).json({ error: error.message || "Terjadi kesalahan pada server" });
+    }
+  }
+
+  static async updateType(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const {
+        projectId,
+        name,
+        luasTanah,
+        luasBangunan,
+        kamarTidur,
+        kamarMandi,
+        basePrice,
+        imageUrl,
+      } = req.body;
+
+      const propertyType = await InventoryService.updatePropertyType(id as string, {
+        projectId: projectId ? String(projectId) : undefined,
+        name: name ? String(name) : undefined,
+        luasTanah: luasTanah !== undefined ? Number(luasTanah) : undefined,
+        luasBangunan: luasBangunan !== undefined ? Number(luasBangunan) : undefined,
+        kamarTidur: kamarTidur !== undefined ? Number(kamarTidur) : undefined,
+        kamarMandi: kamarMandi !== undefined ? Number(kamarMandi) : undefined,
+        basePrice: basePrice !== undefined ? Number(basePrice) : undefined,
+        imageUrl: imageUrl !== undefined ? String(imageUrl) : undefined,
+      });
+
+      res.status(200).json({
+        message: "Property Type berhasil diupdate",
+        data: propertyType,
+      });
+    } catch (error: any) {
+      console.error("updateType error:", error);
+      res.status(500).json({ error: error.message || "Terjadi kesalahan pada server" });
+    }
+  }
+
+  static async deleteType(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      await InventoryService.deletePropertyType(id as string);
+
+      res.status(200).json({
+        message: "Property Type berhasil dihapus",
+      });
+    } catch (error: any) {
+      console.error("deleteType error:", error);
       res.status(500).json({ error: error.message || "Terjadi kesalahan pada server" });
     }
   }

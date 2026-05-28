@@ -37,7 +37,7 @@ export default function AdminDashboardPage() {
                   <p className="text-sm font-medium text-zinc-600 truncate">{stat.label}</p>
                   <h3 className="mt-1 text-3xl font-bold text-zinc-900 tracking-tight">{stat.value}</h3>
                 </div>
-                <div className={lex h-14 w-14 shrink-0 items-center justify-center rounded-2xl  }>
+                <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${stat.bg} ${stat.color}`}>
                   <Icon weight="duotone" size={28} />
                 </div>
               </div>

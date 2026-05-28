@@ -15,6 +15,7 @@ export class InventoryService {
     bedrooms?: number; // legacy fallback
     bathrooms?: number; // legacy fallback
     price?: number; // legacy fallback
+    imageUrl?: string;
   }) {
     return await prisma.propertyType.create({
       data: {
@@ -29,6 +30,7 @@ export class InventoryService {
         bedrooms: data.kamarTidur,
         bathrooms: data.kamarMandi,
         price: data.basePrice,
+        imageUrl: data.imageUrl,
       },
     });
   }
@@ -47,6 +49,43 @@ export class InventoryService {
   }
 
   /**
+   * Memperbarui tipe properti
+   */
+  static async updatePropertyType(id: string, data: {
+    projectId?: string;
+    name?: string;
+    luasTanah?: number;
+    luasBangunan?: number;
+    kamarTidur?: number;
+    kamarMandi?: number;
+    basePrice?: number;
+    imageUrl?: string;
+  }) {
+    return await prisma.propertyType.update({
+      where: { id },
+      data: {
+        ...(data.projectId && { projectId: data.projectId }),
+        ...(data.name && { name: data.name }),
+        ...(data.luasTanah !== undefined && { luasTanah: data.luasTanah }),
+        ...(data.luasBangunan !== undefined && { luasBangunan: data.luasBangunan }),
+        ...(data.kamarTidur !== undefined && { kamarTidur: data.kamarTidur, bedrooms: data.kamarTidur }),
+        ...(data.kamarMandi !== undefined && { kamarMandi: data.kamarMandi, bathrooms: data.kamarMandi }),
+        ...(data.basePrice !== undefined && { basePrice: data.basePrice, price: data.basePrice }),
+        ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl }),
+      },
+    });
+  }
+
+  /**
+   * Menghapus tipe properti
+   */
+  static async deletePropertyType(id: string) {
+    return await prisma.propertyType.delete({
+      where: { id },
+    });
+  }
+
+  /**
    * Menambahkan unit kavling baru dengan validasi unik per blok & nomor di kawasan yang sama
    */
   static async createKavlingUnit(data: {
@@ -59,6 +98,7 @@ export class InventoryService {
     statusPenjualan: string;
     priceMarkup: number;
     nomorUnit?: string; // legacy fallback
+    luasTanahAktual?: number;
   }) {
     // Validasi duplikasi blok & nomor di kawasan yang sama
     const existingUnit = await prisma.unit.findFirst({
@@ -101,6 +141,7 @@ export class InventoryService {
         nomorUnit: data.nomor,
         price: totalPrice,
         status: data.statusPenjualan || "Tersedia",
+        luasTanahAktual: data.luasTanahAktual,
       },
     });
   }
