@@ -1,0 +1,17 @@
+﻿import os
+import glob
+
+def replace_in_files(pattern, old_str, new_str):
+    for filepath in glob.glob(pattern, recursive=True):
+        if os.path.isfile(filepath):
+            with open(filepath, 'r', encoding='utf-8') as f:
+                content = f.read()
+            if old_str in content:
+                content = content.replace(old_str, new_str)
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    f.write(content)
+
+replace_in_files('src/modules/**/*.ts', 'async (tx) =>', 'async (tx: any) =>')
+replace_in_files('src/modules/billing/billing.service.ts', '(inv) =>', '(inv: any) =>')
+replace_in_files('src/modules/billing/billing.service.ts', '(p) =>', '(p: any) =>')
+

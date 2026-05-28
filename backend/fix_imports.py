@@ -1,26 +1,21 @@
-import os
-import re
+﻿import os
+import glob
 
-def add_js_extension_to_imports(filepath):
-    with open(filepath, 'r', encoding='utf-8') as f:
-        content = f.read()
+def replace_in_files(pattern, old_str, new_str):
+    for filepath in glob.glob(pattern, recursive=True):
+        if os.path.isfile(filepath):
+            with open(filepath, 'r', encoding='utf-8') as f:
+                content = f.read()
+            if old_str in content:
+                content = content.replace(old_str, new_str)
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    f.write(content)
 
-    # Find imports matching from "./something" or from "../something"
-    # and not already ending in .js
-    # re.sub(pattern, repl, string)
-    
-    # We want to match: import ... from "./path/to/module";
-    # We use a regex: (from|import)\s+["'](\.[^"'\n]+)(?<!\.js)["']
-    
-    new_content = re.sub(r'(from\s+["\'])(\.[^"\'\n]+)(?<!\.js)(["\'])', r'\1\2.js\3', content)
-    new_content = re.sub(r'(import\s+["\'])(\.[^"\'\n]+)(?<!\.js)(["\'])', r'\1\2.js\3', new_content)
-    
-    if content != new_content:
-        with open(filepath, 'w', encoding='utf-8') as f:
-            f.write(new_content)
-        print(f"Updated {filepath}")
+# Update auth.middleware imports in routes
+replace_in_files('src/routes/**/*.ts', '../middlewares/auth.middleware.js', '../../core/middlewares/auth.middleware.js')
+replace_in_files('src/routes/upload.route.ts', '../middlewares/auth.middleware.js', '../../core/middlewares/auth.middleware.js')
 
-for root, _, files in os.walk('src'):
-    for file in files:
-        if file.endswith('.ts'):
-            add_js_extension_to_imports(os.path.join(root, file))
+# Update prisma imports in services & routes
+replace_in_files('src/services/**/*.ts', '../database/prisma.js', '../../core/config/prisma.js')
+replace_in_files('src/routes/**/*.ts', '../database/prisma.js', '../../core/config/prisma.js')
+
