@@ -69,7 +69,7 @@ export default function InventoryAdminPage() {
 
         if (token) {
           // Step 2: Fetch Property Types
-          const ptRes = await fetch("http://localhost:4000/api/property-types", {
+          const ptRes = await fetch("http://localhost:4000/api/inventory/types", {
             headers: { "Authorization": `Bearer ${token}` }
           });
           const pts = await ptRes.json();
@@ -89,7 +89,7 @@ export default function InventoryAdminPage() {
           }
 
           // Step 3: Fetch Units
-          const unRes = await fetch("http://localhost:4000/api/units", {
+          const unRes = await fetch("http://localhost:4000/api/inventory/units", {
             headers: { "Authorization": `Bearer ${token}` }
           });
           const uns = await unRes.json();
@@ -161,7 +161,7 @@ export default function InventoryAdminPage() {
         imageUrl: uploadedImageUrl || null
       };
       
-      await fetch("http://localhost:4000/api/property-types", {
+      await fetch("http://localhost:4000/api/inventory/types", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(payload)
@@ -196,7 +196,7 @@ export default function InventoryAdminPage() {
         status: "Tersedia"
       };
       
-      await fetch("http://localhost:4000/api/units", {
+      await fetch("http://localhost:4000/api/inventory/units", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(payload)
