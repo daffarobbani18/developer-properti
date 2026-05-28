@@ -135,6 +135,8 @@ model Booking {
   unit           Unit      @relation(fields: [unitId], references: [id], onDelete: Restrict)
   
   invoices       Invoice[]
+  legalDocuments LegalDocument[]
+  basts          Bast[]
   
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -185,4 +187,33 @@ model ConstructionProgress {
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+}
+
+model LegalDocument {
+  id             String    @id @default(uuid())
+  bookingId      String
+  documentType   String    // cth: 'PPJB', 'AJB', 'SHM', 'IMB'
+  status         String    @default("Diproses")
+  fileUrl        String?
+  issuedAt       DateTime?
+  notes          String?
+  
+  booking        Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Bast {
+  id             String    @id @default(uuid())
+  bookingId      String
+  handoverDate   DateTime
+  status         String    @default("Dijadwalkan")
+  documentUrl    String?
+  remarks        String?
+  
+  booking        Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
