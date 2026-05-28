@@ -113,4 +113,19 @@ router.post("/payments", validate(recordPaymentDto), BillingController.recordPay
  */
 router.get("/:bookingId/history", BillingController.getBillingHistory);
 
+
+/**
+ * @swagger
+ * /api/billing/invoices:
+ *   get:
+ *     summary: Mendapatkan semua invoice
+ *     tags: [Billing]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: OK
+ */
+router.get("/invoices", BillingController.getAllInvoices);
+
 export default router;

@@ -2,6 +2,23 @@ import { prisma } from "../../core/config/prisma.js";
 
 export class BillingService {
   /**
+   * Mengambil semua invoice
+   */
+  static async getAllInvoices() {
+    return await prisma.invoice.findMany({
+      include: {
+        booking: {
+          include: {
+            lead: { select: { name: true, phone: true } },
+            unit: { select: { blok: true, nomor: true, kawasan: true } }
+          }
+        }
+      },
+      orderBy: { dueDate: "asc" }
+    });
+  }
+
+  /**
    * Membuat jadwal tagihan secara otomatis (generate Invoices)
    */
   static async generateInvoices(data: {

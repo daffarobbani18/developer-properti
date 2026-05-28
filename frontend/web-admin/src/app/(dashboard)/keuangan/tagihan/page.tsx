@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,26 +29,110 @@ import {
   DownloadSimple,
   Upload,
   Eye,
+  CircleNotch
 } from "@phosphor-icons/react";
 import {
-  dummyTagihan,
   formatRupiah,
   formatTanggalShort,
   statusTagihanLabels,
   statusTagihanColors,
   tipeTagihanLabels,
-  getTotalByStatus,
-  type Tagihan,
   type StatusTagihan,
 } from "@/lib/keuangan-data";
 
+type Tagihan = {
+  id: string;
+  nomorTagihan: string;
+  customerNama: string;
+  unit: string;
+  tipeTagihan: string;
+  nominal: number;
+  jatuhTempo: string;
+  tanggalBayar?: string;
+  status: StatusTagihan;
+  cicilan?: {
+    ke: number;
+    dari: number;
+  };
+};
+
 export default function TagihanPage() {
-  const [tagihanList, setTagihanList] = useState<Tagihan[]>(dummyTagihan);
+  const [tagihanList, setTagihanList] = useState<Tagihan[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterTipe, setFilterTipe] = useState<string>("all");
   const [selectedTagihan, setSelectedTagihan] = useState<Tagihan | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        setLoading(true);
+        // Login to get token first
+        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
+        });
+        const loginData = await loginRes.json();
+        
+        if (loginData.token) {
+          const res = await fetch("http://localhost:4000/api/billing/invoices", {
+            headers: { "Authorization": `Bearer ${loginData.token}` }
+          });
+          const result = await res.json();
+          
+          if (result.data) {
+            const mappedInvoices = result.data.map((inv: any) => {
+              const customerNama = inv.booking?.lead?.name || "Unknown";
+              const unitStr = inv.booking?.unit ? `${inv.booking.unit.kawasan} ${inv.booking.unit.blok}/${inv.booking.unit.nomor}` : "-";
+              
+              let mappedStatus: StatusTagihan = "belum_bayar";
+              if (inv.status === "Paid") {
+                mappedStatus = "lunas";
+              } else if (new Date(inv.dueDate) < new Date()) {
+                mappedStatus = "terlambat";
+              }
+
+              let mappedTipe = "angsuran";
+              const rawTipe = (inv.invoiceType || "").toLowerCase();
+              if (rawTipe.includes("dp")) mappedTipe = "dp";
+              else if (rawTipe.includes("kpr") || rawTipe.includes("cicilan")) mappedTipe = "angsuran";
+              else if (rawTipe.includes("ipl")) mappedTipe = "ipl";
+              else if (rawTipe.includes("pelunasan")) mappedTipe = "pelunasan";
+
+              let cicilanObj = undefined;
+              if (inv.invoiceNumber && inv.invoiceNumber.includes("-T")) {
+                const termStr = inv.invoiceNumber.split("-T")[1];
+                if (termStr) {
+                  cicilanObj = { ke: parseInt(termStr), dari: 12 }; // default 12 for dummy, we don't know total tenor
+                }
+              }
+
+              return {
+                id: inv.id,
+                nomorTagihan: inv.invoiceNumber,
+                customerNama,
+                unit: unitStr,
+                tipeTagihan: mappedTipe,
+                nominal: inv.amountDue,
+                jatuhTempo: inv.dueDate,
+                status: mappedStatus,
+                cicilan: cicilanObj
+              };
+            });
+            setTagihanList(mappedInvoices);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch invoices:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInvoices();
+  }, []);
 
   // Funnel tagihan
   const filteredTagihan = tagihanList.filter((t) => {
@@ -63,10 +147,14 @@ export default function TagihanPage() {
     return matchSearch && matchStatus && matchTipe;
   });
 
+  const getTotalByStatusLocal = (list: Tagihan[], st: StatusTagihan) => {
+    return list.filter(t => t.status === st).reduce((sum, t) => sum + t.nominal, 0);
+  };
+
   // Calculate summary
-  const totalBelumBayar = getTotalByStatus(tagihanList, "belum_bayar");
-  const totalTerlambat = getTotalByStatus(tagihanList, "terlambat");
-  const totalLunas = getTotalByStatus(tagihanList, "lunas");
+  const totalBelumBayar = getTotalByStatusLocal(tagihanList, "belum_bayar");
+  const totalTerlambat = getTotalByStatusLocal(tagihanList, "terlambat");
+  const totalLunas = getTotalByStatusLocal(tagihanList, "lunas");
   const jumlahTerlambat = tagihanList.filter(
     (t) => t.status === "terlambat"
   ).length;
@@ -88,6 +176,15 @@ export default function TagihanPage() {
     setSelectedTagihan({ ...selectedTagihan, status: "lunas", tanggalBayar: today });
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[70vh]">
+        <CircleNotch className="w-10 h-10 text-green-600 animate-spin" />
+        <span className="ml-3 text-zinc-500 text-sm font-medium animate-pulse">Menyinkronkan data tagihan...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="space-y-6">
@@ -98,9 +195,14 @@ export default function TagihanPage() {
               <FileText weight="duotone" className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
-                Tagihan & Piutang
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl md:text-3xl font-bold text-zinc-900">
+                  Tagihan & Piutang
+                </h1>
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 animate-pulse border border-green-200">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5" /> LIVE SYNC
+                </span>
+              </div>
               <p className="text-sm text-zinc-600">
                 Kelola tagihan pembeli & konfirmasi pembayaran
               </p>
@@ -154,7 +256,7 @@ export default function TagihanPage() {
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-zinc-600">
-                  Lunas Bulan Ini
+                  Lunas
                 </span>
                 <CheckCircle weight="duotone" className="w-5 h-5 text-green-600" />
               </div>
@@ -178,7 +280,7 @@ export default function TagihanPage() {
               <p className="text-2xl font-bold text-zinc-900">
                 {formatRupiah(totalBelumBayar + totalTerlambat)}
               </p>
-              <p className="text-xs text-zinc-500 mt-1">Semua tagihan aktif</p>
+              <p className="text-xs text-zinc-500 mt-1">Semua tagihan aktif & terlambat</p>
             </div>
           </Card>
         </div>
@@ -290,7 +392,7 @@ export default function TagihanPage() {
                     </td>
                     <td className="py-3 px-4">
                       <Badge variant="secondary">
-                        {tipeTagihanLabels[tagihan.tipeTagihan]}
+                        {tipeTagihanLabels[tagihan.tipeTagihan] || tagihan.tipeTagihan}
                       </Badge>
                     </td>
                     <td className="py-3 px-4 text-sm text-right font-semibold text-zinc-900">
@@ -385,7 +487,7 @@ export default function TagihanPage() {
                   <div>
                     <label className="text-sm text-zinc-600">Tipe Tagihan</label>
                     <p className="font-semibold text-zinc-900">
-                      {tipeTagihanLabels[selectedTagihan.tipeTagihan]}
+                      {tipeTagihanLabels[selectedTagihan.tipeTagihan] || selectedTagihan.tipeTagihan}
                     </p>
                   </div>
                   <div>

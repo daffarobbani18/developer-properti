@@ -2,6 +2,15 @@ import { Request, Response } from "express";
 import { BillingService } from "./billing.service.js";
 
 export class BillingController {
+  static async getAllInvoices(req: Request, res: Response): Promise<void> {
+    try {
+      const invoices = await BillingService.getAllInvoices();
+      res.status(200).json({ message: "Berhasil mengambil tagihan", data: invoices });
+    } catch (error: any) {
+      res.status(500).json({ error: "Gagal mengambil data tagihan" });
+    }
+  }
+
   static async generateInvoices(req: Request, res: Response): Promise<void> {
     try {
       const { bookingId, totalAmount, tenor, invoiceType } = req.body;

@@ -2,6 +2,21 @@ import { prisma } from "../../core/config/prisma.js";
 
 export class LegalService {
   /**
+   * Mengambil semua status legal dari booking
+   */
+  static async getAllLegalStatuses() {
+    return await prisma.booking.findMany({
+      include: {
+        lead: { select: { name: true } },
+        unit: { select: { blok: true, nomor: true, kawasan: true } },
+        legalDocuments: true,
+        basts: true
+      },
+      orderBy: { createdAt: "desc" }
+    });
+  }
+
+  /**
    * Membuat atau mengupdate dokumen legal
    */
   static async createOrUpdateLegalDoc(data: {

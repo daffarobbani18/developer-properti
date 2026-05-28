@@ -48,7 +48,14 @@ export const requireRole = (roles: string[]) => {
       return;
     }
 
+    
+    // Superadmin bypasses role checks
+    if (user.roleName === "Superadmin") {
+      return next();
+    }
+
     if (!roles.includes(user.roleName)) {
+
       res.status(403).json({ error: "Anda tidak memiliki akses ke resource ini" });
       return;
     }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,24 +30,87 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import {
-  Eye, CreditCard, FileText, Plus, ArrowRight
+  Eye, Plus, CircleNotch
 } from "@phosphor-icons/react";
 import {
-  dummyTransaksi,
   skemaLabel,
   statusKPRLabel,
   statusKPRColor,
   formatRupiah,
   formatTanggal,
-  type Transaksi,
   type SkemaPembayaran,
   type StatusKPR,
 } from "@/lib/crm-data";
 
+type Transaksi = {
+  id: string;
+  namaPembeli: string;
+  nomorUnit: string;
+  skema: SkemaPembayaran;
+  nilaiTransaksi: number;
+  tandaJadi: number;
+  statusKPR: StatusKPR;
+  tanggalBooking: string;
+  tanggalSPK?: string;
+};
+
 export default function TransaksiPage() {
-  const [transaksiList, setTransaksiList] = useState<Transaksi[]>(dummyTransaksi);
+  const [transaksiList, setTransaksiList] = useState<Transaksi[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedTrx, setSelectedTrx] = useState<Transaksi | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        setLoading(true);
+        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
+        });
+        const loginData = await loginRes.json();
+
+        if (loginData.token) {
+          const res = await fetch("http://localhost:4000/api/sales/bookings", {
+            headers: { "Authorization": `Bearer ${loginData.token}` }
+          });
+          const result = await res.json();
+
+          if (result.data) {
+            const mapped = result.data.map((b: any) => {
+              let skema: SkemaPembayaran = "kpr";
+              const rawPayment = (b.paymentMethod || "").toLowerCase();
+              if (rawPayment.includes("tunai bertahap") || rawPayment.includes("cicil")) skema = "tunai-bertahap";
+              else if (rawPayment.includes("tunai") || rawPayment.includes("cash")) skema = "tunai";
+              
+              let statusKpr: StatusKPR = "pengajuan";
+              if (b.status === "Approved") statusKpr = "disetujui";
+              else if (b.status === "Ditolak") statusKpr = "ditolak";
+              else if (b.status === "Menunggu Verifikasi") statusKpr = "proses";
+
+              return {
+                id: b.id,
+                namaPembeli: b.lead?.name || "Unknown",
+                nomorUnit: b.unit ? `${b.unit.kawasan} ${b.unit.blok}/${b.unit.nomor}` : "-",
+                skema: skema,
+                nilaiTransaksi: b.unit?.totalPrice || 0,
+                tandaJadi: b.bookingFee || 0,
+                statusKPR: statusKpr,
+                tanggalBooking: b.createdAt
+              };
+            });
+            setTransaksiList(mapped);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch bookings:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBookings();
+  }, []);
 
   const handleUpdateStatusKPR = (newStatus: StatusKPR) => {
     if (!selectedTrx) return;
@@ -74,10 +137,24 @@ export default function TransaksiPage() {
     return idx >= 0 ? ((idx + 1) / kprSteps.length) * 100 : 0;
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[70vh]">
+        <CircleNotch className="w-10 h-10 text-blue-600 animate-spin" />
+        <span className="ml-3 text-zinc-500 text-sm font-medium animate-pulse">Sinkronisasi data transaksi...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-zinc-900">CRM — Transaksi</h1>
+        <div className="flex items-center gap-3 mb-2">
+          <h1 className="text-2xl font-bold text-zinc-900">CRM — Transaksi</h1>
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 animate-pulse border border-blue-200">
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5" /> LIVE SYNC
+          </span>
+        </div>
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -147,26 +224,6 @@ export default function TransaksiPage() {
                   <Input className="h-10 rounded-lg border-zinc-200/80 bg-white/60" placeholder="5.000.000" type="text" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm text-zinc-700">Nominal Uang Muka / DP (Rp)</Label>
-                  <Input className="h-10 rounded-lg border-zinc-200/80 bg-white/60" placeholder="20.000.000" type="text" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm text-zinc-700">Tenor Cicilan DP (Bulan)</Label>
-                  <Select>
-                    <SelectTrigger className="h-10 rounded-lg border-zinc-200/80 bg-white/60">
-                      <SelectValue placeholder="Berapa kali cicil" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1x (Lunas di muka)</SelectItem>
-                      <SelectItem value="2">2x Cicilan (2 Bulan)</SelectItem>
-                      <SelectItem value="3">3x Cicilan (3 Bulan)</SelectItem>
-                      <SelectItem value="6">6x Cicilan (6 Bulan)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
               <div className="flex justify-end gap-3 pt-2">
                 <Button variant="outline" onClick={() => setShowAddDialog(false)} className="rounded-lg border-zinc-200/80">
                   Batal
@@ -191,20 +248,26 @@ export default function TransaksiPage() {
                 <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Unit</TableHead>
                 <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Skema</TableHead>
                 <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Nilai</TableHead>
-                <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Status KPR</TableHead>
+                <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Status</TableHead>
                 <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Progress</TableHead>
                 <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Tanggal</TableHead>
                 <TableHead className="text-xs font-semibold text-zinc-500 uppercase tracking-wider w-16"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {transaksiList.map((trx) => (
+              {transaksiList.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-12 text-sm text-zinc-400">
+                    Tidak ada transaksi ditemukan.
+                  </TableCell>
+                </TableRow>
+              ) : transaksiList.map((trx) => (
                 <TableRow
                   key={trx.id}
                   className="border-zinc-200/30 hover:bg-white/60 cursor-pointer transition-colors duration-150"
                   onClick={() => setSelectedTrx(trx)}
                 >
-                  <TableCell className="text-xs font-mono text-zinc-500">{trx.id}</TableCell>
+                  <TableCell className="text-xs font-mono text-zinc-500 truncate max-w-[100px]">{trx.id}</TableCell>
                   <TableCell>
                     <p className="text-sm font-medium text-zinc-900">{trx.namaPembeli}</p>
                   </TableCell>
@@ -213,7 +276,7 @@ export default function TransaksiPage() {
                   </TableCell>
                   <TableCell>
                     <Badge className="text-xs bg-zinc-100 text-zinc-700 font-medium rounded-md border-0">
-                      {skemaLabel[trx.skema]}
+                      {skemaLabel[trx.skema] || trx.skema}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-sm font-medium text-zinc-900">
@@ -221,7 +284,7 @@ export default function TransaksiPage() {
                   </TableCell>
                   <TableCell>
                     <Badge className={`text-xs font-medium rounded-md ${statusKPRColor[trx.statusKPR]} border-0`}>
-                      {statusKPRLabel[trx.statusKPR]}
+                      {statusKPRLabel[trx.statusKPR] || trx.statusKPR}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -276,7 +339,7 @@ export default function TransaksiPage() {
                 </div>
                 <Select value={selectedTrx.statusKPR} onValueChange={(v) => handleUpdateStatusKPR(v as StatusKPR)}>
                   <SelectTrigger className={`h-8 w-[130px] border-0 focus:ring-0 shadow-none font-medium text-xs rounded-md ${statusKPRColor[selectedTrx.statusKPR]}`}>
-                    <SelectValue placeholder="Status KPR" />
+                    <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pengajuan">Pengajuan</SelectItem>
@@ -290,7 +353,7 @@ export default function TransaksiPage() {
 
               {/* KPR Progress Stepper */}
               <div className="rounded-lg bg-zinc-50/80 border border-zinc-200/40 p-4">
-                <p className="text-xs text-zinc-400 mb-3">Progress KPR</p>
+                <p className="text-xs text-zinc-400 mb-3">Progress Status</p>
                 <div className="flex items-center gap-1">
                   {kprSteps.map((step, i) => {
                     const currentIdx = kprSteps.indexOf(selectedTrx.statusKPR);
@@ -327,7 +390,7 @@ export default function TransaksiPage() {
                 <div>
                   <p className="text-xs text-zinc-400 mb-0.5">Skema</p>
                   <p className="text-sm font-medium text-zinc-700">
-                    {skemaLabel[selectedTrx.skema]}
+                    {skemaLabel[selectedTrx.skema] || selectedTrx.skema}
                   </p>
                 </div>
                 <div>

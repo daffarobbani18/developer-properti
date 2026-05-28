@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,17 +37,29 @@ import {
   Funnel,
   X,
   Eye,
+  CircleNotch
 } from "@phosphor-icons/react";
 import {
-  dummyLeads,
   leadStatusLabel,
   leadStatusColor,
   sourceLabel,
   formatTanggal,
-  type Lead,
   type LeadStatus,
   type LeadSource,
 } from "@/lib/crm-data";
+
+type Lead = {
+  id: string;
+  nama: string;
+  telepon: string;
+  email: string;
+  sumber: LeadSource;
+  status: LeadStatus;
+  minatUnit: string;
+  salesPIC: string;
+  tanggalMasuk: string;
+  catatanTerakhir: string;
+};
 
 const allStatuses: LeadStatus[] = [
   "baru",
@@ -67,14 +79,76 @@ const allSources: LeadSource[] = [
 ];
 
 export default function LeadsPage() {
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterSource, setFilterSource] = useState<string>("all");
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
 
+  useEffect(() => {
+    const fetchLeads = async () => {
+      try {
+        setLoading(true);
+        // Login to get token first
+        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
+        });
+        const loginData = await loginRes.json();
+        
+        if (loginData.token) {
+          const res = await fetch("http://localhost:4000/api/sales/leads", {
+            headers: { "Authorization": `Bearer ${loginData.token}` }
+          });
+          const result = await res.json();
+          if (result.data) {
+            const mapped = result.data.map((l: any) => {
+              let status: LeadStatus = "baru";
+              const rawStat = (l.statusCrm || "New").toLowerCase();
+              if (rawStat.includes("follow")) status = "follow-up";
+              else if (rawStat.includes("survey")) status = "survey";
+              else if (rawStat.includes("nego")) status = "negosiasi";
+              else if (rawStat.includes("booking")) status = "booking";
+              else if (rawStat.includes("spk")) status = "spk";
+              
+              let source: LeadSource = "website";
+              const rawSource = (l.source || "").toLowerCase();
+              if (rawSource.includes("ig") || rawSource.includes("insta")) source = "instagram";
+              else if (rawSource.includes("fb") || rawSource.includes("face")) source = "facebook";
+              else if (rawSource.includes("ref")) source = "referral";
+              else if (rawSource.includes("walk")) source = "walk-in";
+              else if (rawSource.includes("pameran")) source = "pameran";
+
+              return {
+                id: l.id,
+                nama: l.name,
+                telepon: l.phone,
+                email: l.email || "-",
+                sumber: source,
+                status: status,
+                minatUnit: "-",
+                salesPIC: "Sistem",
+                tanggalMasuk: l.createdAt,
+                catatanTerakhir: l.notes || "-"
+              };
+            });
+            setLeads(mapped);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch leads", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLeads();
+  }, []);
+
   const filtered = useMemo(() => {
-    return dummyLeads.filter((lead) => {
+    return leads.filter((lead) => {
       const matchSearch =
         !search ||
         lead.nama.toLowerCase().includes(search.toLowerCase()) ||
@@ -85,7 +159,7 @@ export default function LeadsPage() {
         filterSource === "all" || lead.sumber === filterSource;
       return matchSearch && matchStatus && matchSource;
     });
-  }, [search, filterStatus, filterSource]);
+  }, [leads, search, filterStatus, filterSource]);
 
   const hasFilters =
     search !== "" || filterStatus !== "all" || filterSource !== "all";
@@ -99,15 +173,32 @@ export default function LeadsPage() {
   // Summary counts
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    dummyLeads.forEach((l) => {
+    leads.forEach((l) => {
       counts[l.status] = (counts[l.status] || 0) + 1;
     });
     return counts;
-  }, []);
+  }, [leads]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[70vh]">
+        <CircleNotch className="w-10 h-10 text-blue-600 animate-spin" />
+        <span className="ml-3 text-zinc-500 text-sm font-medium animate-pulse">Memuat data leads...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="space-y-6">
+
+        {/* Title & Sync Badge */}
+        <div className="flex items-center gap-3 mb-2">
+          <h1 className="text-2xl font-bold text-zinc-900">Leads CRM</h1>
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 animate-pulse border border-blue-200">
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5" /> LIVE SYNC
+          </span>
+        </div>
 
         {/* Summary Badges */}
         <div className="flex flex-wrap gap-2">{allStatuses.map((s) => (
@@ -289,7 +380,7 @@ export default function LeadsPage() {
                     <TableCell>
                       <div>
                         <p className="text-sm font-medium text-zinc-900">{lead.nama}</p>
-                        <p className="text-xs text-zinc-400">{lead.id}</p>
+                        <p className="text-xs text-zinc-400 truncate max-w-[120px]">{lead.id}</p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -339,13 +430,6 @@ export default function LeadsPage() {
               )}
             </TableBody>
           </Table>
-        </div>
-
-        {/* Table Footer */}
-        <div className="border-t border-zinc-200/30 px-6 py-3 flex items-center justify-between">
-          <p className="text-xs text-zinc-400">
-            Menampilkan {filtered.length} dari {dummyLeads.length} leads
-          </p>
         </div>
       </Card>
 

@@ -1,4 +1,6 @@
-"use client";
+import os
+
+content = '''"use client";
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -56,7 +58,7 @@ function ChartTooltip({ active, payload, label }: any) {
           <div className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
           <span className="text-zinc-600">{entry.name}:</span>
           <span className="font-semibold text-zinc-900">
-            {entry.name === "Progress" ? `${entry.value}%` : `${entry.value} ${entry.name === "Leads" || entry.name === "Konversi" ? "" : "jt"}`}
+            {entry.name === "Progress" ? \\%\ : \\ \\}
           </span>
         </div>
       ))}
@@ -78,7 +80,7 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        // Login to get token first (as per dummy flow)
+        // Login to get token first
         const loginRes = await fetch("http://localhost:4000/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -88,7 +90,7 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
         
         if (loginData.token) {
           const res = await fetch("http://localhost:4000/api/reports/dashboard", {
-            headers: { "Authorization": `Bearer ${loginData.token}` }
+            headers: { "Authorization": \Bearer \\ }
           });
           const data = await res.json();
           setReportData(data);
@@ -105,9 +107,9 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[70vh]">
-        <CircleNotch className="w-10 h-10 text-amber-500 animate-spin" />
-        <span className="ml-3 text-zinc-500 text-sm font-medium animate-pulse">Mengambil data live dari server...</span>
+      <div className="flex items-center justify-center h-96">
+        <CircleNotch className="w-8 h-8 text-amber-500 animate-spin" />
+        <span className="ml-3 text-zinc-500 text-sm font-medium animate-pulse">Mengambil data live...</span>
       </div>
     );
   }
@@ -137,7 +139,7 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
       const [year, month] = sp.month.split('-');
       return {
         name: monthNames[parseInt(month) - 1] || sp.month,
-        Leads: Math.max(10, sp.totalApproved * 3), // Mock leads calculation
+        Leads: Math.max(10, sp.totalApproved * 3), // Mock leads
         Konversi: sp.totalApproved
       };
     });
@@ -165,7 +167,6 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
     Saldo: item.saldo / 1_000_000,
   }));
   cashflowChartData[cashflowChartData.length - 1].Pemasukan = (totalRevenue / 1_000_000) || cashflowChartData[cashflowChartData.length - 1].Pemasukan;
-  cashflowChartData[cashflowChartData.length - 1].Saldo = cashflowChartData[cashflowChartData.length - 1].Pemasukan - cashflowChartData[cashflowChartData.length - 1].Pengeluaran;
 
   const proyekChartData = [
     { name: "Sep", Progress: 25 },
@@ -178,36 +179,36 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
 
   const recentActivities = [
     { icon: UsersThree, label: "Lead baru: Lia Permata", time: "2 menit lalu", color: "text-blue-500", bg: "bg-blue-50" },
-    { icon: CurrencyDollar, label: "Verifikasi DP: Siti Nurhaliza â€” Rp 50jt", time: "15 menit lalu", color: "text-emerald-500", bg: "bg-emerald-50" },
-    { icon: MapPin, label: "Site visit: Ahmad Fauzi â€” Blok B", time: "1 jam lalu", color: "text-violet-500", bg: "bg-violet-50" },
+    { icon: CurrencyDollar, label: "Verifikasi DP: Siti Nurhaliza — Rp 50jt", time: "15 menit lalu", color: "text-emerald-500", bg: "bg-emerald-50" },
+    { icon: MapPin, label: "Site visit: Ahmad Fauzi — Blok B", time: "1 jam lalu", color: "text-violet-500", bg: "bg-violet-50" },
     { icon: Warning, label: "Kendala: Material terlambat Blok A", time: "2 jam lalu", color: "text-rose-500", bg: "bg-rose-50" },
-    { icon: Phone, label: "Follow-up: Budi Santoso â€” call kembali", time: "3 jam lalu", color: "text-amber-500", bg: "bg-amber-50" },
+    { icon: Phone, label: "Follow-up: Budi Santoso — call kembali", time: "3 jam lalu", color: "text-amber-500", bg: "bg-amber-50" },
   ];
 
   const roleSnapshots: Record<Role, Array<{ title: string; items: Array<{ label: string; meta: string }> }>> = {
     admin: [
-      { title: "Leads Perlu Follow-up", items: dummyLeads.slice(0, 3).map((lead) => ({ label: lead.nama, meta: `${lead.status} â€¢ ${lead.minatUnit}` })) },
-      { title: "Transaksi Terkini", items: dummyTransaksi.slice(0, 3).map((trx) => ({ label: trx.namaPembeli, meta: `${trx.nomorUnit} â€¢ ${currencyShort(trx.nilaiTransaksi)}` })) },
+      { title: "Leads Perlu Follow-up", items: dummyLeads.slice(0, 3).map((lead) => ({ label: lead.nama, meta: \\ • \\ })) },
+      { title: "Transaksi Terkini", items: dummyTransaksi.slice(0, 3).map((trx) => ({ label: trx.namaPembeli, meta: \\ • \\ })) },
     ],
     inventory: [
-      { title: "Unit Terbaru", items: dummyUnits.slice(0, 4).map((unit) => ({ label: unit.nomorUnit, meta: `${unit.blok} â€¢ ${unit.tipe} â€¢ ${unit.status}` })) },
-      { title: "Proyek Aktif", items: dummyProyek.map((proyek) => ({ label: proyek.nama, meta: `${proyek.persentaseSelesai}% selesai â€¢ ${proyek.lokasi}` })) },
+      { title: "Unit Terbaru", items: dummyUnits.slice(0, 4).map((unit) => ({ label: unit.nomorUnit, meta: \\ • \ • \\ })) },
+      { title: "Proyek Aktif", items: dummyProyek.map((proyek) => ({ label: proyek.nama, meta: \\% selesai • \\ })) },
     ],
     sales: [
-      { title: "Hot Leads", items: dummyLeads.filter((lead) => lead.status !== "baru").slice(0, 4).map((lead) => ({ label: lead.nama, meta: `${lead.status} â€¢ PIC ${lead.salesPIC}` })) },
-      { title: "Aktivitas Terbaru", items: dummyAktivitas.slice(0, 4).map((Pulse) => ({ label: Pulse.namaLead, meta: `${Pulse.tipe} â€¢ ${Pulse.tanggal}` })) },
+      { title: "Hot Leads", items: dummyLeads.filter((lead) => lead.status !== "baru").slice(0, 4).map((lead) => ({ label: lead.nama, meta: \\ • PIC \\ })) },
+      { title: "Aktivitas Terbaru", items: dummyAktivitas.slice(0, 4).map((Pulse) => ({ label: Pulse.namaLead, meta: \\ • \\ })) },
     ],
     finance: [
-      { title: "Tagihan Prioritas", items: dummyTagihan.slice(0, 4).map((tagihan) => ({ label: `${tagihan.customerNama} â€¢ ${tagihan.unit}`, meta: `${tagihan.status} â€¢ ${currencyShort(tagihan.nominal)}` })) },
-      { title: "Pengeluaran Terbaru", items: dummyPengeluaran.slice(0, 4).map((item) => ({ label: item.keterangan, meta: `${item.kategori} â€¢ ${currencyShort(item.nominal)}` })) },
+      { title: "Tagihan Prioritas", items: dummyTagihan.slice(0, 4).map((tagihan) => ({ label: \\ • \\, meta: \\ • \\ })) },
+      { title: "Pengeluaran Terbaru", items: dummyPengeluaran.slice(0, 4).map((item) => ({ label: item.keterangan, meta: \\ • \\ })) },
     ],
     legal: [
-      { title: "Transaksi Perlu Dokumen", items: dummyTransaksi.slice(0, 4).map((trx) => ({ label: trx.namaPembeli, meta: `${trx.nomorUnit} â€¢ status ${trx.statusKPR}` })) },
-      { title: "Kendala Legal Terkini", items: dummyKendala.slice(0, 4).map((item) => ({ label: item.judul, meta: `${item.status} â€¢ ${item.prioritas} â€¢ ${item.kategori}` })) },
+      { title: "Transaksi Perlu Dokumen", items: dummyTransaksi.slice(0, 4).map((trx) => ({ label: trx.namaPembeli, meta: \\ • status \\ })) },
+      { title: "Kendala Legal Terkini", items: dummyKendala.slice(0, 4).map((item) => ({ label: item.judul, meta: \\ • \ • \\ })) },
     ],
     supervisor: [
-      { title: "Kendala Lapangan", items: dummyKendala.slice(0, 4).map((item) => ({ label: item.judul, meta: `${item.status} â€¢ ${item.prioritas}` })) },
-      { title: "Unit Progres Terendah", items: dummyUnit.slice(0, 4).map((unit) => ({ label: unit.nomorUnit, meta: `${unit.persentaseSelesai}% selesai â€¢ ${unit.status}` })) },
+      { title: "Kendala Lapangan", items: dummyKendala.slice(0, 4).map((item) => ({ label: item.judul, meta: \\ • \\ })) },
+      { title: "Unit Progres Terendah", items: dummyUnit.slice(0, 4).map((unit) => ({ label: unit.nomorUnit, meta: \\% selesai • \\ })) },
     ],
   };
 
@@ -216,9 +217,9 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
       title: "Dashboard Admin", subtitle: "Ringkasan operasional lintas divisi.",
       heroGradient: "from-amber-500/8 via-transparent to-transparent", chartType: "cashflow",
       stats: [
-        { label: "Leads Aktif", value: String(totalLeads), note: `${newLeads} leads baru`, trend: "+18%", trendUp: true, icon: UsersThree, iconBg: "bg-blue-50", iconColor: "text-blue-500" },
+        { label: "Leads Aktif", value: String(totalLeads), note: \\ leads baru\, trend: "+18%", trendUp: true, icon: UsersThree, iconBg: "bg-blue-50", iconColor: "text-blue-500" },
         { label: "Total Pendapatan", value: totalRevenue > 0 ? formatCurrencyCompact(totalRevenue) : formatCurrencyCompact(latestCashflow.saldo), note: "Verified Payments", trend: "+5%", trendUp: true, icon: CurrencyDollar, iconBg: "bg-emerald-50", iconColor: "text-emerald-500" },
-        { label: "Unit Terjual", value: String(soldUnits), note: `dari ${totalUnits || dummyUnits.length} total`, trend: "+12%", trendUp: true, icon: Buildings, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
+        { label: "Unit Terjual", value: String(soldUnits), note: \dari \ total\, trend: "+12%", trendUp: true, icon: Buildings, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
       ],
       quickLinks: [
         { label: "Ringkasan Internal", href: "#snapshot-data", desc: "Lihat snapshot lintas divisi" },
@@ -231,8 +232,8 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
       heroGradient: "from-blue-500/8 via-transparent to-transparent", chartType: "proyek",
       stats: [
         { label: "Proyek Aktif", value: String(totalProyek), note: "terdaftar", trend: "+2", trendUp: true, icon: Buildings, iconBg: "bg-blue-50", iconColor: "text-blue-500" },
-        { label: "Unit Terdaftar", value: String(totalUnits || dummyUnits.length), note: `${bookedUnits} booked`, trend: "+5", trendUp: true, icon: MapPin, iconBg: "bg-emerald-50", iconColor: "text-emerald-500" },
-        { label: "Progress", value: `${avgProgressProyek}%`, note: "rata-rata proyek", trend: "+8%", trendUp: true, icon: Pulse, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
+        { label: "Unit Terdaftar", value: String(totalUnits), note: \\ booked\, trend: "+5", trendUp: true, icon: MapPin, iconBg: "bg-emerald-50", iconColor: "text-emerald-500" },
+        { label: "Progress", value: \\%\, note: "rata-rata proyek", trend: "+8%", trendUp: true, icon: Pulse, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
       ],
       quickLinks: [
         { label: "Kelola Inventory", href: "/inventory", desc: "Update unit dan harga" },
@@ -244,9 +245,9 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
       title: "Dashboard Sales", subtitle: "Fokus ke leads, booking unit.",
       heroGradient: "from-emerald-500/8 via-transparent to-transparent", chartType: "leads",
       stats: [
-        { label: "Leads Baru", value: String(newLeads), note: `dari ${totalLeads} total`, trend: "+24%", trendUp: true, icon: UsersThree, iconBg: "bg-blue-50", iconColor: "text-blue-500" },
-        { label: "Follow Up", value: String(leadsFollowUp), note: `${leadsSurvey} siap survey`, trend: "+3", trendUp: true, icon: Phone, iconBg: "bg-emerald-50", iconColor: "text-emerald-500" },
-        { label: "Booking", value: String(bookedUnits), note: `${totalTransaksi} transaksi`, trend: "+2", trendUp: true, icon: MapPin, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
+        { label: "Leads Baru", value: String(newLeads), note: \dari \ total\, trend: "+24%", trendUp: true, icon: UsersThree, iconBg: "bg-blue-50", iconColor: "text-blue-500" },
+        { label: "Follow Up", value: String(leadsFollowUp), note: \\ siap survey\, trend: "+3", trendUp: true, icon: Phone, iconBg: "bg-emerald-50", iconColor: "text-emerald-500" },
+        { label: "Booking", value: String(bookedUnits), note: \\ transaksi\, trend: "+2", trendUp: true, icon: MapPin, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
       ],
       quickLinks: [
         { label: "Buka CRM", href: "/crm", desc: "Kelola calon pembeli" },
@@ -260,7 +261,7 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
       stats: [
         { label: "Pending", value: String(pendingTagihan), note: "belum lunas", trend: "-2", trendUp: true, icon: Clock, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
         { label: "Terlambat", value: String(overdueTagihan), note: "follow-up segera", trend: "+1", trendUp: false, icon: Warning, iconBg: "bg-rose-50", iconColor: "text-rose-500" },
-        { label: "Kas Bersih", value: totalRevenue > 0 ? formatCurrencyCompact(totalRevenue) : formatCurrencyCompact(latestCashflow.saldo), note: `bulan berjalan`, trend: "-5%", trendUp: false, icon: CurrencyDollar, iconBg: "bg-emerald-50", iconColor: "text-emerald-500" },
+        { label: "Kas Bersih", value: totalRevenue > 0 ? formatCurrencyCompact(totalRevenue) : formatCurrencyCompact(latestCashflow.saldo), note: \ulan berjalan\, trend: "-5%", trendUp: false, icon: CurrencyDollar, iconBg: "bg-emerald-50", iconColor: "text-emerald-500" },
       ],
       quickLinks: [
         { label: "Buka Finance", href: "/finance", desc: "Verifikasi & kuitansi" },
@@ -286,9 +287,9 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
       title: "Dashboard Pengawas", subtitle: "Pantau progres pembangunan fisik.",
       heroGradient: "from-rose-500/8 via-transparent to-transparent", chartType: "proyek",
       stats: [
-        { label: "Progress", value: `${avgProgressProyek}%`, note: "konstruksi aktif", trend: "+8%", trendUp: true, icon: HardHat, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
+        { label: "Progress", value: \\%\, note: "konstruksi aktif", trend: "+8%", trendUp: true, icon: HardHat, iconBg: "bg-amber-50", iconColor: "text-amber-500" },
         { label: "Kendala", value: String(totalKendalaAktif), note: "tindakan lapangan", trend: "+1", trendUp: false, icon: Warning, iconBg: "bg-rose-50", iconColor: "text-rose-500" },
-        { label: "Unit", value: String(totalUnitProyek), note: `${totalProyek} proyek`, trend: "+3", trendUp: true, icon: Buildings, iconBg: "bg-blue-50", iconColor: "text-blue-500" },
+        { label: "Unit", value: String(totalUnitProyek), note: \\ proyek\, trend: "+3", trendUp: true, icon: Buildings, iconBg: "bg-blue-50", iconColor: "text-blue-500" },
       ],
       quickLinks: [
         { label: "Supervisor", href: "/supervisor", desc: "Laporan lapangan" },
@@ -311,14 +312,7 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
             <h1 className="font-[family-name:var(--font-heading)] text-2xl font-normal tracking-tight text-zinc-900 md:text-3xl">
               {dashboard.title}
             </h1>
-            <div className="flex items-center gap-3">
-              <p className="text-sm text-zinc-500 leading-relaxed">{dashboard.subtitle}</p>
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 animate-pulse border border-emerald-200">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-ping absolute opacity-75" />
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 relative" />
-                LIVE SYNC
-              </span>
-            </div>
+            <p className="max-w-2xl text-sm text-zinc-500 leading-relaxed">{dashboard.subtitle} <span className="inline-flex items-center ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">LIVE DATA</span></p>
           </div>
         </div>
       </section>
@@ -334,7 +328,7 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
                 <div className="mt-1 flex items-baseline gap-2">
                   <h3 className="text-3xl font-bold text-zinc-900 tracking-tight">{stat.value}</h3>
                   {stat.trend && (
-                    <div className={`flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${stat.trendUp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                    <div className={\lex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md \\}>
                       {stat.trendUp ? <TrendUp weight="bold" /> : <TrendDown weight="bold" />}
                       {stat.trend}
                     </div>
@@ -342,7 +336,7 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
                 </div>
                 <p className="mt-1 text-xs text-zinc-500 truncate">{stat.note}</p>
               </div>
-              <div className={`icon-wrapper h-14 w-14 shrink-0 ${stat.iconBg === 'bg-blue-50' ? 'icon-blue' : stat.iconBg === 'bg-emerald-50' ? 'icon-emerald' : stat.iconBg === 'bg-amber-50' ? 'icon-amber' : stat.iconBg === 'bg-rose-50' ? 'icon-rose' : stat.iconBg === 'bg-violet-50' ? 'icon-violet' : 'icon-amber'}`}>
+              <div className={\icon-wrapper h-14 w-14 shrink-0 \\}>
                 <Icon weight="duotone" size={28} />
               </div>
             </div>
@@ -359,7 +353,7 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
                 {dashboard.chartType === "cashflow" ? "Tren Arus Kas" :
                  dashboard.chartType === "leads" ? "Tren Leads & Konversi" : "Tren Progress Proyek"}
               </h3>
-              <p className="text-xs text-zinc-400 mt-0.5">Berdasarkan data operasional terbaru</p>
+              <p className="text-xs text-zinc-400 mt-0.5">Berdasarkan Live Database</p>
             </div>
             <div className="flex items-center gap-3">
               {dashboard.chartType === "cashflow" ? (
@@ -393,7 +387,7 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#a1a1aa" }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#a1a1aa" }} tickFormatter={(v) => `${v}jt`} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#a1a1aa" }} tickFormatter={(v) => \\jt\} />
                   <Tooltip content={<ChartTooltip />} />
                   <Area type="monotone" dataKey="Pemasukan" stroke="#f59e0b" strokeWidth={2} fill="url(#gradPemasukan)" />
                   <Area type="monotone" dataKey="Pengeluaran" stroke="#3b82f6" strokeWidth={2} fill="url(#gradPengeluaran)" />
@@ -427,7 +421,7 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#a1a1aa" }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#a1a1aa" }} tickFormatter={(v) => `${v}%`} domain={[0, 100]} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#a1a1aa" }} tickFormatter={(v) => \\%\} domain={[0, 100]} />
                   <Tooltip content={<ChartTooltip />} />
                   <Area type="monotone" dataKey="Progress" stroke="#f59e0b" strokeWidth={2.5} fill="url(#gradProgress)" />
                 </AreaChart>
@@ -445,8 +439,8 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
             {recentActivities.map((act, idx) => {
               const ActIcon = act.icon;
               return (
-                <div key={idx} className="flex items-start gap-3.5 px-6 py-3.5 transition-colors hover:bg-zinc-50/50" style={{ animationDelay: `${idx * 100}ms` }}>
-                  <div className={`mt-0.5 icon-wrapper h-8 w-8 shrink-0 ${act.bg === 'bg-blue-50' ? 'icon-blue' : act.bg === 'bg-emerald-50' ? 'icon-emerald' : act.bg === 'bg-violet-50' ? 'icon-violet' : act.bg === 'bg-rose-50' ? 'icon-rose' : 'icon-amber'}`}>
+                <div key={idx} className="flex items-start gap-3.5 px-6 py-3.5 transition-colors hover:bg-zinc-50/50" style={{ animationDelay: \\ms\ }}>
+                  <div className={\mt-0.5 icon-wrapper h-8 w-8 shrink-0 \\}>
                     <ActIcon weight="duotone" size={15} />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -508,3 +502,6 @@ export default function RoleDashboardPage({ params }: { params: Promise<{ role: 
     </div>
   );
 }
+'''
+with open('d:/Website/developer-properti/frontend/web-admin/src/app/(dashboard)/dashboard/[role]/page.tsx', 'w', encoding='utf-8') as f:
+    f.write(content)

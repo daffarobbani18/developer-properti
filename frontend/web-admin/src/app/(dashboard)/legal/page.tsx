@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   ArrowUpRight, FileText, ShieldCheck, Clock, Warning, 
-  SealCheck, Scales, MagnifyingGlass, Funnel, Eye
+  SealCheck, Scales, MagnifyingGlass, Funnel, Eye, CircleNotch
 } from "@phosphor-icons/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
@@ -15,8 +15,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  dummyDokumenInduk, dummyLegalitasUnit, statusDokumenIndukLabels, statusDokumenIndukColors,
-  statusProgresLegalLabels, statusProgresLegalColors, formatTanggal
+  dummyDokumenInduk, statusDokumenIndukLabels, statusDokumenIndukColors,
+  statusProgresLegalLabels, statusProgresLegalColors, formatTanggal,
+  type StatusProgresLegal
 } from "@/lib/legal-data";
 
 const legalStats = [
@@ -37,19 +38,91 @@ const checklistItems = [
   "Gunakan tampilan ini sebagai ringkasan awal sebelum integrasi backend.",
 ];
 
+type LegalitasUnit = {
+  id: string;
+  namaPembeli: string;
+  nomorUnit: string;
+  statusPPJB: StatusProgresLegal;
+  statusPecahSertifikat: StatusProgresLegal;
+  statusAJB: StatusProgresLegal;
+  statusBBN: StatusProgresLegal;
+  tanggalUpdateTerakhir: string;
+};
+
 export default function LegalPage() {
+  const [loading, setLoading] = useState(true);
+  const [legalitasUnit, setLegalitasUnit] = useState<LegalitasUnit[]>([]);
   const [searchDoc, setSearchDoc] = useState("");
   const [searchUnit, setSearchUnit] = useState("");
+
+  useEffect(() => {
+    const fetchLegalStatus = async () => {
+      try {
+        setLoading(true);
+        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
+        });
+        const loginData = await loginRes.json();
+
+        if (loginData.token) {
+          const res = await fetch("http://localhost:4000/api/legal/status", {
+            headers: { "Authorization": `Bearer ${loginData.token}` }
+          });
+          const result = await res.json();
+          if (result.data) {
+            const mapped = result.data.map((b: any) => {
+              // Helper to get status from array of legal documents
+              const getDocStatus = (type: string): StatusProgresLegal => {
+                const doc = b.legalDocuments?.find((d: any) => d.documentType === type);
+                if (!doc) return "belum_mulai";
+                if (doc.status === "Selesai") return "selesai";
+                if (doc.status === "Diproses") return "sedang_proses";
+                return "belum_mulai";
+              };
+
+              return {
+                id: b.id,
+                namaPembeli: b.lead?.name || "Unknown",
+                nomorUnit: b.unit ? `${b.unit.kawasan} ${b.unit.blok}/${b.unit.nomor}` : "-",
+                statusPPJB: getDocStatus("PPJB"),
+                statusPecahSertifikat: getDocStatus("Pecah Sertifikat"),
+                statusAJB: getDocStatus("AJB"),
+                statusBBN: getDocStatus("SHM"),
+                tanggalUpdateTerakhir: b.updatedAt || b.createdAt,
+              };
+            });
+            setLegalitasUnit(mapped);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch legal status", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLegalStatus();
+  }, []);
 
   const filteredDocs = dummyDokumenInduk.filter(d => 
     d.namaDokumen.toLowerCase().includes(searchDoc.toLowerCase()) || 
     d.instansi.toLowerCase().includes(searchDoc.toLowerCase())
   );
 
-  const filteredUnits = dummyLegalitasUnit.filter(u => 
+  const filteredUnits = legalitasUnit.filter(u => 
     u.namaPembeli.toLowerCase().includes(searchUnit.toLowerCase()) || 
     u.nomorUnit.toLowerCase().includes(searchUnit.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[70vh]">
+        <CircleNotch className="w-10 h-10 text-violet-600 animate-spin" />
+        <span className="ml-3 text-zinc-500 text-sm font-medium animate-pulse">Menyinkronkan data legalitas...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -61,8 +134,13 @@ export default function LegalPage() {
             <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-violet-700">
               <Scales weight="bold" size={11} className="text-violet-500" /> Legal &amp; Perizinan
             </div>
-            <h1 className="font-[family-name:var(--font-heading)] text-2xl font-normal tracking-tight text-zinc-900 md:text-3xl">Monitoring Dokumen &amp; Perizinan</h1>
-            <p className="max-w-2xl text-sm text-zinc-500 leading-relaxed">Kelola dokumen hukum (KTP/NPWP pelanggan), proses PPJB, AJB, dan balik nama sertifikat unit.</p>
+            <div className="flex items-center gap-3">
+              <h1 className="font-[family-name:var(--font-heading)] text-2xl font-normal tracking-tight text-zinc-900 md:text-3xl">Monitoring Dokumen &amp; Perizinan</h1>
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-violet-100 text-violet-700 animate-pulse border border-violet-200">
+                <div className="w-1.5 h-1.5 rounded-full bg-violet-500 mr-1.5" /> LIVE SYNC
+              </span>
+            </div>
+            <p className="max-w-2xl text-sm text-zinc-500 leading-relaxed">Kelola dokumen hukum (KTP/NPWP pelanggan), proses PPJB, AJB, dan balik nama sertifikat unit secara tersinkronisasi.</p>
           </div>
           <Link href="/" className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-5 py-2.5 text-sm font-semibold text-violet-600 shadow-sm transition-all hover:bg-violet-100 hover:shadow-md">
             <ShieldCheck size={16} /> Ringkasan Proyek
@@ -232,7 +310,11 @@ export default function LegalPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 text-sm">
-                  {filteredUnits.map((unit) => (
+                  {filteredUnits.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="text-center py-12 text-sm text-zinc-400">Tidak ada data legalitas unit.</td>
+                    </tr>
+                  ) : filteredUnits.map((unit) => (
                     <tr key={unit.id} className="hover:bg-zinc-50/50 transition-colors">
                       <td className="p-4">
                         <p className="font-semibold text-zinc-900">{unit.namaPembeli}</p>

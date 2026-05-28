@@ -2,6 +2,15 @@ import { Request, Response } from "express";
 import { LegalService } from "./legal.service.js";
 
 export class LegalController {
+  static async getAllLegalStatuses(req: Request, res: Response): Promise<void> {
+    try {
+      const statuses = await LegalService.getAllLegalStatuses();
+      res.status(200).json({ message: "Berhasil mengambil semua status legal", data: statuses });
+    } catch (error: any) {
+      res.status(500).json({ error: "Gagal mengambil data legal" });
+    }
+  }
+
   static async createOrUpdateLegalDoc(req: Request, res: Response): Promise<void> {
     try {
       const { bookingId, documentType, status, notes } = req.body;

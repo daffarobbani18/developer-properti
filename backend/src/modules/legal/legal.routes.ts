@@ -162,4 +162,19 @@ router.post("/bast/schedule", validate(scheduleBastDto), LegalController.schedul
  */
 router.put("/bast/:bastId/complete", upload.single("file"), validate(completeBastDto), LegalController.completeBast);
 
+
+/**
+ * @swagger
+ * /api/legal/status:
+ *   get:
+ *     summary: Mendapatkan semua status legalitas unit
+ *     tags: [Legal]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: OK
+ */
+router.get("/status", LegalController.getAllLegalStatuses);
+
 export default router;
