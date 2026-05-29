@@ -590,6 +590,16 @@ export default function TagihanFinancePage() {
                       <p className="text-sm font-semibold text-amber-900 italic">"{selectedBooking.salesNotes}"</p>
                     </div>
                   )}
+
+                  {selectedBooking.kprApplication?.isPlafonTurun && (
+                    <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 shadow-sm flex gap-3 items-start">
+                      <WarningCircle className="text-rose-600 shrink-0" size={24} weight="fill" />
+                      <div>
+                        <h4 className="font-bold text-rose-800 text-sm">Peringatan dari Tim Legal: Plafon KPR Turun</h4>
+                        <p className="text-xs text-rose-700 mt-1 font-medium">Bank telah menerbitkan SP3K namun nilai yang disetujui lebih kecil dari sisa tagihan. Terdapat selisih kekurangan sebesar <b>{selectedBooking.kprApplication.selisihPlafon.toLocaleString("id-ID")}</b>. Harap terbitkan Invoice Penambahan DP manual untuk klien ini.</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Tabel Invoices */}

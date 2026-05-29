@@ -3,6 +3,7 @@ import path from "path";
 import { Router } from "express";
 import multer from "multer";
 import { LegalController } from "./legal.controller.js";
+import kprRoutes from "./kpr.routes.js";
 import { verifyToken, requireRole } from "../../core/middlewares/auth.middleware.js";
 import { validate } from "../../core/middlewares/validate.middleware.js";
 import { createLegalDocDto, scheduleBastDto, completeBastDto } from "./dto/legal.dto.js";
@@ -176,5 +177,7 @@ router.put("/bast/:bastId/complete", upload.single("file"), validate(completeBas
  *         description: OK
  */
 router.get("/status", LegalController.getAllLegalStatuses);
+
+router.use("/kpr", kprRoutes);
 
 export default router;

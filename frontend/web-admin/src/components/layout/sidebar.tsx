@@ -25,6 +25,8 @@ import {
   House,
   Package,
   MapTrifold,
+  FileText,
+  Bank,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -136,9 +138,13 @@ const menuItems: MenuGroup[] = [
       },
       {
         label: "Legal & Perizinan",
-        href: "/legal/dokumen",
+        href: "/legal",
         icon: Stamp,
         roles: ["legal"],
+        children: [
+          { label: "Pipeline KPR", href: "/legal/kpr", icon: Bank, roles: ["legal"] },
+          { label: "Dokumen & BAST", href: "/legal/dokumen", icon: FileText, roles: ["legal"] },
+        ],
       },
 
       {

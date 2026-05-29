@@ -157,6 +157,7 @@ model Booking {
   legalDocuments LegalDocument[]
   basts          Bast[]
   commissions    Commission[]
+  kprApplication KprApplication?
   
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -272,3 +273,42 @@ model Activity {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
+
+model KprApplication {
+  id                String    @id @default(uuid())
+  bookingId         String    @unique
+  bankName          String?   // e.g., 'Bank BCA', 'Bank Mandiri'
+  plafondPengajuan  Float     @default(0)
+  plafondDisetujui  Float?    // Nominal SP3K
+  
+  // Pipeline Status KPR
+  status            String    @default("Kumpul Berkas") 
+  // Enum: "Kumpul Berkas", "BI Checking", "Wawancara Bank", "SP3K Terbit", "Siap Akad", "Selesai Akad"
+
+  // Flag untuk Finance (Edge Case: Plafon Turun)
+  isPlafonTurun     Boolean   @default(false)
+  selisihPlafon     Float     @default(0) // Kekurangan bayar yang harus ditagih Finance
+  
+  notes             String?
+
+  booking           Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  documents         KprDocument[]
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model KprDocument {
+  id               String         @id @default(uuid())
+  kprApplicationId String
+  documentType     String         // e.g., 'KTP', 'NPWP', 'KK', 'Buku Nikah', 'Slip Gaji', 'Rekening Koran'
+  fileUrl          String?
+  status           String         @default("Pending") // Pending, Valid, Invalid
+  notes            String?
+  
+  kprApplication   KprApplication @relation(fields: [kprApplicationId], references: [id], onDelete: Cascade)
+  
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+

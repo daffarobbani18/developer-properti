@@ -30,6 +30,7 @@ export class FinanceService {
           },
         },
         invoices: true,
+        kprApplication: true,
       },
       orderBy: { createdAt: "desc" },
     });
