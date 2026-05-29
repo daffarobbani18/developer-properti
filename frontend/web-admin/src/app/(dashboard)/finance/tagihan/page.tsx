@@ -556,59 +556,65 @@ export default function TagihanFinancePage() {
             </DialogTitle>
           </DialogHeader>
           
-          {selectedBooking && (
-            <div className="py-2 space-y-6">
-              {/* Ringkasan Piutang */}
-              {(() => {
-                const invoices = selectedBooking.invoices || [];
-                const paidInvoicesTotal = invoices.filter(i => i.status === "Paid").reduce((acc, i) => acc + i.amountDue, 0);
-                const totalPaid = selectedBooking.bookingFee + paidInvoicesTotal;
-                const remainingBalance = selectedBooking.unit.totalPrice - totalPaid;
-                
-                return (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1">Harga Unit</p>
-                        <p className="text-xl font-black text-zinc-900">Rp {selectedBooking.unit.totalPrice.toLocaleString("id-ID")}</p>
-                      </div>
-                      <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 mb-1">Total Telah Dibayar</p>
-                        <p className="text-xl font-black text-emerald-700">Rp {totalPaid.toLocaleString("id-ID")}</p>
-                      </div>
-                      <div className="rounded-xl border border-rose-100 bg-rose-50/50 p-4 relative overflow-hidden">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-rose-700 mb-1">Sisa Kewajiban</p>
-                        <p className="text-xl font-black text-rose-700 relative z-10">Rp {remainingBalance.toLocaleString("id-ID")}</p>
-                      </div>
+          {selectedBooking && (() => {
+            const invoices = selectedBooking.invoices || [];
+            const paidInvoicesTotal = invoices.filter(i => i.status === "Paid").reduce((acc, i) => acc + i.amountDue, 0);
+            const allInvoicesTotal = invoices.reduce((acc, i) => acc + i.amountDue, 0);
+            
+            const totalPaid = selectedBooking.bookingFee + paidInvoicesTotal;
+            const remainingBalance = selectedBooking.unit.totalPrice - totalPaid;
+            const unbilledBalance = selectedBooking.unit.totalPrice - selectedBooking.bookingFee - allInvoicesTotal;
+
+            return (
+              <div className="py-2 space-y-6">
+                {/* Ringkasan Piutang */}
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1">Harga Unit</p>
+                      <p className="text-xl font-black text-zinc-900">Rp {selectedBooking.unit.totalPrice.toLocaleString("id-ID")}</p>
                     </div>
-                    
-                    {selectedBooking.salesNotes && (
-                      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1">Catatan Kesepakatan (Dari Sales)</p>
-                        <p className="text-sm font-semibold text-amber-900 italic">"{selectedBooking.salesNotes}"</p>
-                      </div>
+                    <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 mb-1">Total Telah Dibayar</p>
+                      <p className="text-xl font-black text-emerald-700">Rp {totalPaid.toLocaleString("id-ID")}</p>
+                    </div>
+                    <div className="rounded-xl border border-rose-100 bg-rose-50/50 p-4 relative overflow-hidden">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-rose-700 mb-1">Sisa Kewajiban</p>
+                      <p className="text-xl font-black text-rose-700 relative z-10">Rp {remainingBalance.toLocaleString("id-ID")}</p>
+                    </div>
+                  </div>
+                  
+                  {selectedBooking.salesNotes && (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1">Catatan Kesepakatan (Dari Sales)</p>
+                      <p className="text-sm font-semibold text-amber-900 italic">"{selectedBooking.salesNotes}"</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Tabel Invoices */}
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-bold text-zinc-900">Daftar Tagihan Lanjutan</h3>
+                    {unbilledBalance > 0 ? (
+                      <button
+                        onClick={() => {
+                          setGenerateMode("Auto-Split");
+                          setInvoiceType("Cicilan Termin");
+                          setTenor("12");
+                          setStartDate("");
+                          setIsGenerateModalOpen(true);
+                        }}
+                        className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-violet-700 shadow-sm"
+                      >
+                        <Plus weight="bold" size={14} /> Terbitkan Tagihan (Sisa: Rp {unbilledBalance.toLocaleString("id-ID")})
+                      </button>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider">
+                        <CheckCircle weight="fill" size={14} /> Seluruh Piutang Telah Diterbitkan
+                      </span>
                     )}
                   </div>
-                );
-              })()}
-
-              {/* Tabel Invoices */}
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-bold text-zinc-900">Daftar Tagihan Lanjutan</h3>
-                  <button
-                    onClick={() => {
-                      setGenerateMode("Auto-Split");
-                      setInvoiceType("Cicilan Termin");
-                      setTenor("12");
-                      setStartDate("");
-                      setIsGenerateModalOpen(true);
-                    }}
-                    className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-violet-700 shadow-sm"
-                  >
-                    <Plus weight="bold" size={14} /> Terbitkan Tagihan
-                  </button>
-                </div>
                 
                 <div className="rounded-xl border border-zinc-200 overflow-hidden">
                   <table className="w-full text-left text-sm">
@@ -672,8 +678,9 @@ export default function TagihanFinancePage() {
                   </table>
                 </div>
               </div>
-            </div>
-          )}
+              </div>
+            );
+          })()}
         </DialogContent>
       </Dialog>
 
