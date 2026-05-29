@@ -168,7 +168,7 @@ export class InventoryController {
     try {
       const { id } = req.params;
       const data = req.body;
-      const unit = await InventoryService.updateKavlingUnit(id, data);
+      const unit = await InventoryService.updateKavlingUnit(String(id), data);
       res.status(200).json({
         message: "Unit Kavling berhasil diupdate",
         data: unit,
@@ -182,7 +182,7 @@ export class InventoryController {
   static async deleteUnit(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      await InventoryService.deleteKavlingUnit(id);
+      await InventoryService.deleteKavlingUnit(String(id));
       res.status(200).json({
         message: "Unit Kavling berhasil dihapus",
       });
