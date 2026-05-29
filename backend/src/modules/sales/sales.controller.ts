@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { SalesService } from "./sales.service.js";
+import { prisma } from "../../core/config/prisma.js";
 
 export class SalesController {
   static async createLead(req: Request, res: Response): Promise<void> {
@@ -127,7 +128,7 @@ export class SalesController {
     try {
       // Dalam implementasi nyata, salesId didapat dari token req.user.id
       // Untuk kemudahan demo, kita ambil sementara dari dummy auth body atau hardcode ke sales dummy
-      const salesId = req.user?.id || (await require("../../core/config/prisma.js").prisma.user.findFirst({ where: { role: { name: "Sales & Marketing" } } }))?.id;
+      const salesId = (req as any).user?.id || (await prisma.user.findFirst({ where: { role: { name: "Sales & Marketing" } } }))?.id;
       
       const { leadId, title, type, date, status, notes } = req.body;
 
@@ -164,7 +165,7 @@ export class SalesController {
   static async getActivities(req: Request, res: Response): Promise<void> {
     try {
       // Ambil salesId (sama seperti create)
-      const salesId = req.user?.id || (await require("../../core/config/prisma.js").prisma.user.findFirst({ where: { role: { name: "Sales & Marketing" } } }))?.id;
+      const salesId = (req as any).user?.id || (await prisma.user.findFirst({ where: { role: { name: "Sales & Marketing" } } }))?.id;
       
       if (!salesId) {
         res.status(401).json({ error: "Unauthorized" });
@@ -188,7 +189,7 @@ export class SalesController {
     try {
       const { id } = req.params;
       const { status } = req.body;
-      const salesId = req.user?.id || (await require("../../core/config/prisma.js").prisma.user.findFirst({ where: { role: { name: "Sales & Marketing" } } }))?.id;
+      const salesId = (req as any).user?.id || (await prisma.user.findFirst({ where: { role: { name: "Sales & Marketing" } } }))?.id;
 
       if (!status) {
         res.status(400).json({ error: "Status wajib diisi" });
@@ -214,7 +215,7 @@ export class SalesController {
   static async deleteActivity(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const salesId = req.user?.id || (await require("../../core/config/prisma.js").prisma.user.findFirst({ where: { role: { name: "Sales & Marketing" } } }))?.id;
+      const salesId = (req as any).user?.id || (await prisma.user.findFirst({ where: { role: { name: "Sales & Marketing" } } }))?.id;
 
       if (!salesId) {
         res.status(401).json({ error: "Unauthorized" });

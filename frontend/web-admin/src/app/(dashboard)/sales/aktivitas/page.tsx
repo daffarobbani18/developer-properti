@@ -389,16 +389,16 @@ export default function AktivitasSalesPage() {
                   {act.status === "Pending" ? (
                     <button
                       onClick={() => updateStatus(act.id, "Selesai")}
-                      className="flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100 hover:text-emerald-800"
+                      className="flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 transition-all hover:bg-emerald-600 hover:text-white shadow-sm"
                     >
-                      <CheckCircle weight="bold" size={14} /> Selesai
+                      <CheckCircle weight="bold" size={14} /> Tandai Selesai
                     </button>
                   ) : (
                     <button
                       onClick={() => updateStatus(act.id, "Pending")}
                       className="flex items-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-bold text-zinc-600 transition-colors hover:bg-zinc-200"
                     >
-                      Batal Selesai
+                      Batalkan Selesai
                     </button>
                   )}
                 </div>
