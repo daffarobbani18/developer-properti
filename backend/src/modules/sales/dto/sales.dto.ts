@@ -1,11 +1,27 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 
 export const createLeadDto = z.object({
   body: z.object({
+    nik: z.string().optional(),
     name: z.string().min(1, "Nama wajib diisi"),
     phone: z.string().min(1, "Nomor telepon wajib diisi"),
-    email: z.string().email("Email tidak valid").optional(),
+    email: z.string().email("Email tidak valid").optional().or(z.literal("")),
+    address: z.string().optional(),
     source: z.string().min(1, "Sumber prospek wajib diisi"),
+    statusCrm: z.string().optional(),
+    notes: z.string().optional(),
+  }),
+});
+
+export const updateLeadDto = z.object({
+  body: z.object({
+    nik: z.string().optional(),
+    name: z.string().min(1, "Nama wajib diisi").optional(),
+    phone: z.string().min(1, "Nomor telepon wajib diisi").optional(),
+    email: z.string().email("Email tidak valid").optional().or(z.literal("")),
+    address: z.string().optional(),
+    source: z.string().min(1, "Sumber prospek wajib diisi").optional(),
+    statusCrm: z.string().optional(),
     notes: z.string().optional(),
   }),
 });

@@ -118,9 +118,11 @@ model SitePlan {
 
 model Lead {
   id          String    @id @default(uuid())
+  nik         String?
   name        String
   phone       String
   email       String?
+  address     String?
   source      String
   statusCrm   String    @default("New")
   notes       String?

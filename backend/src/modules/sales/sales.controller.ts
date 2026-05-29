@@ -12,10 +12,13 @@ export class SalesController {
       }
 
       const lead = await SalesService.createLead({
+        nik: req.body.nik ? String(req.body.nik) : undefined,
         name: String(name),
         phone: String(phone),
         email: email ? String(email) : undefined,
+        address: req.body.address ? String(req.body.address) : undefined,
         source: String(source),
+        statusCrm: req.body.statusCrm ? String(req.body.statusCrm) : undefined,
         notes: notes ? String(notes) : undefined,
       });
 
@@ -31,8 +34,11 @@ export class SalesController {
 
   static async getAllLeads(req: Request, res: Response): Promise<void> {
     try {
-      const { statusCrm } = req.query;
-      const leads = await SalesService.getAllLeads(statusCrm ? String(statusCrm) : undefined);
+      const { statusCrm, search } = req.query;
+      const leads = await SalesService.getAllLeads(
+        statusCrm ? String(statusCrm) : undefined,
+        search ? String(search) : undefined
+      );
       
       res.status(200).json({
         message: "Berhasil mengambil data prospek",
@@ -41,6 +47,34 @@ export class SalesController {
     } catch (error: any) {
       console.error("getAllLeads error:", error);
       res.status(500).json({ error: "Terjadi kesalahan pada server" });
+    }
+  }
+
+  static async updateLead(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      const lead = await SalesService.updateLead(String(id), data);
+      res.status(200).json({
+        message: "Lead prospek berhasil diupdate",
+        data: lead,
+      });
+    } catch (error: any) {
+      console.error("updateLead error:", error);
+      res.status(500).json({ error: error.message || "Terjadi kesalahan pada server" });
+    }
+  }
+
+  static async deleteLead(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      await SalesService.deleteLead(String(id));
+      res.status(200).json({
+        message: "Lead prospek berhasil dihapus",
+      });
+    } catch (error: any) {
+      console.error("deleteLead error:", error);
+      res.status(500).json({ error: error.message || "Terjadi kesalahan pada server" });
     }
   }
 

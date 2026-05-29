@@ -72,6 +72,52 @@ router.get("/leads", SalesController.getAllLeads);
 
 /**
  * @swagger
+ * /api/sales/leads/{id}:
+ *   put:
+ *     summary: Update profil prospek (Lead)
+ *     tags: [Sales]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Berhasil diupdate
+ */
+router.put("/leads/:id", SalesController.updateLead);
+
+/**
+ * @swagger
+ * /api/sales/leads/{id}:
+ *   delete:
+ *     summary: Hapus data prospek
+ *     tags: [Sales]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Berhasil dihapus
+ */
+router.delete("/leads/:id", SalesController.deleteLead);
+
+/**
+ * @swagger
  * /api/sales/bookings:
  *   post:
  *     summary: Proses penguncian unit / booking

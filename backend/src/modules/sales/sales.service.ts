@@ -5,20 +5,25 @@ export class SalesService {
    * Mendaftarkan Lead / Prospek baru
    */
   static async createLead(data: {
+    nik?: string;
     name: string;
     phone: string;
     email?: string;
+    address?: string;
     source: string;
+    statusCrm?: string;
     notes?: string;
   }) {
     return await prisma.lead.create({
       data: {
+        nik: data.nik,
         name: data.name,
         phone: data.phone,
         email: data.email,
+        address: data.address,
         source: data.source,
         notes: data.notes,
-        statusCrm: "New",
+        statusCrm: data.statusCrm || "New",
       },
     });
   }
@@ -26,11 +31,33 @@ export class SalesService {
   /**
    * Mengambil data semua Lead (dengan opsi filter)
    */
-  static async getAllLeads(statusCrm?: string) {
-    const whereClause = statusCrm ? { statusCrm } : {};
+  static async getAllLeads(statusCrm?: string, search?: string) {
+    const whereClause: any = {};
+    if (statusCrm && statusCrm !== "Semua") {
+      whereClause.statusCrm = statusCrm;
+    }
+    if (search) {
+      whereClause.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { phone: { contains: search, mode: "insensitive" } },
+      ];
+    }
     return await prisma.lead.findMany({
       where: whereClause,
       orderBy: { createdAt: "desc" },
+    });
+  }
+
+  static async updateLead(id: string, data: any) {
+    return await prisma.lead.update({
+      where: { id },
+      data,
+    });
+  }
+
+  static async deleteLead(id: string) {
+    return await prisma.lead.delete({
+      where: { id },
     });
   }
 
