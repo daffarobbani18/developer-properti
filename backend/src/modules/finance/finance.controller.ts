@@ -2,15 +2,16 @@ import { Request, Response } from "express";
 import { FinanceService } from "./finance.service.js";
 
 export class FinanceController {
-  static async getPendingBookings(req: Request, res: Response): Promise<void> {
+  static async getBookings(req: Request, res: Response): Promise<void> {
     try {
-      const bookings = await FinanceService.getPendingBookings();
+      const { status } = req.query;
+      const bookings = await FinanceService.getBookings(status ? String(status) : undefined);
       res.status(200).json({
-        message: "Berhasil mengambil antrean booking yang menunggu verifikasi",
+        message: "Berhasil mengambil riwayat booking",
         data: bookings,
       });
     } catch (error: any) {
-      console.error("getPendingBookings error:", error);
+      console.error("getBookings error:", error);
       res.status(500).json({ error: "Terjadi kesalahan pada server" });
     }
   }

@@ -11,21 +11,27 @@ router.use(verifyToken, requireRole(["Finance & Accounting"]));
 
 /**
  * @swagger
- * /api/finance/bookings/pending:
+ * /api/finance/bookings:
  *   get:
- *     summary: Mendapatkan daftar antrean verifikasi pembayaran booking
+ *     summary: Mendapatkan daftar antrean verifikasi pembayaran booking atau riwayat booking
  *     tags: [Finance]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Filter berdasarkan status (contoh: "Menunggu Verifikasi", "Approved", "Ditolak")
  *     responses:
  *       200:
- *         description: Berhasil mengambil data antrean booking
+ *         description: Berhasil mengambil data booking
  *       401:
  *         description: Unauthorized
  *       403:
  *         description: Forbidden (Bukan Finance & Accounting)
  */
-router.get("/bookings/pending", FinanceController.getPendingBookings);
+router.get("/bookings", FinanceController.getBookings);
 
 /**
  * @swagger

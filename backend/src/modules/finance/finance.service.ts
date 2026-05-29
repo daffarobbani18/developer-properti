@@ -5,13 +5,16 @@ import path from "path";
 
 export class FinanceService {
   /**
-   * Mengambil daftar booking yang masih menunggu verifikasi
+   * Mengambil daftar booking dengan filter status opsional
    */
-  static async getPendingBookings() {
+  static async getBookings(status?: string) {
+    const whereClause: any = {};
+    if (status && status !== "Semua") {
+      whereClause.status = status;
+    }
+    
     return await prisma.booking.findMany({
-      where: {
-        status: "Menunggu Verifikasi",
-      },
+      where: whereClause,
       include: {
         lead: {
           select: { name: true, phone: true, email: true },
