@@ -23,6 +23,7 @@ model User {
   role      Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
   constructionProgresses ConstructionProgress[]
   commissions Commission[]
+  activities  Activity[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -128,6 +129,8 @@ model Lead {
   notes       String?
   
   bookings    Booking[]
+  activities  Activity[]
+
   
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -250,4 +253,21 @@ model Commission {
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+}
+
+model Activity {
+  id          String    @id @default(uuid())
+  leadId      String
+  salesId     String    // Relasi ke User (Sales)
+  title       String
+  type        String    // Telepon, WhatsApp, Email, Survei Lokasi, Meeting, Lainnya
+  date        DateTime  // Kapan aktivitas ini dijadwalkan / dilakukan
+  status      String    @default("Pending") // Pending, Selesai, Batal
+  notes       String?   // Catatan (misal hasil survei)
+  
+  lead        Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  sales       User      @relation(fields: [salesId], references: [id], onDelete: Restrict)
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }

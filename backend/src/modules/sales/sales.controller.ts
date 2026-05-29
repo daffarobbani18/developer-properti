@@ -120,4 +120,114 @@ export class SalesController {
       res.status(500).json({ error: "Terjadi kesalahan pada server" });
     }
   }
+
+  // --- ACTIVITY METHODS ---
+
+  static async createActivity(req: Request, res: Response): Promise<void> {
+    try {
+      // Dalam implementasi nyata, salesId didapat dari token req.user.id
+      // Untuk kemudahan demo, kita ambil sementara dari dummy auth body atau hardcode ke sales dummy
+      const salesId = req.user?.id || (await require("../../core/config/prisma.js").prisma.user.findFirst({ where: { role: { name: "Sales & Marketing" } } }))?.id;
+      
+      const { leadId, title, type, date, status, notes } = req.body;
+
+      if (!leadId || !title || !type || !date) {
+        res.status(400).json({ error: "Data wajib tidak lengkap (leadId, title, type, date)" });
+        return;
+      }
+
+      if (!salesId) {
+        res.status(401).json({ error: "Unauthorized (Sales user not found)" });
+        return;
+      }
+
+      const activity = await SalesService.createActivity({
+        leadId: String(leadId),
+        salesId: String(salesId),
+        title: String(title),
+        type: String(type),
+        date: new Date(date),
+        status: status ? String(status) : undefined,
+        notes: notes ? String(notes) : undefined,
+      });
+
+      res.status(201).json({
+        message: "Aktivitas berhasil ditambahkan",
+        data: activity,
+      });
+    } catch (error: any) {
+      console.error("createActivity error:", error);
+      res.status(500).json({ error: "Terjadi kesalahan pada server" });
+    }
+  }
+
+  static async getActivities(req: Request, res: Response): Promise<void> {
+    try {
+      // Ambil salesId (sama seperti create)
+      const salesId = req.user?.id || (await require("../../core/config/prisma.js").prisma.user.findFirst({ where: { role: { name: "Sales & Marketing" } } }))?.id;
+      
+      if (!salesId) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+
+      const { status } = req.query;
+      const activities = await SalesService.getActivities(salesId, status ? String(status) : undefined);
+      
+      res.status(200).json({
+        message: "Berhasil mengambil daftar aktivitas",
+        data: activities,
+      });
+    } catch (error: any) {
+      console.error("getActivities error:", error);
+      res.status(500).json({ error: "Terjadi kesalahan pada server" });
+    }
+  }
+
+  static async updateActivityStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const salesId = req.user?.id || (await require("../../core/config/prisma.js").prisma.user.findFirst({ where: { role: { name: "Sales & Marketing" } } }))?.id;
+
+      if (!status) {
+        res.status(400).json({ error: "Status wajib diisi" });
+        return;
+      }
+
+      if (!salesId) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+
+      const activity = await SalesService.updateActivityStatus(String(id), salesId, String(status));
+      res.status(200).json({
+        message: "Status aktivitas berhasil diperbarui",
+        data: activity,
+      });
+    } catch (error: any) {
+      console.error("updateActivityStatus error:", error);
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  static async deleteActivity(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const salesId = req.user?.id || (await require("../../core/config/prisma.js").prisma.user.findFirst({ where: { role: { name: "Sales & Marketing" } } }))?.id;
+
+      if (!salesId) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+
+      await SalesService.deleteActivity(String(id), salesId);
+      res.status(200).json({
+        message: "Aktivitas berhasil dihapus",
+      });
+    } catch (error: any) {
+      console.error("deleteActivity error:", error);
+      res.status(400).json({ error: error.message });
+    }
+  }
 }

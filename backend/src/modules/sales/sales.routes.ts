@@ -166,4 +166,50 @@ router.post("/bookings", validate(createBookingDto), SalesController.createBooki
  */
 router.get("/bookings", SalesController.getAllBookings);
 
+// --- ACTIVITY ROUTES ---
+
+/**
+ * @swagger
+ * /api/sales/activities:
+ *   post:
+ *     summary: Buat aktivitas baru (To-Do)
+ *     tags: [Sales]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post("/activities", SalesController.createActivity);
+
+/**
+ * @swagger
+ * /api/sales/activities:
+ *   get:
+ *     summary: Mendapatkan daftar aktivitas sales
+ *     tags: [Sales]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get("/activities", SalesController.getActivities);
+
+/**
+ * @swagger
+ * /api/sales/activities/{id}:
+ *   put:
+ *     summary: Update status aktivitas (misal Selesai)
+ *     tags: [Sales]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.put("/activities/:id", SalesController.updateActivityStatus);
+
+/**
+ * @swagger
+ * /api/sales/activities/{id}:
+ *   delete:
+ *     summary: Hapus aktivitas
+ *     tags: [Sales]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.delete("/activities/:id", SalesController.deleteActivity);
+
 export default router;

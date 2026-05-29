@@ -127,4 +127,73 @@ export class SalesService {
       orderBy: { createdAt: "desc" },
     });
   }
+
+  // --- ACTIVITY METHODS ---
+
+  static async createActivity(data: {
+    leadId: string;
+    salesId: string;
+    title: string;
+    type: string;
+    date: Date;
+    status?: string;
+    notes?: string;
+  }) {
+    return await prisma.activity.create({
+      data: {
+        leadId: data.leadId,
+        salesId: data.salesId,
+        title: data.title,
+        type: data.type,
+        date: data.date,
+        status: data.status || "Pending",
+        notes: data.notes,
+      },
+      include: {
+        lead: {
+          select: { name: true, phone: true }
+        }
+      }
+    });
+  }
+
+  static async getActivities(salesId: string, status?: string) {
+    const whereClause: any = { salesId };
+    
+    if (status && status !== "Semua") {
+      whereClause.status = status;
+    }
+    
+    return await prisma.activity.findMany({
+      where: whereClause,
+      include: {
+        lead: {
+          select: { name: true, phone: true, statusCrm: true }
+        }
+      },
+      orderBy: { date: "asc" }
+    });
+  }
+
+  static async updateActivityStatus(id: string, salesId: string, status: string) {
+    // Memastikan aktivitas tersebut milik sales yang login
+    const activity = await prisma.activity.findUnique({ where: { id } });
+    if (!activity) throw new Error("Aktivitas tidak ditemukan");
+    if (activity.salesId !== salesId) throw new Error("Unauthorized to update this activity");
+
+    return await prisma.activity.update({
+      where: { id },
+      data: { status },
+    });
+  }
+
+  static async deleteActivity(id: string, salesId: string) {
+    const activity = await prisma.activity.findUnique({ where: { id } });
+    if (!activity) throw new Error("Aktivitas tidak ditemukan");
+    if (activity.salesId !== salesId) throw new Error("Unauthorized to delete this activity");
+
+    return await prisma.activity.delete({
+      where: { id },
+    });
+  }
 }
