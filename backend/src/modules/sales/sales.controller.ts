@@ -81,10 +81,11 @@ export class SalesController {
 
   static async createBooking(req: Request, res: Response): Promise<void> {
     try {
-      const { leadId, unitId, bookingFee, paymentMethod } = req.body;
+      const { leadId, unitId, bookingFee, paymentMethod, salesNotes } = req.body;
+      const salesId = (req as any).user.id;
 
       if (!leadId || !unitId || !bookingFee || !paymentMethod) {
-        res.status(400).json({ error: "Data wajib (leadId, unitId, bookingFee, paymentMethod) tidak lengkap" });
+        res.status(400).json({ error: "Semua parameter (leadId, unitId, bookingFee, paymentMethod) wajib diisi" });
         return;
       }
 
@@ -93,6 +94,7 @@ export class SalesController {
         unitId: String(unitId),
         bookingFee: Number(bookingFee),
         paymentMethod: String(paymentMethod),
+        salesNotes: salesNotes ? String(salesNotes) : undefined,
       });
 
       res.status(201).json({

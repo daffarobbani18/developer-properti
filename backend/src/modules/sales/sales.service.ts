@@ -70,6 +70,7 @@ export class SalesService {
     unitId: string;
     bookingFee: number;
     paymentMethod: string;
+    salesNotes?: string;
   }) {
     // Memulai transaksi database (semua berhasil atau semua gagal)
     return await prisma.$transaction(async (tx: any) => {
@@ -94,6 +95,7 @@ export class SalesService {
           unitId: data.unitId,
           bookingFee: data.bookingFee,
           paymentMethod: data.paymentMethod,
+          salesNotes: data.salesNotes,
           status: "Menunggu Verifikasi",
         },
       });

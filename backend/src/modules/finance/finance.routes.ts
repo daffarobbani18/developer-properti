@@ -72,4 +72,28 @@ router.get("/bookings", FinanceController.getBookings);
  */
 router.post("/bookings/:id/verify", validate(verifyPaymentDto), FinanceController.verifyPayment);
 
+/**
+ * @swagger
+ * /api/finance/bookings/{id}/invoices:
+ *   get:
+ *     summary: Mengambil daftar invoice/tagihan lanjutan untuk sebuah booking
+ */
+router.get("/bookings/:id/invoices", FinanceController.getInvoicesByBooking);
+
+/**
+ * @swagger
+ * /api/finance/bookings/{id}/invoices:
+ *   post:
+ *     summary: Membuat tagihan (Invoice) baru secara manual atau otomatis (Auto-Split)
+ */
+router.post("/bookings/:id/invoices", FinanceController.createInvoices);
+
+/**
+ * @swagger
+ * /api/finance/invoices/{invoiceId}/payments:
+ *   post:
+ *     summary: Menerima pembayaran untuk suatu Invoice
+ */
+router.post("/invoices/:invoiceId/payments", FinanceController.receivePayment);
+
 export default router;

@@ -22,6 +22,7 @@ export class FinanceService {
         unit: {
           select: { blok: true, nomor: true, kawasan: true, totalPrice: true },
         },
+        invoices: true,
       },
       orderBy: { createdAt: "desc" },
     });
@@ -167,6 +168,124 @@ export class FinanceService {
       } catch (error) {
         reject(error);
       }
+    });
+  }
+
+  /**
+   * Mengambil detail Invoices dan Payments untuk sebuah Booking
+   */
+  static async getInvoicesByBooking(bookingId: string) {
+    return await prisma.invoice.findMany({
+      where: { bookingId },
+      include: {
+        payments: true,
+      },
+      orderBy: { dueDate: "asc" },
+    });
+  }
+
+  /**
+   * Membangun Invoices (Tagihan Lanjutan)
+   */
+  static async createInvoices(data: {
+    bookingId: string;
+    mode: "Manual" | "Auto-Split";
+    invoiceType: string;
+    nominal?: number;
+    dueDate?: string;
+    tenor?: number;
+    startDate?: string;
+  }) {
+    const booking = await prisma.booking.findUnique({
+      where: { id: data.bookingId },
+      include: { unit: true, invoices: true },
+    });
+
+    if (!booking) throw new Error("Booking tidak ditemukan");
+
+    if (data.mode === "Manual") {
+      if (!data.nominal || !data.dueDate) throw new Error("Nominal dan Tanggal Jatuh Tempo wajib diisi untuk mode Manual");
+      
+      const count = await prisma.invoice.count();
+      const invoiceNumber = `INV-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(count + 1).padStart(4, "0")}`;
+      
+      return await prisma.invoice.create({
+        data: {
+          bookingId: data.bookingId,
+          invoiceNumber,
+          invoiceType: data.invoiceType,
+          amountDue: data.nominal,
+          dueDate: new Date(data.dueDate),
+          status: "Unpaid",
+        },
+      });
+    } else if (data.mode === "Auto-Split") {
+      if (!data.tenor || !data.startDate) throw new Error("Tenor dan Tanggal Mulai wajib diisi untuk mode Auto-Split");
+      
+      // Calculate remaining balance
+      const totalPaidOrInvoiced = booking.bookingFee + booking.invoices.reduce((acc, inv) => acc + inv.amountDue, 0);
+      const remainingBalance = booking.unit.totalPrice - totalPaidOrInvoiced;
+      
+      if (remainingBalance <= 0) throw new Error("Sisa kewajiban sudah Rp 0. Tidak ada tagihan yang bisa digenerate.");
+
+      const monthlyAmount = remainingBalance / data.tenor;
+      const invoicesToCreate = [];
+      const baseDate = new Date(data.startDate);
+
+      for (let i = 0; i < data.tenor; i++) {
+        const count = await prisma.invoice.count() + i;
+        const invoiceNumber = `INV-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(count + 1).padStart(4, "0")}`;
+        
+        const dueDate = new Date(baseDate);
+        dueDate.setMonth(dueDate.getMonth() + i);
+
+        invoicesToCreate.push({
+          bookingId: data.bookingId,
+          invoiceNumber,
+          invoiceType: `${data.invoiceType} - Bulan ke-${i + 1}`,
+          amountDue: monthlyAmount,
+          dueDate,
+          status: "Unpaid",
+        });
+      }
+
+      await prisma.invoice.createMany({
+        data: invoicesToCreate,
+      });
+
+      return { message: `${data.tenor} Invoice berhasil di-generate` };
+    }
+  }
+
+  /**
+   * Menerima pembayaran untuk suatu Invoice
+   */
+  static async receivePayment(invoiceId: string, data: { amountPaid: number; paymentMethod: string; referenceNumber?: string }) {
+    const invoice = await prisma.invoice.findUnique({
+      where: { id: invoiceId },
+    });
+
+    if (!invoice) throw new Error("Invoice tidak ditemukan");
+    if (invoice.status === "Paid") throw new Error("Invoice ini sudah lunas");
+
+    return await prisma.$transaction(async (tx: any) => {
+      const payment = await tx.payment.create({
+        data: {
+          invoiceId,
+          amountPaid: data.amountPaid,
+          paymentDate: new Date(),
+          paymentMethod: data.paymentMethod,
+          referenceNumber: data.referenceNumber,
+          status: "Verified",
+        },
+      });
+
+      const updatedInvoice = await tx.invoice.update({
+        where: { id: invoiceId },
+        data: { status: "Paid" },
+      });
+
+      return { payment, invoice: updatedInvoice };
     });
   }
 }

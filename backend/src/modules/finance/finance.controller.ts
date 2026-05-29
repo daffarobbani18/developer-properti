@@ -52,4 +52,72 @@ export class FinanceController {
       }
     }
   }
+
+  static async getInvoicesByBooking(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const invoices = await FinanceService.getInvoicesByBooking(String(id));
+      res.status(200).json({
+        message: "Berhasil mengambil daftar tagihan",
+        data: invoices,
+      });
+    } catch (error: any) {
+      console.error("getInvoicesByBooking error:", error);
+      res.status(500).json({ error: "Terjadi kesalahan pada server" });
+    }
+  }
+
+  static async createInvoices(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { mode, invoiceType, nominal, dueDate, tenor, startDate } = req.body;
+
+      if (!mode || !invoiceType) {
+        res.status(400).json({ error: "Parameter mode dan invoiceType wajib diisi" });
+        return;
+      }
+
+      const result = await FinanceService.createInvoices({
+        bookingId: String(id),
+        mode,
+        invoiceType,
+        nominal: nominal ? Number(nominal) : undefined,
+        dueDate,
+        tenor: tenor ? Number(tenor) : undefined,
+        startDate,
+      });
+
+      res.status(201).json({
+        message: "Berhasil men-generate tagihan",
+        data: result,
+      });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  static async receivePayment(req: Request, res: Response): Promise<void> {
+    try {
+      const { invoiceId } = req.params;
+      const { amountPaid, paymentMethod, referenceNumber } = req.body;
+
+      if (!amountPaid || !paymentMethod) {
+        res.status(400).json({ error: "Parameter amountPaid dan paymentMethod wajib diisi" });
+        return;
+      }
+
+      const result = await FinanceService.receivePayment(String(invoiceId), {
+        amountPaid: Number(amountPaid),
+        paymentMethod,
+        referenceNumber,
+      });
+
+      res.status(200).json({
+        message: "Pembayaran berhasil diverifikasi",
+        data: result,
+      });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  }
 }

@@ -32,7 +32,8 @@ export default function KavlingUnitPage() {
   const [bookingForm, setBookingForm] = useState({
     leadId: "",
     bookingFee: 0,
-    paymentMethod: "Transfer Bank"
+    paymentMethod: "KPR (Kredit Pemilikan Rumah)",
+    salesNotes: ""
   });
 
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
@@ -163,7 +164,8 @@ export default function KavlingUnitPage() {
     setBookingForm({
       leadId: "",
       bookingFee: 0,
-      paymentMethod: "Transfer Bank"
+      paymentMethod: "KPR (Kredit Pemilikan Rumah)",
+      salesNotes: ""
     });
   };
 
@@ -186,7 +188,8 @@ export default function KavlingUnitPage() {
         leadId: bookingForm.leadId,
         unitId: selectedUnit.id,
         bookingFee: Number(bookingForm.bookingFee),
-        paymentMethod: bookingForm.paymentMethod
+        paymentMethod: bookingForm.paymentMethod,
+        salesNotes: bookingForm.salesNotes
       };
       
       const res = await fetch("http://localhost:4000/api/sales/bookings", {
@@ -489,15 +492,26 @@ export default function KavlingUnitPage() {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-zinc-600">Metode Pembayaran <span className="text-rose-500">*</span></label>
+                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-zinc-600">Skema Pembayaran <span className="text-rose-500">*</span></label>
                     <select 
                       value={bookingForm.paymentMethod} 
                       onChange={(e) => setBookingForm({ ...bookingForm, paymentMethod: e.target.value })}
                       className="w-full cursor-pointer appearance-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-semibold transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
                     >
-                      <option value="Transfer Bank">Transfer Bank</option>
-                      <option value="Tunai">Tunai</option>
+                      <option value="KPR (Kredit Pemilikan Rumah)">KPR (Kredit Pemilikan Rumah)</option>
+                      <option value="Cash Keras (Hard Cash)">Cash Keras (Hard Cash)</option>
+                      <option value="Cash Bertahap (Installment)">Cash Bertahap (Installment)</option>
                     </select>
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-zinc-600">Catatan Kesepakatan / Tenor (Opsional)</label>
+                    <textarea 
+                      value={bookingForm.salesNotes} 
+                      onChange={(e) => setBookingForm({ ...bookingForm, salesNotes: e.target.value })}
+                      placeholder="Contoh: Cash Bertahap 12x, atau KPR BCA 15 Tahun..."
+                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-semibold transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 resize-none"
+                      rows={2}
+                    />
                   </div>
                   
                   {/* Calculation Box */}
