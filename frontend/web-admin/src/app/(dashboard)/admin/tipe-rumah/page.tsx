@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  PencilSimple, CornersOut, Bed, Bathtub, Package, House, Plus, X, Trash, UploadSimple, Eye, WarningCircle, List, CaretDown
+  PencilSimple, CornersOut, Bed, Bathtub, Package, House, Plus, X, Trash, UploadSimple, Eye, WarningCircle, List, CaretDown, CheckCircle
 } from "@phosphor-icons/react";
 
 const formatRupiah = (number: number) =>
@@ -40,10 +40,17 @@ export default function TipeRumahPage() {
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  useEffect(() => {
-    setMounted(true);
-    const fetchData = async () => {
-      try {
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
+  };
+
+  const fetchData = async () => {
+    try {
         setLoading(true);
         const loginRes = await fetch("http://localhost:4000/api/auth/login", {
           method: "POST",
@@ -90,7 +97,11 @@ export default function TipeRumahPage() {
       } finally {
         setLoading(false);
       }
-    };
+    }
+  };
+
+  useEffect(() => {
+    setMounted(true);
     fetchData();
   }, []);
 
@@ -150,7 +161,8 @@ export default function TipeRumahPage() {
       }
       
       setIsTypeModalOpen(false);
-      window.location.reload();
+      await fetchData();
+      showToast(`Berhasil ${typeForm.id ? 'mengedit' : 'menambah'} tipe rumah ${payload.name}`, 'success');
     } catch (e) {
       console.error(e);
     }
@@ -198,7 +210,10 @@ export default function TipeRumahPage() {
         alert(`Gagal menghapus: ${err.error || res.statusText}`);
         return;
       }
-      window.location.reload();
+      
+      setDeleteConfirmId(null);
+      await fetchData();
+      showToast(`Berhasil menghapus tipe rumah`, 'success');
     } catch (e) {
       console.error(e);
     } finally {
@@ -579,6 +594,31 @@ export default function TipeRumahPage() {
                 Ya, Hapus
               </button>
             </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Toast Notification */}
+      {toast && mounted && createPortal(
+        <div className="fixed top-6 left-6 right-6 sm:left-auto sm:right-6 sm:max-w-sm z-[200] animate-in slide-in-from-top-5 fade-in duration-300">
+          <div className={`flex items-center gap-3 rounded-2xl px-5 py-4 shadow-xl ${
+            toast.type === 'success' 
+              ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
+              : 'bg-rose-500 text-white shadow-rose-500/20'
+          }`}>
+            {toast.type === 'success' ? (
+              <CheckCircle weight="fill" className="h-6 w-6" />
+            ) : (
+              <WarningCircle weight="fill" className="h-6 w-6" />
+            )}
+            <p className="text-sm font-semibold">{toast.message}</p>
+            <button 
+              onClick={() => setToast(null)}
+              className="ml-2 rounded-full p-1 hover:bg-white/20 transition-colors"
+            >
+              <X weight="bold" className="h-4 w-4" />
+            </button>
           </div>
         </div>,
         document.body

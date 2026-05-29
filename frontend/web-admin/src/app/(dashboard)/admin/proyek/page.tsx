@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 
 import Link from "next/link";
 import {
-  UsersThree, Warning, TrendUp, MapPin, Plus, Buildings, ArrowRight, Calendar, X, CircleNotch, UploadSimple, PencilSimple, Trash, WarningCircle
+  UsersThree, Warning, TrendUp, MapPin, Plus, Buildings, ArrowRight, Calendar, X, CircleNotch, UploadSimple, PencilSimple, Trash, WarningCircle, CheckCircle
 } from "@phosphor-icons/react";
 import {
   dummyProyek,
@@ -52,10 +52,16 @@ export default function ProyekPage() {
   const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Proyek | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
-  useEffect(() => {
-    setMounted(true);
-    const fetchProjects = async () => {
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
+  };
+
+  const fetchProjects = async () => {
       try {
         setLoading(true);
         // Login to get token
@@ -84,7 +90,12 @@ export default function ProyekPage() {
               jumlahKontraktor: p.jumlahKontraktor || 0,
               tanggalMulai: p.createdAt,
               targetSelesai: p.targetSelesai || p.createdAt,
-              nilaiKontrak: p.nilaiKontrak || 0
+              nilaiKontrak: p.nilaiKontrak || 0,
+              kontraktorName: p.kontraktorName || "",
+              estimasiAnggaran: p.estimasiAnggaran || 0,
+              nomorIzin: p.nomorIzin || "",
+              description: p.description || "",
+              imageUrl: p.imageUrl || "",
             })));
           }
         }
@@ -94,6 +105,9 @@ export default function ProyekPage() {
         setLoading(false);
       }
     };
+
+  useEffect(() => {
+    setMounted(true);
     fetchProjects();
   }, []);
 
@@ -125,7 +139,7 @@ export default function ProyekPage() {
           throw new Error("Gagal mengupload gambar proyek");
         }
         const uploadData = await uploadRes.json();
-        finalImageUrl = uploadData.url;
+        finalImageUrl = `http://localhost:4000${uploadData.imageUrl}`;
       }
 
       if (!token) return;
@@ -164,7 +178,9 @@ export default function ProyekPage() {
       setEditProjectId(null);
       setProjectForm({ name: "", location: "", totalUnits: "", targetSelesai: "", status: "perencanaan", kontraktorName: "", estimasiAnggaran: "", nomorIzin: "", description: "", imageUrl: "" });
       setSelectedFile(null);
-      window.location.reload();
+      
+      await fetchProjects();
+      showToast(`Berhasil ${editProjectId ? 'mengedit' : 'membuat'} proyek ${payload.name}`, 'success');
     } catch (e) {
       console.error(e);
     } finally {
@@ -192,7 +208,9 @@ export default function ProyekPage() {
       if (res.ok) {
         setDeleteProjectId(null);
         setProjectToDelete(null);
-        window.location.reload();
+        
+        await fetchProjects();
+        showToast(`Berhasil menghapus proyek`, 'success');
       } else {
         alert("Gagal menghapus proyek");
       }
@@ -541,6 +559,31 @@ export default function ProyekPage() {
                 {submitting ? <CircleNotch weight="bold" className="animate-spin h-5 w-5" /> : "Ya, Hapus Proyek"}
               </button>
             </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Toast Notification */}
+      {toast && mounted && createPortal(
+        <div className="fixed top-6 left-6 right-6 sm:left-auto sm:right-6 sm:max-w-sm z-[200] animate-in slide-in-from-top-5 fade-in duration-300">
+          <div className={`flex items-center gap-3 rounded-2xl px-5 py-4 shadow-xl ${
+            toast.type === 'success' 
+              ? 'bg-emerald-500 text-white shadow-emerald-500/20' 
+              : 'bg-rose-500 text-white shadow-rose-500/20'
+          }`}>
+            {toast.type === 'success' ? (
+              <CheckCircle weight="fill" className="h-6 w-6" />
+            ) : (
+              <WarningCircle weight="fill" className="h-6 w-6" />
+            )}
+            <p className="text-sm font-semibold">{toast.message}</p>
+            <button 
+              onClick={() => setToast(null)}
+              className="ml-2 rounded-full p-1 hover:bg-white/20 transition-colors"
+            >
+              <X weight="bold" className="h-4 w-4" />
+            </button>
           </div>
         </div>,
         document.body

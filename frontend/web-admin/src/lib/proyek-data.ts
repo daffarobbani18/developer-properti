@@ -24,6 +24,11 @@ export interface Proyek {
   tanggalMulai: string;
   targetSelesai: string;
   nilaiKontrak: number;
+  kontraktorName?: string;
+  estimasiAnggaran?: number;
+  nomorIzin?: string;
+  description?: string;
+  imageUrl?: string;
 }
 
 export interface Unit {
