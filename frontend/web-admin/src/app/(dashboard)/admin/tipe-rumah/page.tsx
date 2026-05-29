@@ -97,7 +97,6 @@ export default function TipeRumahPage() {
       } finally {
         setLoading(false);
       }
-    }
   };
 
   useEffect(() => {

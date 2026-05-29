@@ -172,4 +172,50 @@ router.post("/units", validate(createUnitDto), InventoryController.createUnit);
  */
 router.get("/units", InventoryController.getAllUnits);
 
+/**
+ * @swagger
+ * /api/inventory/units/{id}:
+ *   put:
+ *     summary: Update data Unit Kavling
+ *     tags: [Inventory]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Berhasil diupdate
+ */
+router.put("/units/:id", InventoryController.updateUnit);
+
+/**
+ * @swagger
+ * /api/inventory/units/{id}:
+ *   delete:
+ *     summary: Hapus data Unit Kavling
+ *     tags: [Inventory]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Berhasil dihapus
+ */
+router.delete("/units/:id", InventoryController.deleteUnit);
+
 export default router;

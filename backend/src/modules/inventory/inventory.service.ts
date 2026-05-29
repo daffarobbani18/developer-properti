@@ -170,4 +170,40 @@ export class InventoryService {
       },
     });
   }
+
+  static async updateKavlingUnit(id: string, data: any) {
+    const propertyType = await prisma.propertyType.findUnique({
+      where: { id: data.propertyTypeId },
+    });
+
+    if (!propertyType) {
+      throw new Error("Property Type tidak ditemukan");
+    }
+
+    const totalPrice = propertyType.basePrice + (data.priceMarkup || 0);
+
+    return await prisma.unit.update({
+      where: { id },
+      data: {
+        propertyTypeId: data.propertyTypeId,
+        kawasan: data.kawasan,
+        blok: data.blok,
+        nomor: data.nomor,
+        statusPembangunan: data.statusPembangunan,
+        statusPenjualan: data.statusPenjualan,
+        priceMarkup: data.priceMarkup,
+        totalPrice: totalPrice,
+        nomorUnit: data.nomor,
+        price: totalPrice,
+        status: data.statusPenjualan,
+        luasTanahAktual: data.luasTanahAktual,
+      },
+    });
+  }
+
+  static async deleteKavlingUnit(id: string) {
+    return await prisma.unit.delete({
+      where: { id },
+    });
+  }
 }

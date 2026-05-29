@@ -163,4 +163,32 @@ export class InventoryController {
       res.status(500).json({ error: "Terjadi kesalahan pada server" });
     }
   }
+
+  static async updateUnit(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      const unit = await InventoryService.updateKavlingUnit(id, data);
+      res.status(200).json({
+        message: "Unit Kavling berhasil diupdate",
+        data: unit,
+      });
+    } catch (error: any) {
+      console.error("updateUnit error:", error);
+      res.status(500).json({ error: error.message || "Terjadi kesalahan pada server" });
+    }
+  }
+
+  static async deleteUnit(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      await InventoryService.deleteKavlingUnit(id);
+      res.status(200).json({
+        message: "Unit Kavling berhasil dihapus",
+      });
+    } catch (error: any) {
+      console.error("deleteUnit error:", error);
+      res.status(500).json({ error: error.message || "Terjadi kesalahan pada server" });
+    }
+  }
 }
