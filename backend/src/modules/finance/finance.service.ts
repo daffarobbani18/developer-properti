@@ -20,7 +20,14 @@ export class FinanceService {
           select: { name: true, phone: true, email: true },
         },
         unit: {
-          select: { blok: true, nomor: true, kawasan: true, totalPrice: true },
+          select: { 
+            blok: true, 
+            nomor: true, 
+            kawasan: true, 
+            totalPrice: true,
+            propertyType: { select: { name: true } },
+            project: { select: { name: true } }
+          },
         },
         invoices: true,
       },

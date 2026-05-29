@@ -100,9 +100,10 @@ export class InventoryService {
     nomorUnit?: string; // legacy fallback
     luasTanahAktual?: number;
   }) {
-    // Validasi duplikasi blok & nomor di kawasan yang sama
+    // Validasi duplikasi blok & nomor di kawasan yang sama dalam 1 proyek
     const existingUnit = await prisma.unit.findFirst({
       where: {
+        projectId: data.projectId,
         kawasan: data.kawasan,
         blok: data.blok,
         nomor: data.nomor,
@@ -110,7 +111,7 @@ export class InventoryService {
     });
 
     if (existingUnit) {
-      throw new Error(`Unit dengan Blok ${data.blok} dan Nomor ${data.nomor} sudah ada di Kawasan ${data.kawasan}`);
+      throw new Error(`Unit dengan Blok ${data.blok} dan Nomor ${data.nomor} sudah ada di Kawasan ${data.kawasan} pada proyek ini`);
     }
 
     // Dapatkan data PropertyType untuk mengambil basePrice

@@ -12,10 +12,13 @@ interface Lead {
 }
 
 interface Unit {
+  id: string;
   blok: string;
   nomor: string;
   kawasan: string;
   totalPrice: number;
+  propertyType?: { name: string };
+  project?: { name: string };
 }
 
 interface Invoice {
@@ -59,6 +62,7 @@ export default function TagihanFinancePage() {
   const [isPiutangModalOpen, setIsPiutangModalOpen] = useState(false);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
   // Form State - Verify
@@ -406,7 +410,10 @@ export default function TagihanFinancePage() {
                       <tr key={b.id} className="transition-colors hover:bg-zinc-50/50">
                         <td className="px-6 py-4">
                           <div className="font-bold text-zinc-900">{b.lead.name}</div>
-                          <div className="text-xs text-zinc-500 mt-0.5">Blok {b.unit.blok} - {b.unit.nomor}</div>
+                          <div className="flex flex-col gap-0.5 mt-1">
+                            <span className="text-xs font-semibold text-zinc-700">{b.unit.project?.name || "Proyek"} - {b.unit.propertyType?.name || "Tipe"}</span>
+                            <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Kawasan {b.unit.kawasan} &middot; Blok {b.unit.blok}-{b.unit.nomor}</span>
+                          </div>
                         </td>
                         
                         {activeTab === "piutang" ? (
@@ -449,33 +456,40 @@ export default function TagihanFinancePage() {
                           </>
                         )}
                         
-                        <td className="px-6 py-4 text-right">
-                          {activeTab === "pending" ? (
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-end gap-2">
                             <button
-                              onClick={() => { setSelectedBooking(b); setFinanceNotes(""); setIsVerifyModalOpen(true); }}
-                              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-blue-700 shadow-sm"
+                              onClick={() => { setSelectedBooking(b); setIsDetailModalOpen(true); }}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-bold text-zinc-700 transition-all hover:bg-zinc-50 hover:text-blue-600 shadow-sm"
                             >
-                              Verifikasi
+                              <UserCircle weight="fill" size={16} /> Detail
                             </button>
-                          ) : activeTab === "piutang" ? (
-                            <button
-                              onClick={() => { setSelectedBooking(b); fetchInvoices(b.id); setIsPiutangModalOpen(true); }}
-                              className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-violet-700 shadow-sm"
-                            >
-                              Kelola Piutang <CaretRight weight="bold" />
-                            </button>
-                          ) : b.receiptUrl ? (
-                            <a
-                              href={`http://localhost:4000${b.receiptUrl}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-bold text-zinc-700 transition-all hover:bg-zinc-50 hover:text-emerald-600 shadow-sm"
-                            >
-                              <FilePdf weight="fill" size={16} className="text-rose-500" /> Kuitansi
-                            </a>
-                          ) : (
-                            <span className="text-xs text-zinc-400 italic">Tidak ada aksi</span>
-                          )}
+                            
+                            {activeTab === "pending" ? (
+                              <button
+                                onClick={() => { setSelectedBooking(b); setFinanceNotes(""); setIsVerifyModalOpen(true); }}
+                                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-blue-700 shadow-sm"
+                              >
+                                Verifikasi
+                              </button>
+                            ) : activeTab === "piutang" ? (
+                              <button
+                                onClick={() => { setSelectedBooking(b); fetchInvoices(b.id); setIsPiutangModalOpen(true); }}
+                                className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-violet-700 shadow-sm"
+                              >
+                                Kelola Piutang <CaretRight weight="bold" />
+                              </button>
+                            ) : b.receiptUrl ? (
+                              <a
+                                href={`http://localhost:4000${b.receiptUrl}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-bold text-zinc-700 transition-all hover:bg-zinc-50 hover:text-emerald-600 shadow-sm"
+                              >
+                                <FilePdf weight="fill" size={16} className="text-rose-500" /> Kuitansi
+                              </a>
+                            ) : null}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -758,6 +772,97 @@ export default function TagihanFinancePage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsPaymentModalOpen(false)}>Batal</Button>
             <Button onClick={handleReceivePayment} disabled={submitting} className="bg-emerald-600 text-white">Verifikasi & Lunas</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* MODAL 5: DETAIL KLIEN & UNIT */}
+      <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <UserCircle className="text-blue-500" weight="fill" /> Detail Klien & Unit
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedBooking && (
+            <div className="grid gap-6 py-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Info Klien */}
+                <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-5">
+                  <p className="text-xs font-bold uppercase tracking-wider text-blue-600 mb-4 border-b border-blue-200/50 pb-2">Informasi Klien</p>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-blue-500 mb-0.5">Nama Lengkap</p>
+                      <p className="font-bold text-zinc-900">{selectedBooking.lead.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-blue-500 mb-0.5">No. Telepon / WhatsApp</p>
+                      <p className="font-semibold text-zinc-700">{selectedBooking.lead.phone || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-blue-500 mb-0.5">Email</p>
+                      <p className="font-semibold text-zinc-700">{selectedBooking.lead.email || "-"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info Transaksi */}
+                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-5">
+                  <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-4 border-b border-emerald-200/50 pb-2">Informasi Pembelian</p>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-emerald-500 mb-0.5">Metode Bayar Pilihan</p>
+                      <p className="font-bold text-zinc-900">{selectedBooking.paymentMethod}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-emerald-500 mb-0.5">Booking Fee</p>
+                      <p className="font-black text-emerald-700">Rp {selectedBooking.bookingFee.toLocaleString("id-ID")}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-emerald-500 mb-0.5">Tanggal Pesan</p>
+                      <p className="font-semibold text-zinc-700">{new Date(selectedBooking.createdAt).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Info Unit */}
+              <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+                <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-4 border-b border-zinc-200 pb-2 flex items-center gap-2">
+                  <Building weight="fill" className="text-zinc-400" /> Detail Unit Properti
+                </p>
+                <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-zinc-400 mb-0.5">Proyek & Tipe</p>
+                    <p className="font-bold text-zinc-900">{selectedBooking.unit.project?.name || "Proyek"} - {selectedBooking.unit.propertyType?.name || "Tipe"}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-zinc-400 mb-0.5">Kawasan / Cluster</p>
+                    <p className="font-bold text-zinc-900">{selectedBooking.unit.kawasan}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-zinc-400 mb-0.5">Blok & Nomor</p>
+                    <p className="font-bold text-zinc-900">Blok {selectedBooking.unit.blok} - {selectedBooking.unit.nomor}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-zinc-400 mb-0.5">Harga Unit</p>
+                    <p className="font-black text-blue-600">Rp {selectedBooking.unit.totalPrice.toLocaleString("id-ID")}</p>
+                  </div>
+                </div>
+              </div>
+
+              {selectedBooking.salesNotes && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1 flex items-center gap-1.5">
+                    <Note weight="fill" /> Catatan Kesepakatan (Dari Sales)
+                  </p>
+                  <p className="text-sm font-semibold text-amber-900 italic">"{selectedBooking.salesNotes}"</p>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDetailModalOpen(false)}>Tutup</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
