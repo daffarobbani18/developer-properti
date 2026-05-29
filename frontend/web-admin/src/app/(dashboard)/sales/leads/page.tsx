@@ -52,7 +52,17 @@ export default function SalesLeadsPage() {
       if (statusFilter !== "Semua") queryParams.append("statusCrm", statusFilter);
       if (debouncedSearch) queryParams.append("search", debouncedSearch);
 
-      const res = await fetch(`http://localhost:4000/api/sales/leads?${queryParams.toString()}`);
+      // Dummy login buat ambil token
+      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "sales@erp.com", password: "password123" })
+      });
+      const { token } = await loginRes.json();
+
+      const res = await fetch(`http://localhost:4000/api/sales/leads?${queryParams.toString()}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
       const data = await res.json();
       if (res.ok) {
         setLeads(data.data || data);
@@ -212,7 +222,7 @@ export default function SalesLeadsPage() {
         </div>
         <button
           onClick={openNewModal}
-          className="flex whitespace-nowrap items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700"
+          className="flex whitespace-nowrap items-center gap-2 rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-amber-600/20 transition-all hover:bg-amber-700"
         >
           <Plus weight="bold" size={16} /> Tambah Pelanggan Baru
         </button>
@@ -253,6 +263,38 @@ export default function SalesLeadsPage() {
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-400">
               <CaretDown size={14} weight="bold" />
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Panduan Status */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 rounded-2xl border border-blue-100 bg-blue-50/50 p-4 text-sm text-zinc-600">
+        <div className="flex items-start gap-3 rounded-xl bg-white p-3 shadow-sm border border-zinc-100">
+          <span className="inline-flex shrink-0 items-center justify-center rounded-full bg-blue-100 p-1.5 text-xs">✨</span>
+          <div>
+            <p className="font-bold text-blue-700 mb-0.5">New</p>
+            <p className="text-xs text-zinc-500 leading-relaxed">Prospek baru masuk, belum ada interaksi atau *follow-up*.</p>
+          </div>
+        </div>
+        <div className="flex items-start gap-3 rounded-xl bg-white p-3 shadow-sm border border-zinc-100">
+          <span className="inline-flex shrink-0 items-center justify-center rounded-full bg-rose-100 p-1.5 text-xs">🔥</span>
+          <div>
+            <p className="font-bold text-rose-700 mb-0.5">Hot</p>
+            <p className="text-xs text-zinc-500 leading-relaxed">Sangat tertarik, punya budget, siap survei atau bayar (Prioritas Utama).</p>
+          </div>
+        </div>
+        <div className="flex items-start gap-3 rounded-xl bg-white p-3 shadow-sm border border-zinc-100">
+          <span className="inline-flex shrink-0 items-center justify-center rounded-full bg-amber-100 p-1.5 text-xs">🌤️</span>
+          <div>
+            <p className="font-bold text-amber-700 mb-0.5">Warm</p>
+            <p className="text-xs text-zinc-500 leading-relaxed">Menunjukkan minat, namun masih ragu atau butuh waktu berpikir.</p>
+          </div>
+        </div>
+        <div className="flex items-start gap-3 rounded-xl bg-white p-3 shadow-sm border border-zinc-100">
+          <span className="inline-flex shrink-0 items-center justify-center rounded-full bg-slate-100 p-1.5 text-xs">❄️</span>
+          <div>
+            <p className="font-bold text-slate-700 mb-0.5">Cold</p>
+            <p className="text-xs text-zinc-500 leading-relaxed">Menolak, tidak merespons, nomor salah, atau batal beli.</p>
           </div>
         </div>
       </div>
@@ -378,7 +420,13 @@ export default function SalesLeadsPage() {
                       <input
                         type="text"
                         value={formData.nik}
-                        onChange={(e) => setFormData({ ...formData, nik: e.target.value })}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "");
+                          if (val.length <= 16) {
+                            setFormData({ ...formData, nik: val });
+                          }
+                        }}
+                        maxLength={16}
                         placeholder="16 Digit NIK KTP"
                         className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3 pl-11 pr-4 text-sm transition-all focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10"
                       />
@@ -477,7 +525,7 @@ export default function SalesLeadsPage() {
               <button 
                 onClick={handleSubmit} 
                 disabled={submitting}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-amber-600 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-amber-600/30 transition-all hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? <CircleNotch weight="bold" className="animate-spin h-5 w-5" /> : (modalMode === "add" ? "Simpan Data" : "Simpan Perubahan")}
               </button>
