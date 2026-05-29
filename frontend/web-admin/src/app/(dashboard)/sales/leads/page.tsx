@@ -214,10 +214,7 @@ export default function SalesLeadsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-8">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-blue-700 mb-2 font-bold">
-            <Users weight="duotone" size={12} className="text-blue-500" /> Area Sales & Marketing
-          </div>
-          <h2 className="text-3xl font-[family-name:var(--font-heading)] text-zinc-900 tracking-tight">Manajemen Pelanggan (Leads)</h2>
+            <h2 className="flex items-center gap-2 text-3xl font-[family-name:var(--font-heading)] text-zinc-900 tracking-tight"><Users weight="duotone" size={24} className="text-blue-500" />Manajemen Pelanggan (Leads)</h2>
           <p className="text-sm text-zinc-500 mt-1">Kelola data prospek, pantau tingkat ketertarikan, dan riwayat pelanggan.</p>
         </div>
         <button
