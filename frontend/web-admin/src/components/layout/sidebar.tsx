@@ -122,12 +122,6 @@ const menuItems: MenuGroup[] = [
       },
 
       {
-        label: "Daftar Proyek Lapangan",
-        href: "/supervisor/proyek",
-        icon: Buildings,
-        roles: ["supervisor"],
-      },
-      {
         label: "Legal & Perizinan",
         href: "/legal",
         icon: Stamp,
