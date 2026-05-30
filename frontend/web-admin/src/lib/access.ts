@@ -1,6 +1,6 @@
-export type UserRole = "admin" | "inventory" | "sales" | "finance" | "legal";
+export type UserRole = "admin" | "inventory" | "sales" | "finance" | "legal" | "supervisor";
 
-export const USER_ROLES: UserRole[] = ["admin", "inventory", "sales", "finance", "legal"];
+export const USER_ROLES: UserRole[] = ["admin", "inventory", "sales", "finance", "legal", "supervisor"];
 
 export const PUBLIC_PATHS = ["/login", "/lupa-password"] as const;
 
@@ -10,6 +10,7 @@ export const ROLE_HOME: Record<UserRole, string> = {
   sales: "/sales/dashboard",
   finance: "/finance/dashboard",
   legal: "/legal/dashboard",
+  supervisor: "/dashboard/supervisor",
 };
 
 export const ROLE_ALLOWED_PREFIXES: Record<UserRole, string[]> = {
@@ -18,6 +19,7 @@ export const ROLE_ALLOWED_PREFIXES: Record<UserRole, string[]> = {
   sales: ["/sales"],
   finance: ["/finance"],
   legal: ["/legal"],
+  supervisor: ["/supervisor", "/dashboard/supervisor"],
 };
 
 export const isUserRole = (value: string | null | undefined): value is UserRole => {

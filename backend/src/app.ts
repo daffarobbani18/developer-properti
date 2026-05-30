@@ -16,6 +16,7 @@ import legalRoutes from "./modules/legal/legal.routes.js";
 import commissionRoutes from "./modules/commission/commission.routes.js";
 import uploadRoutes from "./modules/upload/upload.routes.js";
 import reportingRoutes from "./modules/reporting/reporting.routes.js";
+import publicRoutes from "./modules/public/public.routes.js";
 
 const app = express();
 
@@ -39,5 +40,6 @@ app.use("/api/inventory", inventoryRoutes);
 app.use("/api/site-plans", sitePlanRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/reports", reportingRoutes);
+app.use("/api/public", publicRoutes);
 
 export default app;

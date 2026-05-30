@@ -35,6 +35,7 @@ export default function TipeRumahPage() {
     bed: 0,
     bath: 0,
     price: 0,
+    facilities: "",
     imageUrl: "",
     id: undefined as string | undefined,
   });
@@ -88,6 +89,7 @@ export default function TipeRumahPage() {
               bed: p.kamarTidur || p.bedrooms || 0,
               bath: p.kamarMandi || p.bathrooms || 0,
               price: p.basePrice || p.price || 0,
+              facilities: p.facilities || "",
               imageUrl: p.imageUrl
             })));
           }
@@ -140,6 +142,7 @@ export default function TipeRumahPage() {
         kamarTidur: typeForm.bed,
         kamarMandi: typeForm.bath,
         basePrice: typeForm.price,
+        facilities: typeForm.facilities,
         imageUrl: finalImageUrl || null
       };
       
@@ -177,6 +180,7 @@ export default function TipeRumahPage() {
       bed: type.bed,
       bath: type.bath,
       price: type.price,
+      facilities: type.facilities || "",
       imageUrl: type.imageUrl || "",
     });
     setSelectedFile(null);
@@ -221,7 +225,7 @@ export default function TipeRumahPage() {
   };
 
   const openNewModal = () => {
-    setTypeForm({ projectId: "", name: "", lt: 0, lb: 0, bed: 0, bath: 0, price: 0, imageUrl: "", id: undefined });
+    setTypeForm({ projectId: "", name: "", lt: 0, lb: 0, bed: 0, bath: 0, price: 0, facilities: "", imageUrl: "", id: undefined });
     setSelectedFile(null);
     setIsTypeModalOpen(true);
   };
@@ -443,6 +447,17 @@ export default function TipeRumahPage() {
                 </div>
               </div>
               
+              <div>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Fasilitas & Keunggulan (Opsional) <span className="text-amber-500 normal-case tracking-normal">*Tampil di web publik</span></label>
+                <textarea
+                  value={typeForm.facilities}
+                  onChange={(e) => setTypeForm({ ...typeForm, facilities: e.target.value })}
+                  placeholder="Contoh: Smart Home System, Listrik Bawah Tanah"
+                  rows={3}
+                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                />
+              </div>
+
               <div>
                 <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Foto / Denah Tipe Rumah</label>
                 <div className="flex items-center gap-4">

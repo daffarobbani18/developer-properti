@@ -40,6 +40,7 @@ export default function KavlingUnitPage() {
     statusPembangunan: "Pesan Bangun",
     statusPenjualan: "Tersedia",
     luasTanahAktual: "",
+    svgPathId: "",
   };
 
   const [unitForm, setUnitForm] = useState(defaultForm);
@@ -102,6 +103,7 @@ export default function KavlingUnitPage() {
             blok: u.blok,
             nomor: u.nomor,
             luasTanahAktual: u.luasTanahAktual || "",
+            svgPathId: u.svgPathId || "",
           })));
         }
       }
@@ -150,6 +152,7 @@ export default function KavlingUnitPage() {
         statusPenjualan: unitForm.statusPenjualan,
         priceMarkup: Number(unitForm.priceMarkup) || 0,
         luasTanahAktual: unitForm.luasTanahAktual ? Number(unitForm.luasTanahAktual) : undefined,
+        svgPathId: unitForm.svgPathId || undefined,
       };
       
       const endpoint = drawerMode === "edit" && unitForm.id 
@@ -225,6 +228,7 @@ export default function KavlingUnitPage() {
       statusPembangunan: unit.statusPembangunan,
       statusPenjualan: unit.statusPenjualan,
       luasTanahAktual: unit.luasTanahAktual,
+      svgPathId: unit.svgPathId || "",
     });
     setDrawerMode("edit");
     setDrawerOpen(true);
@@ -548,6 +552,19 @@ export default function KavlingUnitPage() {
                     className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3 pl-12 pr-4 text-sm font-semibold transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="mb-2 flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-zinc-600">SVG Path ID (Opsional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={unitForm.svgPathId || ""}
+                  onChange={(e) => setUnitForm({ ...unitForm, svgPathId: e.target.value })}
+                  placeholder="Contoh: A-01"
+                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-semibold transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
               </div>
 
             </div>

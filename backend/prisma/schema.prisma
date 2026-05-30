@@ -42,7 +42,7 @@ model Project {
   kontraktorName  String?
   estimasiAnggaran Float?
   nomorIzin       String?
-  description     String?
+  description     String?        // "Tentang Proyek" (ditampilkan di halaman detail proyek di portal publik)
   imageUrl        String?
   
   propertyTypes   PropertyType[]
@@ -68,6 +68,9 @@ model PropertyType {
   kamarTidur      Int            @default(0)
   kamarMandi      Int            @default(0)
   basePrice       Float          @default(0)
+  
+  // Field Publik (tampil di Web Public Portal)
+  facilities      String?        // Fasilitas & Keunggulan (ditampilkan di halaman detail tipe rumah di portal publik)
   
   project         Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   units           Unit[]
@@ -95,6 +98,7 @@ model Unit {
   
   // Field Baru (Fase 5 - Relational Inventory)
   luasTanahAktual Float?
+  svgPathId       String?        // Untuk SVG Mapping di Site Plan Publik
   
   project         Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   propertyType    PropertyType   @relation(fields: [propertyTypeId], references: [id], onDelete: Cascade)

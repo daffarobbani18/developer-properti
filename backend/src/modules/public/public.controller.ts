@@ -1,0 +1,57 @@
+import { Request, Response } from "express";
+import { prisma } from "../../core/config/prisma.js";
+
+export class PublicController {
+  static async getProjects(req: Request, res: Response) {
+    try {
+      const projects = await prisma.project.findMany({
+        select: {
+          id: true,
+          name: true,
+          location: true,
+          imageUrl: true,
+          description: true,
+          status: true,
+        },
+      });
+      res.json({ success: true, data: projects });
+    } catch (error) {
+      console.error("Public getProjects Error:", error);
+      res.status(500).json({ success: false, message: "Internal server error" });
+    }
+  }
+
+  static async getProjectDetails(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const projectId: string = Array.isArray(id) ? id[0] : id;
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        include: {
+          propertyTypes: true,
+          sitePlans: true,
+          units: {
+            select: {
+              id: true,
+              kawasan: true,
+              blok: true,
+              nomor: true,
+              statusPenjualan: true,
+              svgPathId: true,
+              propertyTypeId: true,
+            },
+          },
+        },
+      });
+
+      if (!project) {
+        return res.status(404).json({ success: false, message: "Project not found" });
+      }
+
+      res.json({ success: true, data: project });
+    } catch (error) {
+      console.error("Public getProjectDetails Error:", error);
+      res.status(500).json({ success: false, message: "Internal server error" });
+    }
+  }
+}

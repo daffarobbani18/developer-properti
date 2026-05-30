@@ -180,7 +180,7 @@ export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeKavling, setActiveKavling] = useState<string | null>(null);
   const [activeFaq, setActiveFaq] = useState(0);
-  const [propertyTypes, setPropertyTypes] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -192,25 +192,20 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    const fetchPropertyTypes = async () => {
+    const fetchProjects = async () => {
       try {
-        const res = await fetch("http://localhost:4000/api/property-types");
+        const res = await fetch("http://localhost:4000/api/public/projects");
         if (res.ok) {
-          const data = await res.json();
-          if (data && data.length > 0) {
-            setPropertyTypes(data);
-          } else {
-            setPropertyTypes(defaultPropertyTypes);
+          const resData = await res.json();
+          if (resData.data && resData.data.length > 0) {
+            setProjects(resData.data);
           }
-        } else {
-          setPropertyTypes(defaultPropertyTypes);
         }
       } catch (error) {
-        console.error("Failed to fetch property types:", error);
-        setPropertyTypes(defaultPropertyTypes);
+        console.error("Failed to fetch projects:", error);
       }
     };
-    fetchPropertyTypes();
+    fetchProjects();
   }, []);
 
   return (
@@ -488,53 +483,44 @@ export default function HomePage() {
           </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
-            {propertyTypes.map((unit, idx) => {
+            {projects.length === 0 && (
+              <div className="col-span-1 md:col-span-2 py-20 text-center text-zinc-500">
+                Belum ada proyek yang tersedia saat ini.
+              </div>
+            )}
+            {projects.map((project, idx) => {
               const isEven = idx % 2 === 0;
-              const linkHref = unit.id === "astoria" || unit.id === "bvlgari" 
-                ? `/unit/${unit.id}` 
-                : `/unit/${unit.id}`;
-              const imgUrl = unit.imageUrl || (isEven 
+              const linkHref = `/proyek/${project.id}`;
+              const imgUrl = project.imageUrl || (isEven 
                 ? "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
                 : "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80");
-              const badgeText = unit.badge || (unit.bedrooms > 4 ? "Paling Diminati" : "Tipe Signature");
-              const carFeatureText = unit.carOrFeature || (unit.bathrooms > 2 ? `${unit.bathrooms} Garasi + Pool` : `${unit.bathrooms} Garasi`);
               
               return (
-                <Reveal key={unit.id} delay={100 + idx * 200}>
+                <Reveal key={project.id} delay={100 + idx * 200}>
                   <Link href={linkHref} className={`group cursor-pointer block ${idx % 2 === 1 ? "md:mt-24" : ""}`}>
                     <div className="relative h-[360px] sm:h-[440px] lg:h-[500px] overflow-hidden rounded-sm mb-6">
                       <div className="absolute inset-0 bg-zinc-900/20 group-hover:bg-transparent transition-colors duration-700 z-10" />
                       <img
                         src={imgUrl}
-                        alt={unit.name}
+                        alt={project.name}
                         className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-[1.5s] ease-out"
                       />
                       <div className="absolute top-6 left-6 z-20">
-                        <span className={`text-white text-[10px] uppercase tracking-widest px-4 py-2 rounded-sm backdrop-blur-md ${badgeText === "Paling Diminati" ? "bg-amber-600" : "bg-zinc-900"}`}>
-                          {badgeText}
+                        <span className={`text-white text-[10px] uppercase tracking-widest px-4 py-2 rounded-sm backdrop-blur-md bg-amber-600`}>
+                          {project.status}
                         </span>
                       </div>
                     </div>
                     <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="text-3xl font-serif text-zinc-900 mb-2">{unit.name}</h4>
-                        <p className="text-zinc-500 font-light mb-4 text-sm">
-                          Luas Bangunan {unit.luasBangunan}m² • Luas Tanah {unit.luasTanah}m²
+                      <div className="max-w-[70%]">
+                        <h4 className="text-3xl font-serif text-zinc-900 mb-2">{project.name}</h4>
+                        <p className="text-zinc-500 font-light mb-4 text-sm flex items-center gap-2">
+                          <MapPin size={16} className="text-amber-600" /> {project.location}
                         </p>
-                        <div className="flex gap-4">
-                          <span className="flex items-center gap-2 text-zinc-900 text-sm font-medium">
-                            <Home size={16} className="text-amber-600" /> {unit.bedrooms} BR
-                          </span>
-                          <span className="flex items-center gap-2 text-zinc-900 text-sm font-medium">
-                            <Car size={16} className="text-amber-600" /> {carFeatureText}
-                          </span>
-                        </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-zinc-400 uppercase tracking-widest mb-1">Mulai Dari</p>
-                        <p className="text-2xl font-serif text-amber-600">{formatPriceShort(unit.price)}</p>
                         <p className="text-xs uppercase tracking-[0.18em] text-zinc-500 mt-4 group-hover:text-amber-600 transition-colors">
-                          Detail Unit
+                          Lihat Detail <ArrowRight size={14} className="inline-block" />
                         </p>
                       </div>
                     </div>

@@ -16,6 +16,7 @@ export class InventoryService {
     bathrooms?: number; // legacy fallback
     price?: number; // legacy fallback
     imageUrl?: string;
+    facilities?: string | null;
   }) {
     return await prisma.propertyType.create({
       data: {
@@ -31,6 +32,7 @@ export class InventoryService {
         bathrooms: data.kamarMandi,
         price: data.basePrice,
         imageUrl: data.imageUrl,
+        facilities: data.facilities,
       },
     });
   }
@@ -60,6 +62,7 @@ export class InventoryService {
     kamarMandi?: number;
     basePrice?: number;
     imageUrl?: string;
+    facilities?: string | null;
   }) {
     return await prisma.propertyType.update({
       where: { id },
@@ -72,6 +75,7 @@ export class InventoryService {
         ...(data.kamarMandi !== undefined && { kamarMandi: data.kamarMandi, bathrooms: data.kamarMandi }),
         ...(data.basePrice !== undefined && { basePrice: data.basePrice, price: data.basePrice }),
         ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl }),
+        ...(data.facilities !== undefined && { facilities: data.facilities }),
       },
     });
   }

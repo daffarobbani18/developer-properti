@@ -485,7 +485,7 @@ export default function ProyekPage() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Deskripsi Proyek (Opsional)</label>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Tentang Proyek (Opsional) <span className="text-amber-500 normal-case tracking-normal">*Tampil di web publik</span></label>
                 <textarea
                   value={projectForm.description}
                   onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })}
