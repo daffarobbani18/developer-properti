@@ -141,7 +141,6 @@ const roleLabels: Record<UserRole, string> = {
   sales: "Sales & Marketing",
   finance: "Finance & Accounting",
   legal: "Legal & Perizinan",
-  supervisor: "Pengawas Lapangan",
 };
 
 interface SidebarProps {

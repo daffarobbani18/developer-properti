@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CheckCircle, Eye, EyeSlash, Lock, Envelope, ShieldWarning, Code } from "@phosphor-icons/react";
 
-type UserRole = "admin" | "inventory" | "sales" | "finance" | "legal" | "supervisor";
+type UserRole = "admin" | "inventory" | "sales" | "finance" | "legal";
 
 const DEV_ACCOUNTS = [
   { label: "Superadmin", email: "superadmin@erp.com", password: "password123", role: "admin" as UserRole, redirectTo: "/admin/dashboard" },
@@ -13,7 +13,6 @@ const DEV_ACCOUNTS = [
   { label: "Sales & Marketing", email: "sales@erp.com", password: "password123", role: "sales" as UserRole, redirectTo: "/sales/dashboard" },
   { label: "Finance & Accounting", email: "finance@erp.com", password: "password123", role: "finance" as UserRole, redirectTo: "/finance/dashboard" },
   { label: "Tim Legal", email: "legal@erp.com", password: "password123", role: "legal" as UserRole, redirectTo: "/legal/dashboard" },
-  { label: "Pengawas Lapangan", email: "spv@erp.com", password: "password123", role: "supervisor" as UserRole, redirectTo: "/supervisor/dashboard" },
 ];
 
 const DEFAULT_REDIRECT = "/admin/dashboard";
