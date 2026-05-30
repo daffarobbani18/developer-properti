@@ -46,6 +46,7 @@ export default function PipelineKprPage() {
   const [activeTab, setActiveTab] = useState("info"); // info, dokumen
   const [blockerModal, setBlockerModal] = useState({ isOpen: false, message: "" });
   const [cancelModal, setCancelModal] = useState({ isOpen: false, bookingId: "", alasan: "", kebijakan: "hanguskan" as "hanguskan" | "kembalikan" });
+  const [regressionModal, setRegressionModal] = useState({ isOpen: false, bookingId: "", newStatus: "", fromStatus: "", source: "" });
   
   // Drag state
   const [draggedBooking, setDraggedBooking] = useState<any>(null);
@@ -116,7 +117,56 @@ export default function PipelineKprPage() {
     setIsModalOpen(true);
   };
 
+  const executeApiUpdate = async (bookingId: string, payload: any) => {
+    setSubmitting(true);
+    try {
+      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "legal@erp.com", password: "password123" })
+      });
+      const { token } = await loginRes.json();
+
+      const res = await fetch(`http://localhost:4000/api/legal/kpr/${bookingId}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || "Gagal memperbarui status");
+      }
+      
+      setToast({ message: "Status KPR berhasil diperbarui", type: "success" });
+      setIsModalOpen(false);
+      fetchKpr();
+    } catch (err: any) {
+      fetchKpr(); // Revert on error
+      if (err.message.includes("Selisih Plafon") || err.message.includes("Siap Akad")) {
+        setBlockerModal({ isOpen: true, message: err.message });
+      } else {
+        setToast({ message: err.message, type: "error" });
+      }
+    } finally {
+      setSubmitting(false);
+      setDraggedBooking(null);
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
   const handleUpdateStatus = async () => {
+    const currentStatus = selectedBooking.kprApplication?.status || "Kumpul Berkas";
+    
+    if (currentStatus === "Selesai Akad" || currentStatus === "Ditolak Bank / Batal") {
+      setToast({ message: "Status final tidak dapat diubah lagi.", type: "error" });
+      setTimeout(() => setToast(null), 3000);
+      return;
+    }
+
     if (kprForm.status === "Ditolak Bank / Batal") {
       setCancelModal({
         isOpen: true,
@@ -128,41 +178,45 @@ export default function PipelineKprPage() {
       return;
     }
 
-    setSubmitting(true);
-    try {
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "legal@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+    const currentIndex = KPR_STATUSES.indexOf(currentStatus);
+    const newIndex = KPR_STATUSES.indexOf(kprForm.status);
 
-      const res = await fetch(`http://localhost:4000/api/legal/kpr/${selectedBooking.id}/status`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(kprForm)
+    if (newIndex < currentIndex) {
+      setRegressionModal({
+        isOpen: true,
+        bookingId: selectedBooking.id,
+        newStatus: kprForm.status,
+        fromStatus: currentStatus,
+        source: "modal"
       });
+      return;
+    }
+
+    executeApiUpdate(selectedBooking.id, kprForm);
+  };
+
+  const handleConfirmRegression = () => {
+    const { bookingId, newStatus, source } = regressionModal;
+    setRegressionModal({ isOpen: false, bookingId: "", newStatus: "", fromStatus: "", source: "" });
+    
+    if (source === "modal") {
+      executeApiUpdate(bookingId, kprForm);
+    } else {
+      const b = bookings.find(x => x.id === bookingId);
+      const payload = {
+        status: newStatus,
+        bankName: b?.kprApplication?.bankName,
+        plafondPengajuan: b?.kprApplication?.plafondPengajuan,
+        plafondDisetujui: b?.kprApplication?.plafondDisetujui,
+        notes: b?.kprApplication?.notes
+      };
       
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.message || "Gagal memperbarui KPR");
-      }
+      // Optimistic update
+      setBookings(prev => prev.map(x => 
+        x.id === bookingId ? { ...x, kprApplication: { ...x.kprApplication, status: newStatus } } : x
+      ));
       
-      setToast({ message: "Status KPR berhasil diperbarui", type: "success" });
-      setIsModalOpen(false);
-      fetchKpr();
-    } catch (err: any) {
-      if (err.message.includes("Selisih Plafon") || err.message.includes("Siap Akad")) {
-        setBlockerModal({ isOpen: true, message: err.message });
-      } else {
-        setToast({ message: err.message, type: "error" });
-      }
-    } finally {
-      setSubmitting(false);
-      setTimeout(() => setToast(null), 3000);
+      executeApiUpdate(bookingId, payload);
     }
   };
 
@@ -187,6 +241,14 @@ export default function PipelineKprPage() {
     
     if (!draggedBooking) return;
     const currentStatus = draggedBooking.kprApplication?.status || "Kumpul Berkas";
+    
+    if (currentStatus === "Selesai Akad" || currentStatus === "Ditolak Bank / Batal") {
+      setToast({ message: "Kartu dengan status final tidak dapat dipindahkan.", type: "error" });
+      setDraggedBooking(null);
+      setTimeout(() => setToast(null), 3000);
+      return;
+    }
+
     if (currentStatus === targetStatus) {
       setDraggedBooking(null);
       return;
@@ -203,7 +265,20 @@ export default function PipelineKprPage() {
       return;
     }
 
-    // Jika dipindah ke SP3K Terbit, lebih baik buka modal karena butuh input plafond
+    const currentIndex = KPR_STATUSES.indexOf(currentStatus);
+    const newIndex = KPR_STATUSES.indexOf(targetStatus);
+
+    if (newIndex < currentIndex) {
+      setRegressionModal({
+        isOpen: true,
+        bookingId: draggedBooking.id,
+        newStatus: targetStatus,
+        fromStatus: currentStatus,
+        source: "drag"
+      });
+      return;
+    }
+
     if (targetStatus === "SP3K Terbit") {
       setDraggedBooking(null);
       handleOpenModal(draggedBooking);
@@ -218,48 +293,15 @@ export default function PipelineKprPage() {
       : b
     ));
 
-    try {
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "legal@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+    const payload = {
+      status: targetStatus,
+      bankName: draggedBooking.kprApplication?.bankName,
+      plafondPengajuan: draggedBooking.kprApplication?.plafondPengajuan,
+      plafondDisetujui: draggedBooking.kprApplication?.plafondDisetujui,
+      notes: draggedBooking.kprApplication?.notes
+    };
 
-      const payload = {
-        status: targetStatus,
-        bankName: draggedBooking.kprApplication?.bankName,
-        plafondPengajuan: draggedBooking.kprApplication?.plafondPengajuan,
-        plafondDisetujui: draggedBooking.kprApplication?.plafondDisetujui,
-        notes: draggedBooking.kprApplication?.notes
-      };
-
-      const res = await fetch(`http://localhost:4000/api/legal/kpr/${draggedBooking.id}/status`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
-      
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.message || "Gagal memperbarui status");
-      }
-      
-      setToast({ message: `Status dipindah ke ${targetStatus}`, type: "success" });
-    } catch (err: any) {
-      fetchKpr(); // Revert on error
-      if (err.message.includes("Selisih Plafon") || err.message.includes("Siap Akad")) {
-        setBlockerModal({ isOpen: true, message: err.message });
-      } else {
-        setToast({ message: err.message, type: "error" });
-      }
-    } finally {
-      setDraggedBooking(null);
-      setTimeout(() => setToast(null), 3000);
-    }
+    executeApiUpdate(draggedBooking.id, payload);
   };
 
   const handleCancelKPR = async () => {
@@ -800,6 +842,41 @@ export default function PipelineKprPage() {
               >
                 Mengerti
               </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Modal Peringatan Mundur (Revisi Bank) */}
+      {regressionModal.isOpen && mounted && createPortal(
+        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 mb-4">
+                <WarningCircle size={32} weight="fill" className="text-amber-500" />
+              </div>
+              <h3 className="text-xl font-bold text-zinc-900 mb-2">Penurunan Status KPR</h3>
+              <p className="text-sm text-zinc-600 mb-6 font-medium leading-relaxed">
+                Anda mencoba memindahkan status KPR mundur dari <span className="font-bold text-zinc-800">{regressionModal.fromStatus}</span> ke <span className="font-bold text-zinc-800">{regressionModal.newStatus}</span>. Apakah ini karena ada revisi atau penolakan sementara dari Bank?
+              </p>
+              <div className="grid grid-cols-2 gap-3 mt-8">
+                <button 
+                  onClick={() => setRegressionModal({ isOpen: false, bookingId: "", newStatus: "", fromStatus: "", source: "" })}
+                  disabled={submitting}
+                  className="w-full bg-zinc-100 text-zinc-700 rounded-xl py-3 font-bold text-sm hover:bg-zinc-200 transition-colors disabled:opacity-50"
+                >
+                  Batal
+                </button>
+                <button 
+                  onClick={handleConfirmRegression}
+                  disabled={submitting}
+                  className="w-full bg-amber-500 text-white rounded-xl py-3 font-bold text-sm hover:bg-amber-600 shadow-lg shadow-amber-500/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {submitting && <Spinner className="animate-spin" />}
+                  Ya, Lanjutkan
+                </button>
+              </div>
             </div>
           </div>
         </div>,
