@@ -42,6 +42,7 @@ export default function PipelineKprPage() {
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("info"); // info, dokumen
+  const [blockerModal, setBlockerModal] = useState({ isOpen: false, message: "" });
   
   // Drag state
   const [draggedBooking, setDraggedBooking] = useState<any>(null);
@@ -131,13 +132,20 @@ export default function PipelineKprPage() {
         body: JSON.stringify(kprForm)
       });
       
-      if (!res.ok) throw new Error("Gagal memperbarui KPR");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || "Gagal memperbarui KPR");
+      }
       
       setToast({ message: "Status KPR berhasil diperbarui", type: "success" });
       setIsModalOpen(false);
       fetchKpr();
     } catch (err: any) {
-      setToast({ message: err.message, type: "error" });
+      if (err.message.includes("Selisih Plafon") || err.message.includes("Siap Akad")) {
+        setBlockerModal({ isOpen: true, message: err.message });
+      } else {
+        setToast({ message: err.message, type: "error" });
+      }
     } finally {
       setSubmitting(false);
       setTimeout(() => setToast(null), 3000);
@@ -210,12 +218,19 @@ export default function PipelineKprPage() {
         body: JSON.stringify(payload)
       });
       
-      if (!res.ok) throw new Error("Gagal memperbarui status");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || "Gagal memperbarui status");
+      }
       
       setToast({ message: `Status dipindah ke ${targetStatus}`, type: "success" });
     } catch (err: any) {
-      setToast({ message: err.message, type: "error" });
       fetchKpr(); // Revert on error
+      if (err.message.includes("Selisih Plafon") || err.message.includes("Siap Akad")) {
+        setBlockerModal({ isOpen: true, message: err.message });
+      } else {
+        setToast({ message: err.message, type: "error" });
+      }
     } finally {
       setDraggedBooking(null);
       setTimeout(() => setToast(null), 3000);
@@ -682,6 +697,38 @@ export default function PipelineKprPage() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Modal Blocker Siap Akad */}
+      {blockerModal.isOpen && mounted && createPortal(
+        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-100 mb-4">
+                <WarningCircle size={32} weight="fill" className="text-rose-600" />
+              </div>
+              <h3 className="text-xl font-bold text-zinc-900 mb-2">Aksi Ditolak Sistem</h3>
+              <p className="text-sm text-zinc-600 mb-6 font-medium leading-relaxed">
+                {blockerModal.message}
+              </p>
+              <div className="rounded-xl bg-zinc-50 border border-zinc-200 p-4 mb-6 text-left">
+                <h4 className="font-bold text-zinc-800 text-xs uppercase tracking-wider mb-2 flex items-center gap-2"><CheckCircle weight="fill" className="text-blue-500" size={16}/> Solusi:</h4>
+                <ol className="list-decimal pl-4 text-xs text-zinc-600 space-y-1">
+                  <li>Hubungi klien untuk melunasi tagihan Kekurangan Plafon.</li>
+                  <li>Minta tim <b>Finance</b> untuk memverifikasi lunas tagihan tersebut di menu Kelola Piutang.</li>
+                  <li>Setelah lunas, Anda baru bisa memindahkan kartu ini ke <b>Siap Akad</b>.</li>
+                </ol>
+              </div>
+              <button 
+                onClick={() => setBlockerModal({ isOpen: false, message: "" })}
+                className="w-full bg-zinc-900 text-white rounded-xl py-3 font-bold text-sm hover:bg-zinc-800 transition-colors shadow-lg shadow-zinc-900/20"
+              >
+                Mengerti
+              </button>
             </div>
           </div>
         </div>,

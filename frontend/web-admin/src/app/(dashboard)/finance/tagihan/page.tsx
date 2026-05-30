@@ -45,6 +45,7 @@ interface Booking {
   lead: Lead;
   unit: Unit;
   invoices: Invoice[];
+  kprApplication?: any;
 }
 
 export default function TagihanFinancePage() {
@@ -383,6 +384,7 @@ export default function TagihanFinancePage() {
                 <thead className="border-b border-zinc-200 bg-zinc-50/50 text-xs uppercase tracking-wider text-zinc-500">
                   <tr>
                     <th className="px-6 py-4 font-bold">Klien / Unit</th>
+                    <th className="px-6 py-4 font-bold">Metode Pembayaran</th>
                     {activeTab === "piutang" ? (
                       <>
                         <th className="px-6 py-4 font-bold">Harga Unit</th>
@@ -402,8 +404,9 @@ export default function TagihanFinancePage() {
                   {displayedBookings.map((b) => {
                     const invoices = b.invoices || [];
                     const paidInvoicesTotal = invoices.filter(i => i.status === "Paid").reduce((acc, i) => acc + i.amountDue, 0);
+                    const unpaidInvoicesTotal = invoices.filter(i => i.status === "Unpaid").reduce((acc, i) => acc + i.amountDue, 0);
                     const totalPaid = b.bookingFee + paidInvoicesTotal;
-                    const remainingBalance = b.unit.totalPrice - totalPaid;
+                    const remainingBalance = Math.max(0, b.unit.totalPrice - totalPaid);
                     const progress = Math.min(100, Math.round((totalPaid / b.unit.totalPrice) * 100));
 
                     return (
@@ -414,6 +417,16 @@ export default function TagihanFinancePage() {
                             <span className="text-xs font-semibold text-zinc-700">{b.unit.project?.name || "Proyek"} - {b.unit.propertyType?.name || "Tipe"}</span>
                             <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Kawasan {b.unit.kawasan} &middot; Blok {b.unit.blok}-{b.unit.nomor}</span>
                           </div>
+                        </td>
+                        
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center rounded-lg border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                            b.paymentMethod.toUpperCase().includes("KPR") 
+                              ? "bg-blue-50 border-blue-200 text-blue-700" 
+                              : "bg-emerald-50 border-emerald-200 text-emerald-700"
+                          }`}>
+                            {b.paymentMethod}
+                          </span>
                         </td>
                         
                         {activeTab === "piutang" ? (
@@ -427,8 +440,13 @@ export default function TagihanFinancePage() {
                                 <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${progress}%` }}></div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 font-black text-rose-600">
-                              Rp {remainingBalance.toLocaleString("id-ID")}
+                            <td className="px-6 py-4">
+                              <div className="font-black text-rose-600">Rp {remainingBalance.toLocaleString("id-ID")}</div>
+                              {unpaidInvoicesTotal > 0 && (
+                                <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-rose-50 border border-rose-200 px-2 py-0.5 text-[10px] font-bold text-rose-700 shadow-sm whitespace-nowrap">
+                                  <WarningCircle weight="fill" size={12} /> Ada Tagihan: Rp {unpaidInvoicesTotal.toLocaleString("id-ID")}
+                                </div>
+                              )}
                             </td>
                           </>
                         ) : (
@@ -436,9 +454,6 @@ export default function TagihanFinancePage() {
                             <td className="px-6 py-4">
                               <div className="font-black text-zinc-900">
                                 Rp {b.bookingFee.toLocaleString("id-ID")}
-                              </div>
-                              <div className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
-                                {b.paymentMethod}
                               </div>
                             </td>
                             <td className="px-6 py-4">
@@ -606,25 +621,44 @@ export default function TagihanFinancePage() {
                 <div>
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="font-bold text-zinc-900">Daftar Tagihan Lanjutan</h3>
-                    {unbilledBalance > 0 ? (
-                      <button
-                        onClick={() => {
-                          const isKPR = selectedBooking.paymentMethod.toUpperCase().includes("KPR");
-                          setGenerateMode(isKPR ? "Manual" : "Auto-Split");
-                          setInvoiceType(isKPR ? "Penambahan Uang Muka (DP)" : "Cicilan Termin");
-                          setTenor("12");
-                          setStartDate("");
-                          setIsGenerateModalOpen(true);
-                        }}
-                        className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-violet-700 shadow-sm"
-                      >
-                        <Plus weight="bold" size={14} /> Terbitkan Tagihan (Sisa: Rp {unbilledBalance.toLocaleString("id-ID")})
-                      </button>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider">
-                        <CheckCircle weight="fill" size={14} /> Seluruh Piutang Telah Diterbitkan
-                      </span>
-                    )}
+                    {(() => {
+                      const isKPR = selectedBooking.paymentMethod.toUpperCase().includes("KPR");
+                      if (isKPR) {
+                        return (
+                          <button
+                            onClick={() => {
+                              setGenerateMode("Manual");
+                              setInvoiceType("Penambahan Uang Muka (DP)");
+                              setTenor("12");
+                              setStartDate("");
+                              setIsGenerateModalOpen(true);
+                            }}
+                            className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-violet-700 shadow-sm"
+                          >
+                            <Plus weight="bold" size={14} /> Terbitkan Tagihan Tambahan
+                          </button>
+                        );
+                      } else {
+                        return unbilledBalance > 0 ? (
+                          <button
+                            onClick={() => {
+                              setGenerateMode("Auto-Split");
+                              setInvoiceType("Cicilan Termin");
+                              setTenor("12");
+                              setStartDate("");
+                              setIsGenerateModalOpen(true);
+                            }}
+                            className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-xs font-bold text-white transition-all hover:bg-violet-700 shadow-sm"
+                          >
+                            <Plus weight="bold" size={14} /> Terbitkan Tagihan (Sisa: Rp {unbilledBalance.toLocaleString("id-ID")})
+                          </button>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider">
+                            <CheckCircle weight="fill" size={14} /> Seluruh Piutang Telah Diterbitkan
+                          </span>
+                        );
+                      }
+                    })()}
                   </div>
                 
                 <div className="rounded-xl border border-zinc-200 overflow-hidden">
