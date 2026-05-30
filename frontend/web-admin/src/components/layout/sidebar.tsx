@@ -82,7 +82,7 @@ const menuItems: MenuGroup[] = [
         label: "Leads",
         href: "/sales/leads",
         icon: UsersFour,
-        roles: ["sales"],
+        roles: ["sales", "admin"],
       },
       {
         label: "Pipeline",
@@ -141,6 +141,7 @@ const roleLabels: Record<UserRole, string> = {
   sales: "Sales & Marketing",
   finance: "Finance & Accounting",
   legal: "Legal & Perizinan",
+  supervisor: "Supervisor",
 };
 
 interface SidebarProps {

@@ -13,6 +13,48 @@ export default function PropertyTypeDetailPage() {
   const [loading, setLoading] = useState(true);
   const [viewerImage, setViewerImage] = useState<string | null>(null);
 
+  // Lead Form State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [leadName, setLeadName] = useState("");
+  const [leadPhone, setLeadPhone] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleLeadSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!leadName || !leadPhone) return;
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("http://localhost:4000/api/public/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: leadName,
+          phone: leadPhone,
+          source: `Web Public - ${project?.name} - Tipe ${tipe?.name}`
+        })
+      });
+
+      if (res.ok) {
+        // Redirect to WhatsApp
+        const waNumber = "6289501484655";
+        const message = encodeURIComponent(`Halo, saya tertarik dengan Tipe ${tipe?.name} di ${project?.name}. Bisakah saya mendapatkan info lebih lanjut?`);
+        window.open(`https://wa.me/${waNumber}?text=${message}`, "_blank");
+        
+        setIsModalOpen(false);
+        setLeadName("");
+        setLeadPhone("");
+      } else {
+        alert("Terjadi kesalahan. Silakan coba lagi.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Gagal menghubungi server.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   useEffect(() => {
     const fetchProject = async () => {
       try {
@@ -145,14 +187,12 @@ export default function PropertyTypeDetailPage() {
                   </p>
                 </div>
 
-                <a 
-                  href={`https://wa.me/6281234567890?text=Halo%20saya%20tertarik%20dengan%20Tipe%20${tipe.name}%20di%20${project.name}`} 
-                  target="_blank" 
-                  rel="noreferrer"
+                <button 
+                  onClick={() => setIsModalOpen(true)}
                   className="w-full flex items-center justify-center gap-3 bg-amber-600 hover:bg-amber-500 text-white py-4 font-bold uppercase tracking-widest text-xs transition-colors rounded-xl"
                 >
                   Minta Penawaran VIP <ArrowRight size={16} />
-                </a>
+                </button>
                 
                 <p className="text-xs text-zinc-500 text-center mt-6 leading-relaxed">
                   Tim kami akan menghubungi Anda untuk penawaran eksklusif dan tur virtual.
@@ -181,6 +221,63 @@ export default function PropertyTypeDetailPage() {
             className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain shadow-2xl animate-in zoom-in-95 duration-300"
             onClick={(e) => e.stopPropagation()} 
           />
+        </div>
+      )}
+
+      {/* Lead Generation Modal */}
+      {isModalOpen && (
+        <div 
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-zinc-950/80 p-4 backdrop-blur-sm transition-opacity animate-in fade-in"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div 
+            className="bg-white rounded-[2rem] w-full max-w-md p-8 shadow-2xl relative animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              className="absolute right-6 top-6 rounded-full p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
+              onClick={() => setIsModalOpen(false)}
+            >
+              <X size={20} />
+            </button>
+            
+            <h3 className="text-2xl font-serif font-bold text-zinc-900 mb-2">Tertarik dengan {tipe.name}?</h3>
+            <p className="text-zinc-500 text-sm mb-6 leading-relaxed">
+              Tinggalkan kontak Anda, dan Anda akan langsung terhubung ke WhatsApp representatif penjualan kami.
+            </p>
+
+            <form onSubmit={handleLeadSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">Nama Lengkap</label>
+                <input 
+                  type="text" 
+                  required
+                  value={leadName}
+                  onChange={(e) => setLeadName(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition-all"
+                  placeholder="Misal: Budi Santoso"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">Nomor WhatsApp</label>
+                <input 
+                  type="tel" 
+                  required
+                  value={leadPhone}
+                  onChange={(e) => setLeadPhone(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition-all"
+                  placeholder="Misal: 08123456789"
+                />
+              </div>
+              <button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="w-full bg-amber-600 hover:bg-amber-500 text-white disabled:bg-zinc-300 py-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors mt-4 flex justify-center items-center gap-2"
+              >
+                {isSubmitting ? "Memproses..." : "Lanjut ke WhatsApp"} <ArrowRight size={16} />
+              </button>
+            </form>
+          </div>
         </div>
       )}
 

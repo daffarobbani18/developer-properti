@@ -39,6 +39,8 @@ export class PublicController {
               statusPenjualan: true,
               svgPathId: true,
               propertyTypeId: true,
+              priceMarkup: true,
+              luasTanahAktual: true,
             },
           },
         },
@@ -52,6 +54,41 @@ export class PublicController {
     } catch (error) {
       console.error("Public getProjectDetails Error:", error);
       res.status(500).json({ success: false, message: "Internal server error" });
+    }
+  }
+
+  static async submitLead(req: Request, res: Response) {
+    try {
+      const { name, phone, email, source, notes } = req.body;
+
+      if (!name || !phone) {
+        return res.status(400).json({
+          success: false,
+          message: "Nama dan Nomor Telepon wajib diisi",
+        });
+      }
+
+      const lead = await prisma.lead.create({
+        data: {
+          name,
+          phone,
+          email: email || null,
+          source: source || "Website Public",
+          notes: notes || null,
+        },
+      });
+
+      res.status(201).json({
+        success: true,
+        data: lead,
+        message: "Berhasil mengirim data prospek",
+      });
+    } catch (error) {
+      console.error("Error submitting lead:", error);
+      res.status(500).json({
+        success: false,
+        message: "Terjadi kesalahan internal server",
+      });
     }
   }
 }

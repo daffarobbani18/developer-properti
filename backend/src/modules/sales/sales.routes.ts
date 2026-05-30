@@ -7,7 +7,7 @@ import { createLeadDto, createBookingDto } from "./dto/sales.dto.js";
 const router = Router();
 
 // Melindungi rute di file ini menggunakan middleware token & role
-router.use(verifyToken, requireRole(["Sales & Marketing"]));
+router.use(verifyToken, requireRole(["Sales & Marketing", "Administrator"]));
 
 /**
  * @swagger

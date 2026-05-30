@@ -3,13 +3,56 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { MapPin, ArrowRight, ShieldCheck, TreePine, Car } from "lucide-react";
+import { MapPin, ArrowRight, X } from "lucide-react";
 
 export default function ProjectDetailPage() {
   const params = useParams();
   const projectId = params.projectId;
   const [project, setProject] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedUnit, setSelectedUnit] = useState<any>(null);
+
+  // Lead Form State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [leadName, setLeadName] = useState("");
+  const [leadPhone, setLeadPhone] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleLeadSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!leadName || !leadPhone) return;
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("http://localhost:4000/api/public/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: leadName,
+          phone: leadPhone,
+          source: `Web Public - ${project?.name} - Kavling ${selectedUnit?.blok}-${selectedUnit?.nomor}`
+        })
+      });
+
+      if (res.ok) {
+        // Redirect to WhatsApp
+        const waNumber = "6289501484655";
+        const message = encodeURIComponent(`Halo, saya tertarik dengan Kavling Blok ${selectedUnit?.blok}-${selectedUnit?.nomor} di ${project?.name}. Bisakah saya mendapatkan info lebih lanjut?`);
+        window.open(`https://wa.me/${waNumber}?text=${message}`, "_blank");
+        
+        setIsModalOpen(false);
+        setLeadName("");
+        setLeadPhone("");
+      } else {
+        alert("Terjadi kesalahan. Silakan coba lagi.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Gagal menghubungi server.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -36,28 +79,17 @@ export default function ProjectDetailPage() {
     return <div className="min-h-screen bg-zinc-950 text-white flex justify-center items-center">Proyek tidak ditemukan.</div>;
   }
 
-  // Fungsi untuk mendapatkan warna berdasarkan svgPathId unit
-  const getFillColor = (pathId: string) => {
-    if (!project.units) return "rgba(63, 63, 70, 0.4)"; // Default empty (zinc-700)
-    
-    const unit = project.units.find((u: any) => u.svgPathId === pathId);
-    if (!unit) return "rgba(63, 63, 70, 0.4)"; // Default
+  // Group units by blok (same data as admin kavling-unit page)
+  const units: any[] = project.units || [];
+  const blocks = Array.from(new Set(units.map((u: any) => u.blok))).sort();
 
-    switch (unit.statusPenjualan) {
-      case "Tersedia":
-        return "rgba(16, 185, 129, 0.8)"; // emerald-500
-      case "Booked":
-        return "rgba(245, 158, 11, 0.8)"; // amber-500
-      case "Terjual":
-        return "rgba(239, 68, 68, 0.8)"; // rose-500
-      default:
-        return "rgba(63, 63, 70, 0.4)";
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case "Tersedia": return "bg-emerald-500/20 border-emerald-500 text-emerald-300 hover:bg-emerald-500/40";
+      case "Booked": return "bg-amber-500/20 border-amber-500 text-amber-300 hover:bg-amber-500/40";
+      case "Terjual": return "bg-rose-500/20 border-rose-500 text-rose-300 hover:bg-rose-500/40 opacity-70";
+      default: return "bg-zinc-800 border-zinc-700 text-zinc-500 hover:bg-zinc-700";
     }
-  };
-
-  const getUnitInfo = (pathId: string) => {
-    if (!project.units) return null;
-    return project.units.find((u: any) => u.svgPathId === pathId);
   };
 
   return (
@@ -130,86 +162,248 @@ export default function ProjectDetailPage() {
         </div>
       </section>
 
-      {/* Interactive Site Plan */}
-      <section className="py-24 bg-zinc-950 relative overflow-hidden">
+      {/* Dynamic Unit Grid — data langsung dari kavling-unit */}
+      <section className="py-24 bg-zinc-950 relative overflow-hidden" onClick={() => setSelectedUnit(null)}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-xs text-amber-600 font-bold uppercase tracking-[0.3em] mb-4">Site Plan</h2>
-            <h3 className="text-4xl font-serif text-white">Peta Kavling Interaktif</h3>
+            <h3 className="text-4xl font-serif text-white">Ketersediaan Kavling</h3>
             <p className="text-zinc-400 mt-4 max-w-2xl mx-auto">
-              Arahkan kursor ke kavling untuk melihat detail status ketersediaan secara real-time.
+              Klik salah satu kavling untuk melihat detail status dan informasi unitnya secara langsung.
             </p>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-12 items-start">
-            <div className="w-full lg:w-3/4 bg-zinc-900 border border-zinc-800 rounded-sm p-8 overflow-x-auto relative">
-              {/* Dummy Interactive SVG Map */}
-              <svg viewBox="0 0 800 600" className="w-full h-auto min-w-[600px] drop-shadow-2xl">
-                {/* Background Layout (Jalan, dll) */}
-                <rect x="0" y="0" width="800" height="600" fill="#18181b" rx="8" />
-                <path d="M 0 300 L 800 300" stroke="#3f3f46" strokeWidth="40" />
-                <path d="M 400 0 L 400 600" stroke="#3f3f46" strokeWidth="40" />
-                
-                <text x="750" y="290" fill="#52525b" fontSize="12" fontWeight="bold">JALAN UTAMA</text>
-
-                {/* SVG Kavlings (These IDs match the svgPathId in the database) */}
-                <g className="kavling-group cursor-pointer transition-all hover:brightness-125">
-                  <rect id="A-01" x="100" y="100" width="100" height="150" fill={getFillColor("A-01")} stroke="#fff" strokeWidth="2" rx="4" />
-                  <text x="125" y="180" fill="#fff" fontSize="16" fontWeight="bold" pointerEvents="none">A-01</text>
-                </g>
-
-                <g className="kavling-group cursor-pointer transition-all hover:brightness-125">
-                  <rect id="A-02" x="220" y="100" width="100" height="150" fill={getFillColor("A-02")} stroke="#fff" strokeWidth="2" rx="4" />
-                  <text x="245" y="180" fill="#fff" fontSize="16" fontWeight="bold" pointerEvents="none">A-02</text>
-                </g>
-
-                <g className="kavling-group cursor-pointer transition-all hover:brightness-125">
-                  <rect id="B-01" x="480" y="100" width="100" height="150" fill={getFillColor("B-01")} stroke="#fff" strokeWidth="2" rx="4" />
-                  <text x="505" y="180" fill="#fff" fontSize="16" fontWeight="bold" pointerEvents="none">B-01</text>
-                </g>
-                
-                <g className="kavling-group cursor-pointer transition-all hover:brightness-125">
-                  <rect id="B-02" x="600" y="100" width="100" height="150" fill={getFillColor("B-02")} stroke="#fff" strokeWidth="2" rx="4" />
-                  <text x="625" y="180" fill="#fff" fontSize="16" fontWeight="bold" pointerEvents="none">B-02</text>
-                </g>
-
-                <g className="kavling-group cursor-pointer transition-all hover:brightness-125">
-                  <rect id="C-01" x="100" y="350" width="100" height="150" fill={getFillColor("C-01")} stroke="#fff" strokeWidth="2" rx="4" />
-                  <text x="125" y="430" fill="#fff" fontSize="16" fontWeight="bold" pointerEvents="none">C-01</text>
-                </g>
-              </svg>
-              
-              <div className="absolute top-4 left-4 bg-black/50 backdrop-blur text-white text-xs px-3 py-1 rounded">
-                Simulasi SVG Mapping (A-01, A-02, B-01, B-02, C-01)
-              </div>
+          {units.length === 0 ? (
+            <div className="text-center py-20 text-zinc-500">
+              <MapPin size={48} className="mx-auto mb-4 opacity-30" />
+              <p>Belum ada data kavling untuk proyek ini.</p>
             </div>
+          ) : (
+            <div className="flex flex-col lg:flex-row gap-10 items-start">
+              {/* Unit Grid */}
+              <div className="w-full lg:w-3/4 space-y-10">
+                {blocks.map((blok) => {
+                  const blockUnits = units
+                    .filter((u: any) => u.blok === blok)
+                    .sort((a: any, b: any) => (parseInt(a.nomor) || 0) - (parseInt(b.nomor) || 0));
+                  return (
+                    <div key={blok}>
+                      <div className="flex items-center gap-4 mb-5">
+                        <div className="h-px flex-1 bg-zinc-800" />
+                        <span className="text-xs font-bold uppercase tracking-widest text-zinc-400 bg-zinc-900 border border-zinc-800 px-4 py-1.5 rounded-full">
+                          Blok {blok}
+                        </span>
+                        <div className="h-px flex-1 bg-zinc-800" />
+                      </div>
+                      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2.5">
+                        {blockUnits.map((unit: any) => {
+                          const isSelected = selectedUnit?.id === unit.id;
+                          return (
+                            <button
+                              key={unit.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedUnit(isSelected ? null : unit);
+                              }}
+                              className={`relative flex aspect-square flex-col items-center justify-center rounded-xl border-2 text-center transition-all duration-200 hover:scale-110 hover:z-10 hover:shadow-lg focus:outline-none
+                                ${getStatusStyle(unit.statusPenjualan)}
+                                ${isSelected ? "ring-2 ring-amber-400 ring-offset-2 ring-offset-zinc-950 scale-110 z-10 shadow-lg shadow-amber-500/20" : ""}
+                              `}
+                            >
+                              <span className="text-[9px] font-semibold opacity-60 uppercase">{unit.blok}</span>
+                              <span className="text-base font-black leading-none">{unit.nomor}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
 
-            <div className="w-full lg:w-1/4 flex flex-col gap-6">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-sm p-6">
-                <h4 className="text-white font-bold mb-4 uppercase tracking-widest text-xs border-b border-zinc-800 pb-2">Legenda</h4>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 bg-emerald-500 rounded-sm shadow-[0_0_10px_#10b981]" />
-                    <span className="text-zinc-300 text-sm">Tersedia</span>
+              {/* Sidebar: Detail + Legenda */}
+              <div 
+                className="w-full lg:w-1/4 flex flex-col gap-6 lg:sticky lg:top-8"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Detail Kavling Terpilih */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 min-h-[220px]">
+                  <h4 className="text-white font-bold mb-4 uppercase tracking-widest text-xs border-b border-zinc-800 pb-3">Detail Kavling</h4>
+                  {selectedUnit ? (
+                    <div key={selectedUnit.id}>
+                      <div className="flex items-center gap-3 mb-5">
+                        <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                          selectedUnit.statusPenjualan === "Tersedia" ? "bg-emerald-500 shadow-[0_0_8px_#10b981]" :
+                          selectedUnit.statusPenjualan === "Booked" ? "bg-amber-500 shadow-[0_0_8px_#f59e0b]" :
+                          selectedUnit.statusPenjualan === "Terjual" ? "bg-rose-500 shadow-[0_0_8px_#f43f5e]" : "bg-zinc-600"
+                        }`} />
+                        <span className="text-white font-bold text-lg leading-tight">
+                          {selectedUnit.kawasan}<br/>
+                          <span className="text-amber-400">Blok {selectedUnit.blok}-{selectedUnit.nomor}</span>
+                        </span>
+                      </div>
+
+                      <div className="space-y-3 mb-6">
+                        <div className="flex justify-between border-b border-zinc-800 pb-2">
+                          <span className="text-zinc-500 text-sm">Status</span>
+                          <span className={`text-sm font-bold ${
+                            selectedUnit.statusPenjualan === "Tersedia" ? "text-emerald-400" :
+                            selectedUnit.statusPenjualan === "Booked" ? "text-amber-400" :
+                            selectedUnit.statusPenjualan === "Terjual" ? "text-rose-400" : "text-zinc-400"
+                          }`}>{selectedUnit.statusPenjualan}</span>
+                        </div>
+                        <div className="flex justify-between border-b border-zinc-800 pb-2">
+                          <span className="text-zinc-500 text-sm">Tipe Unit</span>
+                          <span className="text-zinc-300 text-sm font-semibold text-right">
+                            {project.propertyTypes?.find((t: any) => t.id === selectedUnit.propertyTypeId)?.name || "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between pb-2">
+                          <span className="text-zinc-500 text-sm">Harga</span>
+                          <span className="text-amber-400 text-sm font-bold">
+                            {(() => {
+                              const type = project.propertyTypes?.find((t: any) => t.id === selectedUnit.propertyTypeId);
+                              if (!type) return "-";
+                              const total = (type.basePrice || 0) + (selectedUnit.priceMarkup || 0);
+                              return `Rp ${(total / 1000000).toFixed(0)} Jt`;
+                            })()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {selectedUnit.statusPenjualan === "Tersedia" && selectedUnit.propertyTypeId ? (
+                        <div className="flex flex-col gap-2">
+                          <Link
+                            href={`/proyek/${project.id}/tipe/${selectedUnit.propertyTypeId}`}
+                            className="w-full block text-center bg-zinc-800 hover:bg-zinc-700 text-white py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors"
+                          >
+                            Lihat Detail Tipe
+                          </Link>
+                          <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="w-full block text-center bg-amber-600 hover:bg-amber-500 text-white py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors"
+                          >
+                            Pesan Kavling Ini →
+                          </button>
+                        </div>
+                      ) : selectedUnit.statusPenjualan === "Tersedia" && !selectedUnit.propertyTypeId ? (
+                        <button
+                          onClick={() => setIsModalOpen(true)}
+                          className="w-full block text-center bg-amber-600 hover:bg-amber-500 text-white py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors"
+                        >
+                          Pesan Kavling Ini →
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-zinc-600 py-8">
+                      <MapPin size={32} className="mb-3 opacity-30" />
+                      <p className="text-sm text-center leading-relaxed">Klik salah satu kavling untuk melihat detail</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Legenda */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+                  <h4 className="text-white font-bold mb-4 uppercase tracking-widest text-xs border-b border-zinc-800 pb-3">Legenda</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded bg-emerald-500 shadow-[0_0_8px_#10b981]" />
+                      <span className="text-zinc-300 text-sm">Tersedia</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded bg-amber-500 shadow-[0_0_8px_#f59e0b]" />
+                      <span className="text-zinc-300 text-sm">Booked</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded bg-rose-500 shadow-[0_0_8px_#f43f5e]" />
+                      <span className="text-zinc-300 text-sm">Terjual</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 bg-amber-500 rounded-sm shadow-[0_0_10px_#f59e0b]" />
-                    <span className="text-zinc-300 text-sm">Booked</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 bg-rose-500 rounded-sm shadow-[0_0_10px_#f43f5e]" />
-                    <span className="text-zinc-300 text-sm">Terjual</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 bg-zinc-700 rounded-sm" />
-                    <span className="text-zinc-500 text-sm">Belum Rilis / Kosong</span>
+
+                  {/* Summary Stats */}
+                  <div className="mt-6 pt-4 border-t border-zinc-800 space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-zinc-500">Total Kavling</span>
+                      <span className="text-white font-bold">{units.length}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-emerald-500">Tersedia</span>
+                      <span className="text-emerald-400 font-bold">{units.filter((u: any) => u.statusPenjualan === "Tersedia").length}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-amber-500">Booked</span>
+                      <span className="text-amber-400 font-bold">{units.filter((u: any) => u.statusPenjualan === "Booked").length}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-rose-500">Terjual</span>
+                      <span className="text-rose-400 font-bold">{units.filter((u: any) => u.statusPenjualan === "Terjual").length}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
+
+      {/* Lead Generation Modal */}
+      {isModalOpen && (
+        <div 
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-zinc-950/80 p-4 backdrop-blur-sm transition-opacity animate-in fade-in"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div 
+            className="bg-white rounded-[2rem] w-full max-w-md p-8 shadow-2xl relative animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              className="absolute right-6 top-6 rounded-full p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
+              onClick={() => setIsModalOpen(false)}
+            >
+              <X size={20} />
+            </button>
+            
+            <h3 className="text-2xl font-serif font-bold text-zinc-900 mb-2">Pesan Kavling {selectedUnit?.blok}-{selectedUnit?.nomor}</h3>
+            <p className="text-zinc-500 text-sm mb-6 leading-relaxed">
+              Tinggalkan kontak Anda, dan Anda akan langsung terhubung ke WhatsApp representatif penjualan kami.
+            </p>
+
+            <form onSubmit={handleLeadSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">Nama Lengkap</label>
+                <input 
+                  type="text" 
+                  required
+                  value={leadName}
+                  onChange={(e) => setLeadName(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition-all"
+                  placeholder="Misal: Budi Santoso"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">Nomor WhatsApp</label>
+                <input 
+                  type="tel" 
+                  required
+                  value={leadPhone}
+                  onChange={(e) => setLeadPhone(e.target.value)}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 transition-all"
+                  placeholder="Misal: 08123456789"
+                />
+              </div>
+              <button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="w-full bg-amber-600 hover:bg-amber-500 text-white disabled:bg-zinc-300 py-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors mt-4 flex justify-center items-center gap-2"
+              >
+                {isSubmitting ? "Memproses..." : "Lanjut ke WhatsApp"} <ArrowRight size={16} />
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
