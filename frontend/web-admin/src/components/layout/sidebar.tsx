@@ -166,6 +166,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
   const [currentRole, setCurrentRole] = useState<RoleWithGuest>("guest");
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const [pendingTagihanCount, setPendingTagihanCount] = useState(0);
+  const [pendingKprCount, setPendingKprCount] = useState(0);
+  const [pendingExpenseCount, setPendingExpenseCount] = useState(0);
 
   useEffect(() => {
     const readStoredRole = (): RoleWithGuest => {
@@ -257,8 +259,64 @@ export default function Sidebar({ onClose }: SidebarProps) {
       }
     };
 
+    const fetchPendingKpr = async () => {
+      if (currentRole !== "legal") return;
+      try {
+        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: "legal@erp.com", password: "password123" })
+        });
+        const { token } = await loginRes.json();
+        if (!token) return;
+
+        const res = await fetch("http://localhost:4000/api/legal/kpr", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        if (res.ok && isMounted && Array.isArray(data)) {
+          const pendingCount = data.filter((b: any) => !b.kprApplication || b.kprApplication.status === "Kumpul Berkas").length;
+          setPendingKprCount(pendingCount);
+        }
+      } catch (err) {
+        console.error("Failed to fetch pending kpr for sidebar", err);
+      }
+    };
+
+    const fetchPendingExpense = async () => {
+      if (currentRole !== "finance") return;
+      try {
+        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: "finance@erp.com", password: "password123" })
+        });
+        const { token } = await loginRes.json();
+        if (!token) return;
+
+        const res = await fetch("http://localhost:4000/api/finance/expenses", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        if (res.ok && isMounted && Array.isArray(data.data)) {
+          const pendingCount = data.data.filter((b: any) => b.status === "Menunggu Transfer").length;
+          setPendingExpenseCount(pendingCount);
+        }
+      } catch (err) {
+        console.error("Failed to fetch pending expense for sidebar", err);
+      }
+    };
+
     fetchPendingTagihan();
-    const interval = setInterval(fetchPendingTagihan, 15000);
+    fetchPendingKpr();
+    fetchPendingExpense();
+    const interval = setInterval(() => {
+      fetchPendingTagihan();
+      fetchPendingKpr();
+      fetchPendingExpense();
+    }, 15000);
 
     return () => {
       isMounted = false;
@@ -361,6 +419,16 @@ export default function Sidebar({ onClose }: SidebarProps) {
                                     {child.label === "Tagihan" && pendingTagihanCount > 0 && (
                                       <span className="ml-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-sm">
                                         {pendingTagihanCount}
+                                      </span>
+                                    )}
+                                    {child.label === "Pipeline KPR" && pendingKprCount > 0 && (
+                                      <span className="ml-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-sm">
+                                        {pendingKprCount}
+                                      </span>
+                                    )}
+                                    {child.label === "Pengeluaran" && pendingExpenseCount > 0 && (
+                                      <span className="ml-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-sm">
+                                        {pendingExpenseCount}
                                       </span>
                                     )}
                                     {isChildActive && <div className="ml-auto h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.6)]" />}

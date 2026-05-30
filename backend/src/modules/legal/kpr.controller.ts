@@ -16,14 +16,16 @@ export class KprController {
   static async updateStatus(req: Request, res: Response) {
     try {
       const bookingId = req.params.bookingId as string;
-      const { status, bankName, plafondPengajuan, plafondDisetujui, notes } = req.body;
+      const { status, bankName, plafondPengajuan, plafondDisetujui, notes, alasanPembatalan, kebijakanUang } = req.body;
       
       const updated = await KprService.updateKprStatus(bookingId, {
         status,
         bankName,
         plafondPengajuan: plafondPengajuan ? Number(plafondPengajuan) : undefined,
         plafondDisetujui: plafondDisetujui ? Number(plafondDisetujui) : undefined,
-        notes
+        notes,
+        alasanPembatalan,
+        kebijakanUang
       });
       
       res.json(updated);

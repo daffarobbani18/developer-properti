@@ -117,6 +117,17 @@ export default function PipelineKprPage() {
   };
 
   const handleUpdateStatus = async () => {
+    if (kprForm.status === "Ditolak Bank / Batal") {
+      setCancelModal({
+        isOpen: true,
+        bookingId: selectedBooking.id,
+        alasan: "",
+        kebijakan: "hanguskan"
+      });
+      setIsModalOpen(false);
+      return;
+    }
+
     setSubmitting(true);
     try {
       const loginRes = await fetch("http://localhost:4000/api/auth/login", {
@@ -253,7 +264,8 @@ export default function PipelineKprPage() {
 
   const handleCancelKPR = async () => {
     if (!cancelModal.alasan.trim()) {
-      alert("Alasan pembatalan wajib diisi!");
+      setToast({ message: "Alasan pembatalan wajib diisi!", type: "error" });
+      setTimeout(() => setToast(null), 3000);
       return;
     }
     setSubmitting(true);
@@ -862,13 +874,14 @@ export default function PipelineKprPage() {
       )}
 
       {/* Toast */}
-      {toast && (
-        <div className="fixed top-24 right-6 z-[200] animate-in slide-in-from-top-5 fade-in duration-300">
+      {toast && mounted && createPortal(
+        <div className="fixed top-24 right-6 z-[300] animate-in slide-in-from-top-5 fade-in duration-300">
           <div className={`flex items-center gap-3 rounded-2xl px-6 py-4 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] border border-white/10 ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}`}>
             {toast.type === 'success' ? <CheckCircle weight="fill" size={24} /> : <WarningCircle weight="fill" size={24} />}
             <p className="text-sm font-bold tracking-wide">{toast.message}</p>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { 
   Money, Plus, FileText, CheckCircle, ClockCounterClockwise, XCircle,
-  MagnifyingGlass, CaretRight, Spinner, Bank
+  MagnifyingGlass, CaretRight, Spinner, Bank, WarningCircle
 } from "@phosphor-icons/react";
 
 export default function PengeluaranFinancePage() {
@@ -13,6 +14,8 @@ export default function PengeluaranFinancePage() {
   const [activeTab, setActiveTab] = useState("Menunggu Transfer"); // Menunggu Transfer, Riwayat
   const [search, setSearch] = useState("");
   const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean, id: string | null }>({ isOpen: false, id: null });
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -43,10 +46,16 @@ export default function PengeluaranFinancePage() {
     }
   };
 
-  const handleUpdateStatus = async (id: string) => {
-    if (!confirm("Apakah Anda yakin sudah mentransfer dana ini?")) return;
-    
+  const promptConfirmTransfer = (id: string) => {
+    setConfirmModal({ isOpen: true, id });
+  };
+
+  const handleUpdateStatus = async () => {
+    if (!confirmModal.id) return;
+    const id = confirmModal.id;
+    setConfirmModal({ isOpen: false, id: null });
     setSubmittingId(id);
+    
     try {
       const loginRes = await fetch("http://localhost:4000/api/auth/login", {
         method: "POST",
@@ -65,14 +74,18 @@ export default function PengeluaranFinancePage() {
       });
       
       if (res.ok) {
+        setToast({ message: "Pengeluaran berhasil ditandai sebagai Ditransfer", type: "success" });
+        setTimeout(() => setToast(null), 3000);
         fetchExpenses();
       } else {
         const err = await res.json();
-        alert(err.message || "Gagal mengupdate status");
+        setToast({ message: err.message || "Gagal mengupdate status", type: "error" });
+        setTimeout(() => setToast(null), 3000);
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan sistem");
+      setToast({ message: "Terjadi kesalahan sistem", type: "error" });
+      setTimeout(() => setToast(null), 3000);
     } finally {
       setSubmittingId(null);
     }
@@ -123,23 +136,23 @@ export default function PengeluaranFinancePage() {
 
       {/* QUICK STATS */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="flex items-center gap-4 rounded-2xl border border-rose-100 bg-rose-50/80 p-4 shadow-sm">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600 shadow-inner">
-            <ClockCounterClockwise weight="duotone" size={24} />
+        <div className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-[0_0_15px_rgba(245,158,11,0.6)]">
+            <ClockCounterClockwise weight="fill" size={24} />
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-rose-700">Tugas Refund (Pending)</p>
-            <p className="text-2xl font-black text-rose-700 mt-0.5">{countMenunggu}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Tugas Refund (Pending)</p>
+            <p className="text-2xl font-black text-zinc-900 mt-1">{countMenunggu}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-500 to-red-600 p-4 shadow-sm shadow-rose-500/20 text-white">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20 text-white shadow-inner">
-            <Money weight="duotone" size={24} />
+        <div className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-rose-500 text-white shadow-[0_0_15px_rgba(225,29,72,0.6)]">
+            <Money weight="fill" size={24} />
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/80">Total Tagihan (Pending)</p>
-            <p className="text-2xl font-black mt-0.5">Rp {totalMenunggu.toLocaleString("id-ID")}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-rose-600">Total Tagihan (Pending)</p>
+            <p className="text-2xl font-black text-zinc-900 mt-1">Rp {totalMenunggu.toLocaleString("id-ID")}</p>
           </div>
         </div>
       </div>
@@ -258,7 +271,7 @@ export default function PengeluaranFinancePage() {
                     <td className="px-6 py-4 text-center">
                       {ex.status === "Menunggu Transfer" ? (
                         <button 
-                          onClick={() => handleUpdateStatus(ex.id)}
+                          onClick={() => promptConfirmTransfer(ex.id)}
                           disabled={submittingId === ex.id}
                           className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-zinc-800 disabled:opacity-50"
                         >
@@ -276,6 +289,50 @@ export default function PengeluaranFinancePage() {
           </table>
         </div>
       </div>
+
+      {/* Modal Konfirmasi Transfer */}
+      {confirmModal.isOpen && mounted && createPortal(
+        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 mb-4">
+                <CheckCircle size={32} weight="fill" className="text-blue-500" />
+              </div>
+              <h3 className="text-xl font-bold text-zinc-900 mb-2">Konfirmasi Transfer</h3>
+              <p className="text-sm text-zinc-600 mb-6 font-medium leading-relaxed">
+                Apakah Anda yakin uang tersebut telah berhasil ditransfer ke rekening klien atau pihak terkait?
+              </p>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <button 
+                  onClick={() => setConfirmModal({ isOpen: false, id: null })}
+                  className="w-full bg-zinc-100 text-zinc-700 rounded-xl py-3 font-bold text-sm hover:bg-zinc-200 transition-colors"
+                >
+                  Batal
+                </button>
+                <button 
+                  onClick={handleUpdateStatus}
+                  className="w-full bg-blue-600 text-white rounded-xl py-3 font-bold text-sm hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
+                >
+                  Ya, Sudah
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Toast Notification */}
+      {toast && mounted && createPortal(
+        <div className="fixed top-24 right-6 z-[300] animate-in slide-in-from-top-5 fade-in duration-300">
+          <div className={`flex items-center gap-3 rounded-2xl px-6 py-4 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] border border-white/10 ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}`}>
+            {toast.type === 'success' ? <CheckCircle weight="fill" size={24} /> : <WarningCircle weight="fill" size={24} />}
+            <p className="text-sm font-bold tracking-wide">{toast.message}</p>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
