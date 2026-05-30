@@ -96,4 +96,26 @@ router.post("/bookings/:id/invoices", FinanceController.createInvoices);
  */
 router.post("/invoices/:invoiceId/payments", FinanceController.receivePayment);
 
+/**
+ * @swagger
+ * /api/finance/expenses:
+ *   get:
+ *     summary: Mendapatkan daftar pengeluaran (Expenses)
+ *     tags: [Finance]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get("/expenses", FinanceController.getExpenses);
+
+/**
+ * @swagger
+ * /api/finance/expenses/{id}/status:
+ *   put:
+ *     summary: Memperbarui status pengeluaran (misal: "Sudah Ditransfer")
+ *     tags: [Finance]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.put("/expenses/:id/status", FinanceController.updateExpenseStatus);
+
 export default router;

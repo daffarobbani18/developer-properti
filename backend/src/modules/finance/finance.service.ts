@@ -296,7 +296,34 @@ export class FinanceService {
         data: { status: "Paid" },
       });
 
-      return { payment, invoice: updatedInvoice };
+      return {
+        message: "Pembayaran berhasil, kuitansi untuk invoice telah dibuat",
+        invoice: updatedInvoice
+      };
+    });
+  }
+
+  /**
+   * Mengambil daftar Pengeluaran (Expenses)
+   */
+  static async getExpenses() {
+    return await prisma.expense.findMany({
+      include: {
+        booking: {
+          include: { lead: true, unit: true }
+        }
+      },
+      orderBy: { createdAt: "desc" }
+    });
+  }
+
+  /**
+   * Memperbarui status Pengeluaran (contoh: jadi "Sudah Ditransfer")
+   */
+  static async updateExpenseStatus(expenseId: string, status: string) {
+    return await prisma.expense.update({
+      where: { id: expenseId },
+      data: { status }
     });
   }
 }

@@ -29,16 +29,6 @@ import {
   Bank,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { ROLE_HOME, USER_ROLES, readRoleFromAuthPayload, type UserRole } from "@/lib/access";
 
 type RoleWithGuest = UserRole | "guest";
@@ -173,10 +163,8 @@ interface SidebarProps {
 
 export default function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const [currentRole, setCurrentRole] = useState<RoleWithGuest>("guest");
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [pendingTagihanCount, setPendingTagihanCount] = useState(0);
 
   useEffect(() => {
@@ -200,7 +188,6 @@ export default function Sidebar({ onClose }: SidebarProps) {
     setCurrentRole(readStoredRole());
   }, []);
 
-  // Auto-expand menus whose children match the current path
   useEffect(() => {
     const autoExpand: string[] = [];
     menuItems.forEach((group) => {
@@ -241,7 +228,6 @@ export default function Sidebar({ onClose }: SidebarProps) {
       }) as MenuGroup[];
   }, [currentRole]);
 
-  // Fetch pending Tagihan if role is finance
   useEffect(() => {
     let isMounted = true;
 
@@ -272,7 +258,6 @@ export default function Sidebar({ onClose }: SidebarProps) {
     };
 
     fetchPendingTagihan();
-    // Refresh the count every 15 seconds
     const interval = setInterval(fetchPendingTagihan, 15000);
 
     return () => {
@@ -285,20 +270,6 @@ export default function Sidebar({ onClose }: SidebarProps) {
     setExpandedMenus((prev) => (prev.includes(href) ? prev.filter((h) => h !== href) : [...prev, href]));
   };
 
-  const handleLogout = () => {
-    try {
-      localStorage.removeItem("simdp_auth");
-      sessionStorage.removeItem("simdp_auth");
-      document.cookie = "simdp_role=; path=/; max-age=0; samesite=lax";
-      document.cookie = "simdp_email=; path=/; max-age=0; samesite=lax";
-    } catch {
-      // Ignore storage/cookie errors and continue redirect.
-    }
-
-    onClose?.();
-    setShowLogoutConfirm(false);
-    router.replace("/login");
-  };
 
   return (
     <aside className="relative z-20 flex h-full w-64 flex-col bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950 sidebar-glow transition-all duration-300">
@@ -426,34 +397,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
       {/* Footer */}
       <div className="border-t border-white/[0.06] p-4">
-        <button
-          type="button"
-          onClick={() => setShowLogoutConfirm(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-2 text-[13px] font-medium text-zinc-500 transition-all hover:bg-white/[0.06] hover:text-rose-400 hover:border-rose-500/20"
-        >
-          <SignOut className="h-4 w-4" /> Keluar
-        </button>
-        <p className="mt-3 text-center text-[9px] tracking-[0.15em] text-zinc-700 uppercase">Griya Persada &copy; 2026</p>
+        <p className="mt-3 text-center text-[10px] tracking-[0.15em] font-medium text-zinc-600 uppercase">Griya Persada &copy; 2026</p>
       </div>
-
-      <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Keluar dari sesi?</DialogTitle>
-            <DialogDescription>
-              Anda akan keluar dari portal ERP dan perlu login ulang untuk melanjutkan.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setShowLogoutConfirm(false)}>
-              Batal
-            </Button>
-            <Button type="button" variant="destructive" onClick={handleLogout}>
-              Ya, Keluar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </aside>
   );
 }

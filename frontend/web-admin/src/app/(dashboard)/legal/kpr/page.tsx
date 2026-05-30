@@ -13,7 +13,8 @@ const KPR_STATUSES = [
   "Wawancara Bank", 
   "SP3K Terbit", 
   "Siap Akad", 
-  "Selesai Akad"
+  "Selesai Akad",
+  "Ditolak Bank / Batal"
 ];
 
 const KPR_COLUMNS = [
@@ -22,7 +23,8 @@ const KPR_COLUMNS = [
   { id: "Wawancara Bank", label: "🗣️ Wawancara Bank", headerColor: "bg-gradient-to-r from-orange-400 to-rose-400 text-white shadow-[0_0_10px_rgba(249,115,22,0.3)]", colBg: "bg-gradient-to-b from-orange-50/80 to-slate-50/40 border-orange-100/60", cardBorder: "border-t-orange-400" },
   { id: "SP3K Terbit", label: "📜 SP3K Terbit", headerColor: "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]", colBg: "bg-gradient-to-b from-blue-50/80 to-slate-50/40 border-blue-100/60", cardBorder: "border-t-blue-400" },
   { id: "Siap Akad", label: "✍️ Siap Akad", headerColor: "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.3)]", colBg: "bg-gradient-to-b from-indigo-50/80 to-slate-50/40 border-indigo-100/60", cardBorder: "border-t-indigo-400" },
-  { id: "Selesai Akad", label: "✅ Selesai Akad", headerColor: "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.3)]", colBg: "bg-gradient-to-b from-emerald-50/80 to-slate-50/40 border-emerald-100/60", cardBorder: "border-t-emerald-400" }
+  { id: "Selesai Akad", label: "✅ Selesai Akad", headerColor: "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.3)]", colBg: "bg-gradient-to-b from-emerald-50/80 to-slate-50/40 border-emerald-100/60", cardBorder: "border-t-emerald-400" },
+  { id: "Ditolak Bank / Batal", label: "❌ Ditolak / Batal", headerColor: "bg-gradient-to-r from-rose-500 to-red-600 text-white shadow-[0_0_10px_rgba(225,29,72,0.3)]", colBg: "bg-gradient-to-b from-rose-50/80 to-slate-50/40 border-rose-100/60", cardBorder: "border-t-rose-500" }
 ];
 
 const DOC_TYPES = [
@@ -43,6 +45,7 @@ export default function PipelineKprPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("info"); // info, dokumen
   const [blockerModal, setBlockerModal] = useState({ isOpen: false, message: "" });
+  const [cancelModal, setCancelModal] = useState({ isOpen: false, bookingId: "", alasan: "", kebijakan: "hanguskan" as "hanguskan" | "kembalikan" });
   
   // Drag state
   const [draggedBooking, setDraggedBooking] = useState<any>(null);
@@ -178,6 +181,17 @@ export default function PipelineKprPage() {
       return;
     }
 
+    if (targetStatus === "Ditolak Bank / Batal") {
+      setCancelModal({
+        isOpen: true,
+        bookingId: draggedBooking.id,
+        alasan: "",
+        kebijakan: "hanguskan"
+      });
+      setDraggedBooking(null);
+      return;
+    }
+
     // Jika dipindah ke SP3K Terbit, lebih baik buka modal karena butuh input plafond
     if (targetStatus === "SP3K Terbit") {
       setDraggedBooking(null);
@@ -233,6 +247,51 @@ export default function PipelineKprPage() {
       }
     } finally {
       setDraggedBooking(null);
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const handleCancelKPR = async () => {
+    if (!cancelModal.alasan.trim()) {
+      alert("Alasan pembatalan wajib diisi!");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "legal@erp.com", password: "password123" })
+      });
+      const { token } = await loginRes.json();
+
+      const payload = {
+        status: "Ditolak Bank / Batal",
+        alasanPembatalan: cancelModal.alasan,
+        kebijakanUang: cancelModal.kebijakan
+      };
+
+      const res = await fetch(`http://localhost:4000/api/legal/kpr/${cancelModal.bookingId}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || "Gagal membatalkan KPR");
+      }
+      
+      setToast({ message: "Proses pembatalan KPR berhasil", type: "success" });
+      setCancelModal({ isOpen: false, bookingId: "", alasan: "", kebijakan: "hanguskan" });
+      fetchKpr();
+    } catch (err: any) {
+      setToast({ message: err.message, type: "error" });
+    } finally {
+      setSubmitting(false);
       setTimeout(() => setToast(null), 3000);
     }
   };
@@ -729,6 +788,73 @@ export default function PipelineKprPage() {
               >
                 Mengerti
               </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Modal Pembatalan KPR */}
+      {cancelModal.isOpen && mounted && createPortal(
+        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-6 border-b border-rose-100 pb-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-100">
+                  <WarningCircle size={28} weight="fill" className="text-rose-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-zinc-900 leading-tight">Batalkan KPR?</h3>
+                  <p className="text-xs font-medium text-zinc-500">Tindakan ini tidak dapat dibatalkan</p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider text-zinc-600 mb-1.5 block">Alasan Penolakan Bank <span className="text-rose-500">*</span></label>
+                  <textarea 
+                    rows={3}
+                    placeholder="Contoh: BI Checking buruk, gaji tidak mencukupi..."
+                    value={cancelModal.alasan}
+                    onChange={e => setCancelModal(prev => ({ ...prev, alasan: e.target.value }))}
+                    className="w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm text-zinc-900 outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider text-zinc-600 mb-2 block">Kebijakan Uang Muka (Booking Fee)</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className={`cursor-pointer rounded-xl border-2 p-3 text-center transition-all ${cancelModal.kebijakan === "hanguskan" ? "border-rose-500 bg-rose-50" : "border-zinc-200 hover:bg-zinc-50"}`}>
+                      <input type="radio" className="sr-only" checked={cancelModal.kebijakan === "hanguskan"} onChange={() => setCancelModal(prev => ({ ...prev, kebijakan: "hanguskan" }))} />
+                      <div className="text-sm font-bold text-zinc-900">Hanguskan</div>
+                      <div className="text-[10px] text-zinc-500 mt-0.5">Jadi Pendapatan</div>
+                    </label>
+                    <label className={`cursor-pointer rounded-xl border-2 p-3 text-center transition-all ${cancelModal.kebijakan === "kembalikan" ? "border-amber-500 bg-amber-50" : "border-zinc-200 hover:bg-zinc-50"}`}>
+                      <input type="radio" className="sr-only" checked={cancelModal.kebijakan === "kembalikan"} onChange={() => setCancelModal(prev => ({ ...prev, kebijakan: "kembalikan" }))} />
+                      <div className="text-sm font-bold text-zinc-900">Kembalikan</div>
+                      <div className="text-[10px] text-zinc-500 mt-0.5">Refund ke Klien</div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mt-8">
+                <button 
+                  onClick={() => setCancelModal({ isOpen: false, bookingId: "", alasan: "", kebijakan: "hanguskan" })}
+                  disabled={submitting}
+                  className="w-full bg-zinc-100 text-zinc-700 rounded-xl py-3 font-bold text-sm hover:bg-zinc-200 transition-colors disabled:opacity-50"
+                >
+                  Batal
+                </button>
+                <button 
+                  onClick={handleCancelKPR}
+                  disabled={submitting}
+                  className="w-full bg-rose-600 text-white rounded-xl py-3 font-bold text-sm hover:bg-rose-700 shadow-lg shadow-rose-600/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {submitting && <Spinner className="animate-spin" />}
+                  Konfirmasi Batal
+                </button>
+              </div>
             </div>
           </div>
         </div>,

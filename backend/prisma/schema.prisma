@@ -154,6 +154,7 @@ model Booking {
   unit           Unit      @relation(fields: [unitId], references: [id], onDelete: Restrict)
   
   invoices       Invoice[]
+  expenses       Expense[]
   legalDocuments LegalDocument[]
   basts          Bast[]
   commissions    Commission[]
@@ -174,6 +175,20 @@ model Invoice {
   
   booking         Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   payments        Payment[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Expense {
+  id              String    @id @default(uuid())
+  category        String    // e.g., 'Refund Pembatalan KPR', 'Material Proyek', 'Operasional'
+  amount          Float
+  description     String
+  status          String    @default("Menunggu Transfer") // Menunggu Transfer, Sudah Ditransfer
+  bookingId       String?   // Opsional, digunakan jika pengeluaran terkait dengan pembatalan klien
+  
+  booking         Booking?  @relation(fields: [bookingId], references: [id], onDelete: SetNull)
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt

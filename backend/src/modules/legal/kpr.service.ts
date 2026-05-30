@@ -43,11 +43,13 @@ export class KprService {
     plafondPengajuan?: number;
     plafondDisetujui?: number;
     notes?: string;
+    alasanPembatalan?: string;
+    kebijakanUang?: "hanguskan" | "kembalikan";
   }) {
     // Cari booking dan invoices untuk kalkulasi
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
-      include: { invoices: true, unit: true }
+      include: { invoices: true, unit: true, lead: true }
     });
 
     if (!booking) {
@@ -56,6 +58,65 @@ export class KprService {
 
     let isPlafonTurun = false;
     let selisihPlafon = 0;
+
+    // Handle Pembatalan KPR (Ditolak Bank)
+    if (data.status === "Ditolak Bank / Batal") {
+      return prisma.$transaction(async (tx) => {
+        // 1. Update KPR Application status
+        const kprApp = await tx.kprApplication.upsert({
+          where: { bookingId },
+          create: {
+            bookingId,
+            status: data.status,
+            notes: data.alasanPembatalan || data.notes
+          },
+          update: {
+            status: data.status,
+            notes: data.alasanPembatalan || data.notes
+          }
+        });
+
+        // 2. Update Unit status
+        await tx.unit.update({
+          where: { id: booking.unitId },
+          data: { statusPenjualan: "Tersedia" }
+        });
+
+        // 3. Update Booking status
+        const financeNotes = booking.financeNotes 
+            ? booking.financeNotes + `\n[KPR Batal] Alasan: ${data.alasanPembatalan}. Kebijakan: ${data.kebijakanUang}`
+            : `[KPR Batal] Alasan: ${data.alasanPembatalan}. Kebijakan: ${data.kebijakanUang}`;
+
+        await tx.booking.update({
+          where: { id: bookingId },
+          data: { 
+            status: "Ditolak",
+            financeNotes
+          }
+        });
+
+        // 4. Cancel Unpaid Invoices
+        await tx.invoice.updateMany({
+          where: { bookingId, status: "Unpaid" },
+          data: { status: "Canceled" }
+        });
+
+        // 5. Create Expense if Refund
+        if (data.kebijakanUang === "kembalikan") {
+          await tx.expense.create({
+            data: {
+              category: "Refund Pembatalan KPR",
+              amount: booking.bookingFee,
+              description: `Refund Booking Fee untuk klien ${booking.lead?.name || "Klien"}. Alasan: ${data.alasanPembatalan}`,
+              status: "Menunggu Transfer",
+              bookingId: booking.id
+            }
+          });
+        }
+
+        return kprApp;
+      });
+    }
 
     // Aturan Blokir (Siap Akad)
     if (data.status === "Siap Akad") {

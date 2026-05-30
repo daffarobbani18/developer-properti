@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, List, MagnifyingGlass, CalendarBlank, User, SignOut, Gear, CaretDown } from "@phosphor-icons/react";
+import { Bell, List, MagnifyingGlass, CalendarBlank, User, SignOut, Gear, CaretDown, WarningCircle } from "@phosphor-icons/react";
 import { readRoleFromAuthPayload, type UserRole } from "@/lib/access";
 import Breadcrumb, { getPageTitle } from "@/components/layout/breadcrumb";
 
@@ -19,7 +20,13 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
   const [userName, setUserName] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     setNow(new Date());
@@ -200,7 +207,10 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
                 </button>
                 <div className="border-t border-zinc-100 mt-1 pt-1">
                   <button
-                    onClick={handleLogout}
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      setShowLogoutConfirm(true);
+                    }}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-rose-600 transition-colors hover:bg-rose-50"
                   >
                     <SignOut weight="duotone" size={15} />
@@ -212,6 +222,39 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
           </div>
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && mounted && createPortal(
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-50 mb-4 ring-8 ring-rose-50/50">
+                <SignOut size={32} weight="duotone" className="text-rose-500 ml-1" />
+              </div>
+              <h3 className="text-xl font-bold text-zinc-900 mb-2">Akhiri Sesi?</h3>
+              <p className="text-sm text-zinc-500 mb-8 font-medium leading-relaxed px-2">
+                Anda akan keluar dari sistem. Anda harus masuk kembali untuk dapat mengakses data {userRole && roleLabel(userRole)}.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <button 
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="w-full bg-zinc-100 text-zinc-700 rounded-xl py-3 font-bold text-sm hover:bg-zinc-200 transition-colors"
+                >
+                  Batal
+                </button>
+                <button 
+                  onClick={handleLogout}
+                  className="w-full bg-rose-600 text-white rounded-xl py-3 font-bold text-sm hover:bg-rose-700 shadow-lg shadow-rose-600/20 transition-all active:scale-95"
+                >
+                  Ya, Keluar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </header>
   );
 }

@@ -120,4 +120,37 @@ export class FinanceController {
       res.status(400).json({ error: error.message });
     }
   }
+
+  static async getExpenses(req: Request, res: Response): Promise<void> {
+    try {
+      const expenses = await FinanceService.getExpenses();
+      res.status(200).json({
+        message: "Berhasil mengambil daftar pengeluaran",
+        data: expenses,
+      });
+    } catch (error: any) {
+      console.error("getExpenses error:", error);
+      res.status(500).json({ error: "Terjadi kesalahan pada server" });
+    }
+  }
+
+  static async updateExpenseStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      if (!status) {
+        res.status(400).json({ error: "Status wajib diisi" });
+        return;
+      }
+      
+      const updatedExpense = await FinanceService.updateExpenseStatus(String(id), status);
+      res.status(200).json({
+        message: "Status pengeluaran berhasil diperbarui",
+        data: updatedExpense,
+      });
+    } catch (error: any) {
+      console.error("updateExpenseStatus error:", error);
+      res.status(500).json({ error: "Terjadi kesalahan pada server" });
+    }
+  }
 }
