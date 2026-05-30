@@ -15,7 +15,7 @@ export class KprController {
   // 2. Update Status KPR
   static async updateStatus(req: Request, res: Response) {
     try {
-      const { bookingId } = req.params;
+      const bookingId = req.params.bookingId as string;
       const { status, bankName, plafondPengajuan, plafondDisetujui, notes } = req.body;
       
       const updated = await KprService.updateKprStatus(bookingId, {
@@ -35,7 +35,7 @@ export class KprController {
   // 3. Upload Dokumen KPR
   static async uploadDocument(req: Request, res: Response) {
     try {
-      const { bookingId } = req.params;
+      const bookingId = req.params.bookingId as string;
       const { documentType, notes } = req.body;
       const file = req.file;
 

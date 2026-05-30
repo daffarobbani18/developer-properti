@@ -177,6 +177,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
   const [currentRole, setCurrentRole] = useState<RoleWithGuest>("guest");
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [pendingTagihanCount, setPendingTagihanCount] = useState(0);
 
   useEffect(() => {
     const readStoredRole = (): RoleWithGuest => {
@@ -239,6 +240,46 @@ export default function Sidebar({ onClose }: SidebarProps) {
         };
       }) as MenuGroup[];
   }, [currentRole]);
+
+  // Fetch pending Tagihan if role is finance
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchPendingTagihan = async () => {
+      if (currentRole !== "finance") return;
+      
+      try {
+        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: "finance@erp.com", password: "password123" })
+        });
+        const { token } = await loginRes.json();
+        if (!token) return;
+
+        const res = await fetch("http://localhost:4000/api/finance/bookings", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        if (res.ok && isMounted && Array.isArray(data.data)) {
+          const pendingCount = data.data.filter((b: any) => b.status === "Menunggu Verifikasi").length;
+          setPendingTagihanCount(pendingCount);
+        }
+      } catch (err) {
+        console.error("Failed to fetch pending tagihan for sidebar", err);
+      }
+    };
+
+    fetchPendingTagihan();
+    // Refresh the count every 15 seconds
+    const interval = setInterval(fetchPendingTagihan, 15000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [currentRole, pathname]);
 
   const toggleExpand = (href: string) => {
     setExpandedMenus((prev) => (prev.includes(href) ? prev.filter((h) => h !== href) : [...prev, href]));
@@ -346,6 +387,11 @@ export default function Sidebar({ onClose }: SidebarProps) {
                                   >
                                     <child.icon weight="duotone" className={cn("h-[14px] w-[14px] shrink-0", isChildActive ? "text-amber-400" : "text-zinc-600 group-hover:text-zinc-400")} />
                                     {child.label}
+                                    {child.label === "Tagihan" && pendingTagihanCount > 0 && (
+                                      <span className="ml-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white shadow-sm">
+                                        {pendingTagihanCount}
+                                      </span>
+                                    )}
                                     {isChildActive && <div className="ml-auto h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.6)]" />}
                                   </Link>
                                 </li>
