@@ -57,37 +57,38 @@ export class PublicController {
     }
   }
 
-  static async submitLead(req: Request, res: Response) {
+  static async scheduleVisit(req: Request, res: Response) {
     try {
-      const { name, phone, email, source, notes } = req.body;
+      const { name, phone, date, time, notes } = req.body;
 
-      if (!name || !phone) {
+      if (!name || !phone || !date || !time) {
         return res.status(400).json({
           success: false,
-          message: "Nama dan Nomor Telepon wajib diisi",
+          message: "Nama, Telepon, Tanggal, dan Waktu wajib diisi",
         });
       }
 
+      // For simplicity, store as a lead with source indicating schedule visit
       const lead = await prisma.lead.create({
         data: {
           name,
           phone,
-          email: email || null,
-          source: source || "Website Public",
-          notes: notes || null,
+          email: null,
+          source: "Schedule Visit",
+          notes: notes || `Jadwal: ${date} ${time}`,
         },
       });
 
       res.status(201).json({
         success: true,
         data: lead,
-        message: "Berhasil mengirim data prospek",
+        message: "Jadwal kunjungan berhasil disimpan",
       });
     } catch (error) {
-      console.error("Error submitting lead:", error);
+      console.error("Error scheduling visit:", error);
       res.status(500).json({
         success: false,
-        message: "Terjadi kesalahan internal server",
+        message: "Terjadi kesalahan internal saat menyimpan jadwal",
       });
     }
   }

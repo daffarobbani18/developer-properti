@@ -19,6 +19,14 @@ export default function PropertyTypeDetailPage() {
   const [leadPhone, setLeadPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Schedule Visit State
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+  const [scheduleName, setScheduleName] = useState("");
+  const [schedulePhone, setSchedulePhone] = useState("");
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduleTime, setScheduleTime] = useState("");
+  const [isScheduleSubmitting, setIsScheduleSubmitting] = useState(false);
+
   const handleLeadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!leadName || !leadPhone) return;
