@@ -95,11 +95,6 @@ export default function ProjectDetailPage() {
             <div className="text-zinc-600 leading-relaxed max-w-3xl whitespace-pre-wrap">
               {project.description || "Sebuah mahakarya hunian eksklusif yang memadukan desain modern dengan keasrian alam. Dirancang khusus untuk Anda yang menghargai privasi dan kenyamanan bertaraf internasional."}
             </div>
-            {project.description && (
-              <p className="mt-4 text-xs italic text-zinc-400">
-                *Informasi ini dikelola oleh admin inventory
-              </p>
-            )}
           </div>
 
           <h2 className="text-3xl font-serif text-zinc-900 mb-8">Pilihan Tipe Unit</h2>
