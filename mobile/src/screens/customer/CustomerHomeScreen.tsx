@@ -3,15 +3,19 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import {
-  Badge,
-  Card,
-  EmptyState,
-  ScreenShell,
-  SecondaryButton,
-  SectionTitle,
-  StatusBanner,
-} from "../../components/ui";
-import { useAuth } from "../../hooks/useAuth";
+   Badge,
+   Card,
+   EmptyState,
+   FadeInView,
+   ScreenShell,
+   SecondaryButton,
+   SectionTitle,
+   SkeletonList,
+   StatusBanner,
+ } from "../../components/ui";
+ import * as Haptics from "expo-haptics";
+ import { colors } from "../../theme/colors";
+ import { useAuth } from "../../hooks/useAuth";
 import { getCustomerOverviewData } from "../../services/api";
 import { CustomerOverview } from "../../types";
 import {
@@ -33,7 +37,7 @@ function toneByUnitStatus(
   return "neutral";
 }
 
-export function CustomerHomeScreen({ globalBanner }: { globalBanner?: string | null }): React.JSX.Element {
+export function CustomerHomeScreen(): React.JSX.Element {
   const { auth, signOut } = useAuth();
   const navigation = useNavigation();
 
@@ -51,7 +55,8 @@ export function CustomerHomeScreen({ globalBanner }: { globalBanner?: string | n
   }, [auth]);
 
   const goToTab = useCallback(
-    (tabName: "Progres" | "Tagihan" | "Dokumen" | "Bantuan") => {
+    async (tabName: "Progres" | "Tagihan" | "Dokumen" | "Bantuan") => {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       (navigation as { navigate: (routeName: string) => void }).navigate(tabName);
     },
     [navigation]
@@ -89,11 +94,9 @@ export function CustomerHomeScreen({ globalBanner }: { globalBanner?: string | n
       title="Portal Customer"
       subtitle={auth ? `${auth.user.fullName} • ${auth.user.email}` : ""}
       rightAction={<SecondaryButton label="Logout" onPress={() => void signOut()} />}
-    >
-      {globalBanner ? <StatusBanner message={globalBanner} tone={inferBannerTone(globalBanner)} /> : null}
-
-      <Card>
-        <SectionTitle title="Aksi Cepat" caption="Navigasi cepat untuk kebutuhan harian" />
+>
+       <Card>
+         <SectionTitle title="Aksi Cepat" caption="Navigasi cepat untuk kebutuhan harian" />
         <View style={styles.quickActionGrid}>
           <Pressable
             onPress={() => goToTab("Progres")}
@@ -131,10 +134,8 @@ export function CustomerHomeScreen({ globalBanner }: { globalBanner?: string | n
 
       <SecondaryButton label="Muat Ulang Data" onPress={() => void loadData()} />
 
-      {isLoading ? (
-        <Card>
-          <Text style={styles.loadingText}>Memuat data customer...</Text>
-        </Card>
+{isLoading ? (
+        <SkeletonList count={4} />
       ) : errorMessage ? (
         <StatusBanner message={errorMessage} tone={inferBannerTone(errorMessage)} />
       ) : !overview ? (
@@ -143,29 +144,33 @@ export function CustomerHomeScreen({ globalBanner }: { globalBanner?: string | n
         <>
           <Card>
             <SectionTitle title="Unit Anda" />
-            <View style={styles.unitRow}>
-              <Text style={styles.unitCode}>{overview.unit.code}</Text>
-              <Badge label={formatUnitStatusLabel(overview.unit.status)} tone={toneByUnitStatus(overview.unit.status)} />
-            </View>
-            <Text style={styles.unitType}>{overview.unit.typeName}</Text>
-            <Text style={styles.unitMeta}>Progress pembangunan: {overview.unit.progress}%</Text>
-            <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: `${Math.max(4, overview.unit.progress)}%` }]} />
-            </View>
+            <FadeInView delay={0} duration={500}>
+              <View style={styles.unitRow}>
+                <Text style={styles.unitCode}>{overview.unit.code}</Text>
+                <Badge label={formatUnitStatusLabel(overview.unit.status)} tone={toneByUnitStatus(overview.unit.status)} />
+              </View>
+              <Text style={styles.unitType}>{overview.unit.typeName}</Text>
+              <Text style={styles.unitMeta}>Progress pembangunan: {overview.unit.progress}%</Text>
+              <View style={styles.progressTrack}>
+                <View style={[styles.progressFill, { width: `${Math.max(4, overview.unit.progress)}%` }]} />
+              </View>
+            </FadeInView>
           </Card>
 
           <Card>
             <SectionTitle title="Ringkasan Akun" />
-            <Text style={styles.summaryText}>Notifikasi belum dibaca: {overview.unreadNotifications}</Text>
-            {overview.nextInvoice ? (
-              <>
-                <Text style={styles.summaryText}>Tagihan berikutnya: {overview.nextInvoice.name}</Text>
-                <Text style={styles.summaryText}>Nominal: {formatCurrency(overview.nextInvoice.amount)}</Text>
-                <Text style={styles.summaryText}>Jatuh tempo: {formatDate(overview.nextInvoice.dueDate)}</Text>
-              </>
-            ) : (
-              <Text style={styles.summaryText}>Tidak ada tagihan berikutnya.</Text>
-            )}
+            <FadeInView delay={100} duration={500}>
+              <Text style={styles.summaryText}>Notifikasi belum dibaca: {overview.unreadNotifications}</Text>
+              {overview.nextInvoice ? (
+                <>
+                  <Text style={styles.summaryText}>Tagihan berikutnya: {overview.nextInvoice.name}</Text>
+                  <Text style={styles.summaryText}>Nominal: {formatCurrency(overview.nextInvoice.amount)}</Text>
+                  <Text style={styles.summaryText}>Jatuh tempo: {formatDate(overview.nextInvoice.dueDate)}</Text>
+                </>
+              ) : (
+                <Text style={styles.summaryText}>Tidak ada tagihan berikutnya.</Text>
+              )}
+            </FadeInView>
           </Card>
         </>
       )}
@@ -203,9 +208,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#dce9ea",
     overflow: "hidden",
   },
-  progressFill: {
-    height: "100%",
-    backgroundColor: "#1f7f8a",
+progressFill: {
+     height: "100%",
+     backgroundColor: colors.primary,
     borderRadius: 999,
   },
   summaryText: {

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { AppState } from "react-native";
 
-import { login } from "../services/api";
+import { login, registerPushToken } from "../services/api";
 import {
   clearAuthInactiveAt,
   clearStoredAuth,
@@ -11,6 +11,45 @@ import {
   setStoredAuth,
 } from "../services/storage";
 import { AuthState } from "../types";
+import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
+import { Platform } from "react-native";
+
+async function registerForPushNotificationsAsync(): Promise<string | null> {
+  const appOwnership = (Constants as any).appOwnership as string | null;
+  if (appOwnership === 'expo') {
+    console.log('[Notifications] Skipping push token registration in Expo Go (not supported since SDK 53)');
+    return null;
+  }
+
+  try {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') {
+      console.warn('Push notification permission not granted');
+      return null;
+    }
+
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+      });
+    }
+
+    const token = (await Notifications.getExpoPushTokenAsync()).data;
+    return token;
+  } catch (error) {
+    console.error('Failed to register push token:', error);
+    return null;
+  }
+}
 
 const AUTO_LOCK_TIMEOUT_MS = 15 * 60 * 1000;
 
@@ -91,6 +130,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
         const result = await login(email, password);
         await setStoredAuth(result);
         setAuth(result);
+        
+        registerForPushNotificationsAsync().then((token) => {
+          if (token) {
+            registerPushToken(result, {
+              expoPushToken: token,
+              platform: Platform.OS as "android" | "ios" | "web",
+              appVersion: Constants.expoConfig?.version,
+            }).catch(() => {
+              console.warn('Failed to register push token to server');
+            });
+          }
+        });
       },
       setSession: async (authState) => {
         await setStoredAuth(authState);

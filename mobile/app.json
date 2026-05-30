@@ -2,18 +2,37 @@
   "expo": {
     "name": "SIMDP Mobile",
     "slug": "simdp-mobile",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
     "splash": {
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#e5f1f0"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
-    "plugins": [
-      "expo-font"
-    ]
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.simdp.mobile",
+      "buildNumber": "1.0.0"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#e5f1f0"
+      },
+      "package": "com.simdp.mobile",
+      "versionCode": 1
+    },
+    "web": {
+      "favicon": "./assets/icon.png",
+      "description": "SIMDP Mobile - Sistem Informasi Manajemen Developer Perumahan"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "simdp-mobile-project"
+      }
+    }
   }
 }

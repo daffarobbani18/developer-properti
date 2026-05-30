@@ -4,14 +4,18 @@ import { submitMilestoneUpdate } from "../services/api";
 import { queueItemTemplate } from "../services/mock-data";
 import { getOfflineQueue, pushOfflineQueue, setOfflineQueue } from "../services/storage";
 import { AuthState, PendingQueueItem } from "../types";
+import { useNetwork } from "./useNetwork";
 
-export function useOfflineQueue(): {
-  queueCount: number;
-  refreshQueueCount: () => Promise<void>;
-  enqueueMilestone: (payload: PendingQueueItem["payload"]) => Promise<void>;
-  flushQueue: (auth: AuthState | null) => Promise<{ synced: number; failed: number }>;
-} {
-  const [queueCount, setQueueCount] = useState(0);
+export function useOfflineQueue(auth: AuthState | null): {
+   queueCount: number;
+   refreshQueueCount: () => Promise<void>;
+   enqueueMilestone: (payload: PendingQueueItem["payload"]) => Promise<void>;
+   flushQueue: (authParam?: AuthState | null) => Promise<{ synced: number; failed: number }>;
+   isSyncing: boolean;
+ } {
+   const [queueCount, setQueueCount] = useState(0);
+   const [isSyncing, setIsSyncing] = useState(false);
+   const { isConnected } = useNetwork();
 
   const refreshQueueCount = useCallback(async () => {
     const queue = await getOfflineQueue();
@@ -32,19 +36,21 @@ export function useOfflineQueue(): {
   );
 
   const flushQueue = useCallback(
-    async (auth: AuthState | null) => {
+    async (authParam?: AuthState | null) => {
+      const session = authParam ?? auth;
       const queue = await getOfflineQueue();
       if (queue.length === 0) {
         return { synced: 0, failed: 0 };
       }
 
+      setIsSyncing(true);
       const remaining: PendingQueueItem[] = [];
       let synced = 0;
 
       for (const item of queue) {
         try {
           if (item.type === "MILESTONE_UPDATE") {
-            await submitMilestoneUpdate(auth, item.payload);
+            await submitMilestoneUpdate(session, item.payload);
           }
           synced += 1;
         } catch {
@@ -54,19 +60,27 @@ export function useOfflineQueue(): {
 
       await setOfflineQueue(remaining);
       await refreshQueueCount();
+      setIsSyncing(false);
 
       return {
         synced,
         failed: remaining.length,
       };
     },
-    [refreshQueueCount]
+    [auth, refreshQueueCount]
   );
+
+  useEffect(() => {
+    if (isConnected && queueCount > 0 && auth) {
+      void flushQueue(auth);
+    }
+  }, [isConnected, queueCount, flushQueue, auth]);
 
   return {
     queueCount,
     refreshQueueCount,
     enqueueMilestone,
     flushQueue,
+    isSyncing,
   };
 }

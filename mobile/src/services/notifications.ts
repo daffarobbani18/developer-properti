@@ -24,6 +24,8 @@ export type MobilePushRouteName =
   | "Unit"
   | "Kendala"
   | "Notifikasi"
+  | "UnitDetail"
+  | "UpdateHistory"
   | "Progres"
   | "Tagihan"
   | "Dokumen"
@@ -43,6 +45,8 @@ const ROUTE_ALIAS_MAP: Record<string, MobilePushRouteName> = {
   milestones: "Milestone",
   unit: "Unit",
   units: "Unit",
+  "unit-detail": "UnitDetail",
+  "update-history": "UpdateHistory",
   issue: "Kendala",
   issues: "Kendala",
   kendala: "Kendala",
@@ -82,7 +86,6 @@ function configureNotificationBehavior(): void {
 }
 
 function isPhysicalDevice(): boolean {
-  // expo-constants always exists in this app. Device check differs by platform and runtime.
   return Constants.isDevice === true;
 }
 
@@ -192,6 +195,16 @@ export async function registerDeviceForPush(
   auth: AuthState | null
 ): Promise<PushRegistrationResult> {
   configureNotificationBehavior();
+
+  const appOwnership = (Constants as any).appOwnership as string | null;
+  if (appOwnership === 'expo') {
+    console.log('[Notifications] Skipping push token registration in Expo Go (not supported since SDK 53)');
+    return {
+      token: null,
+      enabled: false,
+      message: "Push notification tidak didukung di Expo Go.",
+    };
+  }
 
   if (!isPhysicalDevice()) {
     return {
