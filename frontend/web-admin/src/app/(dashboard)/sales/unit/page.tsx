@@ -220,7 +220,10 @@ export default function KavlingUnitPage() {
       {/* ZONA ATAS: Global Controls */}
       <div className="mb-8 flex flex-col gap-6">
         <div>
-          <h2 className="mb-2 text-3xl font-[family-name:var(--font-heading)] text-zinc-900">Visual Grid Kavling</h2>
+          <h2 className="mb-2 text-3xl font-[family-name:var(--font-heading)] text-zinc-900 flex items-center gap-3 tracking-tight">
+            <MapPin className="text-amber-500" weight="duotone" size={32} />
+            Visual Grid Kavling
+          </h2>
           <p className="text-sm text-zinc-500">Denah interaktif pemetaan status kavling dan unit properti.</p>
         </div>
 

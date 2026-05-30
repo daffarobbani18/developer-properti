@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Receipt, CircleNotch, CaretRight } from "@phosphor-icons/react";
+import { Receipt, CircleNotch, MagnifyingGlass, Funnel } from "@phosphor-icons/react";
 
 const formatRupiah = (number: number) =>
   new Intl.NumberFormat("id-ID", {
@@ -14,6 +14,8 @@ export default function TransaksiSalesPage() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("Semua");
 
   useEffect(() => {
     setMounted(true);
@@ -61,6 +63,19 @@ export default function TransaksiSalesPage() {
     }
   };
 
+  const filteredBookings = bookings.filter((item) => {
+    const searchLower = searchQuery.toLowerCase();
+    const matchSearch = 
+      item.unit?.blok?.toLowerCase().includes(searchLower) ||
+      item.unit?.nomor?.toLowerCase().includes(searchLower) ||
+      item.lead?.name?.toLowerCase().includes(searchLower) ||
+      item.lead?.phone?.includes(searchLower);
+    
+    const matchStatus = statusFilter === "Semua" || item.status === statusFilter;
+    
+    return matchSearch && matchStatus;
+  });
+
   if (!mounted) return null;
 
   return (
@@ -73,6 +88,35 @@ export default function TransaksiSalesPage() {
             Riwayat Transaksi
           </h2>
           <p className="text-sm text-zinc-500">Daftar pemesanan kavling (Booking) yang telah dibuat oleh divisi Sales.</p>
+        </div>
+      </div>
+
+      {/* FILTER & SEARCH BAR */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-zinc-50 p-4 rounded-2xl border border-zinc-200/60 shadow-sm">
+        <div className="relative w-full sm:w-96">
+          <MagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
+          <input
+            type="text"
+            placeholder="Cari nama pelanggan, no. HP, atau blok unit..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-xl border border-zinc-200 bg-white py-2.5 pl-11 pr-4 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 shadow-sm"
+          />
+        </div>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-zinc-200 shadow-sm">
+            <Funnel size={18} className="text-zinc-400" weight="bold" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-transparent text-sm font-bold text-zinc-700 outline-none transition-all cursor-pointer min-w-[140px]"
+            >
+              <option value="Semua">Semua Status</option>
+              <option value="Menunggu Verifikasi">Menunggu Verifikasi</option>
+              <option value="Diverifikasi">Diverifikasi</option>
+              <option value="Dibatalkan">Dibatalkan</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -97,17 +141,17 @@ export default function TransaksiSalesPage() {
                     <p className="mt-4 text-sm font-medium text-zinc-500">Memuat data transaksi...</p>
                   </td>
                 </tr>
-              ) : bookings.length === 0 ? (
+              ) : filteredBookings.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-20 text-center">
                     <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 mb-4">
-                      <Receipt className="h-8 w-8 text-zinc-400" />
+                      <MagnifyingGlass className="h-8 w-8 text-zinc-400" />
                     </div>
-                    <p className="text-sm font-medium text-zinc-500">Belum ada riwayat transaksi booking.</p>
+                    <p className="text-sm font-medium text-zinc-500">Tidak ada transaksi yang cocok dengan pencarian/filter.</p>
                   </td>
                 </tr>
               ) : (
-                bookings.map((item) => (
+                filteredBookings.map((item) => (
                   <tr key={item.id} className="transition-colors hover:bg-zinc-50/80">
                     <td className="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap">
                       {(() => {
