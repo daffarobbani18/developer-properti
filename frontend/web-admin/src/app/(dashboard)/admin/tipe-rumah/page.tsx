@@ -230,7 +230,10 @@ export default function TipeRumahPage() {
     <div className="space-y-6">
       <div className="mb-8 flex items-end justify-between">
         <div>
-          <h2 className="mb-2 text-3xl font-[family-name:var(--font-heading)] text-zinc-900">Master Tipe Rumah</h2>
+          <h2 className="mb-2 text-3xl font-[family-name:var(--font-heading)] text-zinc-900 flex items-center gap-3 tracking-tight">
+            <House className="text-amber-600" weight="duotone" size={32} />
+            Master Tipe Rumah
+          </h2>
           <p className="text-sm text-zinc-500">Kelola spesifikasi dan harga dasar tipe properti yang tersedia di seluruh proyek.</p>
         </div>
         <button

@@ -408,7 +408,10 @@ export default function InventoryAdminPage() {
   const renderSitePlan = () => (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-8">
-        <h2 className="mb-2 text-3xl font-[family-name:var(--font-heading)] text-zinc-900">Master Site Plan</h2>
+        <h2 className="mb-2 text-3xl font-[family-name:var(--font-heading)] text-zinc-900 flex items-center gap-3 tracking-tight">
+          <MapTrifold className="text-amber-600" weight="duotone" size={32} />
+          Master Site Plan
+        </h2>
         <p className="text-sm text-zinc-500">Unggah dan kelola peta digital untuk Web Marketing.</p>
       </div>
 
