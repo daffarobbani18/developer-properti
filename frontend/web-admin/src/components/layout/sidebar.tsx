@@ -120,10 +120,11 @@ const menuItems: MenuGroup[] = [
           { label: "RAB & Realisasi", href: "/finance/rab", icon: ListChecks, roles: ["finance"] },
         ],
       },
+
       {
-        label: "Pengawas Lapangan",
-        href: "/supervisor",
-        icon: HardHat,
+        label: "Daftar Proyek Lapangan",
+        href: "/supervisor/proyek",
+        icon: Buildings,
         roles: ["supervisor"],
       },
       {
@@ -135,14 +136,6 @@ const menuItems: MenuGroup[] = [
           { label: "Pipeline KPR", href: "/legal/kpr", icon: Bank, roles: ["legal"] },
           { label: "Dokumen & BAST", href: "/legal/dokumen", icon: FileText, roles: ["legal"] },
         ],
-      },
-
-      {
-        label: "Proyek Lapangan",
-        href: "/supervisor/proyek",
-        icon: Buildings,
-        roles: ["supervisor"],
-        children: [{ label: "Daftar Proyek", href: "/supervisor/proyek", icon: Buildings, roles: ["supervisor"] }],
       },
     ],
   },
