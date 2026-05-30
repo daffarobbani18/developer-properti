@@ -1,6 +1,7 @@
-import React, { useCallback, useState } from "react";
-import { Pressable, StyleSheet, Text, View, TextInput, KeyboardAvoidingView, Platform } from "react-native";
+import React, { useCallback, useState, useRef, useEffect } from "react";
+import { Pressable, StyleSheet, Text, View, TextInput, FlatList } from "react-native";
 import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
+import * as Haptics from "expo-haptics";
 
 import {
   Badge,
@@ -10,10 +11,11 @@ import {
   StatusBanner,
   PrimaryButton,
 } from "../../components/ui";
+import { c } from "../../theme/colors";
 import { useAuth } from "../../hooks/useAuth";
 import { getCustomerSupportData, replyToTicket } from "../../services/api";
 import { pickImages } from "../../services/media";
-import { TicketItem } from "../../types";
+import { TicketItem, TicketReply } from "../../types";
 import { formatDateTime, formatTicketStatusLabel, inferBannerTone } from "../../utils/format";
 
 function statusTone(status: TicketItem["status"]): "neutral" | "warning" | "success" {
@@ -38,6 +40,14 @@ export function TicketDetailScreen(): React.JSX.Element {
   const [replyMessage, setReplyMessage] = useState("");
   const [replyPhotos, setReplyPhotos] = useState<string[]>([]);
   const [isReplying, setIsReplying] = useState(false);
+  const [messages, setMessages] = useState<TicketReply[]>([]);
+  const flatListRef = useRef<FlatList<TicketReply>>(null);
+
+  useEffect(() => {
+    if (ticket?.replies) {
+      setMessages(ticket.replies);
+    }
+  }, [ticket?.replies]);
 
   const loadData = useCallback(async () => {
     if (!auth || !ticketId) {
@@ -61,26 +71,31 @@ export function TicketDetailScreen(): React.JSX.Element {
     }, [loadData])
   );
 
-  const submitReply = useCallback(async () => {
-    if (!auth || !ticketId || !replyMessage.trim()) {
-      setBanner("Pesan balasan wajib diisi.");
-      return;
-    }
-
+  const handleSendReply = useCallback(async () => {
+    if (!replyMessage.trim()) return;
     setIsReplying(true);
     setBanner(null);
-
     try {
       await replyToTicket(auth, {
-        ticketId,
+        ticketId: ticketId!,
         message: replyMessage.trim(),
         photoUrls: replyPhotos,
       });
 
+      const newMsg: TicketReply = {
+        id: Date.now().toString(),
+        ticketId: ticketId!,
+        sender: "Anda",
+        senderRole: "CUSTOMER",
+        message: replyMessage.trim(),
+        createdAt: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, newMsg]);
       setReplyMessage("");
       setReplyPhotos([]);
       await loadData();
       setBanner("Balasan terkirim.");
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch (error) {
       setBanner(error instanceof Error ? error.message : "Gagal mengirim balasan");
     } finally {
@@ -105,6 +120,72 @@ export function TicketDetailScreen(): React.JSX.Element {
     }
   }, [replyPhotos.length]);
 
+  const renderMessageBubble = useCallback(({ item }: { item: TicketReply }) => {
+    const isCustomer = item.senderRole === "CUSTOMER";
+
+    return (
+      <View style={{
+        flexDirection: "row",
+        justifyContent: isCustomer ? "flex-end" : "flex-start",
+        marginVertical: 4,
+        paddingHorizontal: 16,
+      }}>
+        {!isCustomer && (
+          <View style={{
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            backgroundColor: c.primary + "20",
+            alignItems: "center",
+            justifyContent: "center",
+            marginRight: 8,
+            alignSelf: "flex-end",
+          }}>
+            <Text style={{ fontSize: 14 }}>👷</Text>
+          </View>
+        )}
+
+        <View style={{ maxWidth: "75%" }}>
+          {!isCustomer && (
+            <Text style={{ fontSize: 11, color: c.neutral500, marginBottom: 2, marginLeft: 4 }}>
+              {item.sender}
+            </Text>
+          )}
+          <View style={{
+            backgroundColor: isCustomer ? c.primary : c.neutral100,
+            borderRadius: 16,
+            borderBottomRightRadius: isCustomer ? 4 : 16,
+            borderBottomLeftRadius: isCustomer ? 16 : 4,
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+          }}>
+            <Text style={{
+              fontSize: 14,
+              color: isCustomer ? "#FFFFFF" : c.neutral900,
+              lineHeight: 20,
+            }}>
+              {item.message}
+            </Text>
+          </View>
+          <Text style={{
+            fontSize: 10,
+            color: c.neutral500,
+            marginTop: 2,
+            textAlign: isCustomer ? "right" : "left",
+            marginHorizontal: 4,
+          }}>
+            {new Date(item.createdAt).toLocaleTimeString("id-ID", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Text>
+        </View>
+      </View>
+    );
+  }, []);
+
+  const keyExtractor = useCallback((item: TicketReply) => item.id, []);
+
   if (isLoading) {
     return (
       <ScreenShell title="Memuat..." subtitle="">
@@ -127,11 +208,7 @@ export function TicketDetailScreen(): React.JSX.Element {
   }
 
   return (
-    <ScreenShell title={ticket.subject} subtitle={`ID: ${ticket.id}`}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.flexFill}
-      >
+    <ScreenShell title={ticket.subject} subtitle={`ID: ${ticket.id}`} noScroll>
         {/* Ticket Info */}
         <Card style={styles.ticketInfoCard}>
           <View style={styles.ticketHeader}>
@@ -145,73 +222,71 @@ export function TicketDetailScreen(): React.JSX.Element {
           )}
         </Card>
 
-        {/* Chat Thread */}
+        {/* Chat Thread - using FlatList for performance */}
         <SectionTitle title="Diskusi" caption="Riwayat percakapan mengenai tiket ini" />
-        
-        <Card style={styles.chatCard}>
-          {ticket.replies && ticket.replies.length > 0 ? (
-            <View style={styles.chatList}>
-              {ticket.replies.map((reply) => (
-                <View
-                  key={reply.id}
-                  style={[
-                    styles.replyBubble,
-                    reply.senderRole === "CUSTOMER" ? styles.customerBubble : styles.agentBubble,
-                  ]}
-                >
-                  <View style={styles.replyHeader}>
-                    <Text style={styles.replySender}>{reply.sender}</Text>
-                    <Text style={styles.replyDate}>{formatDateTime(reply.createdAt)}</Text>
-                  </View>
-                  <Text style={styles.replyMessage}>{reply.message}</Text>
-                  {reply.photoUrl && (
-                    <Text style={styles.replyAttachment}>📎 Lampiran foto</Text>
-                  )}
-                </View>
-              ))}
-            </View>
-          ) : (
-            <Text style={styles.emptyChat}>Belum ada balasan. Kirim pesan pertama Anda!</Text>
-          )}
-        </Card>
 
-        {/* Reply Form */}
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={keyExtractor}
+          renderItem={renderMessageBubble}
+          contentContainerStyle={{ paddingVertical: 8 }}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        />
+
+        {/* Reply input di bawah, fixed */}
         {ticket.status !== "SELESAI" && ticket.status !== "DITUTUP" && (
-          <Card style={styles.replyCard}>
-            <SectionTitle title="Balas Tiket" />
+          <View style={{
+            flexDirection: "row",
+            padding: 12,
+            borderTopWidth: 1,
+            borderTopColor: c.neutral200,
+            backgroundColor: "#fff",
+            gap: 8,
+            alignItems: "flex-end",
+          }}>
             <TextInput
-              style={styles.replyInput}
-              placeholder="Tulis balasan Anda..."
+              style={{
+                flex: 1,
+                minHeight: 40,
+                maxHeight: 100,
+                borderWidth: 1,
+                borderColor: c.neutral200,
+                borderRadius: 20,
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+                fontSize: 14,
+                color: c.neutral900,
+              }}
               value={replyMessage}
               onChangeText={setReplyMessage}
+              placeholder="Tulis pesan..."
+              placeholderTextColor={c.neutral500}
               multiline
-              numberOfLines={3}
-              textAlignVertical="top"
             />
-            <View style={styles.replyFooter}>
-              <Text style={styles.replyAttachmentCount}>
-                Foto lampiran: {replyPhotos.length}/3
-              </Text>
-              <Pressable onPress={() => void pickReplyPhoto()}>
-                <Text style={styles.addPhotoLink}>+ Tambah Foto</Text>
-              </Pressable>
-            </View>
-            <PrimaryButton
-              label={isReplying ? "Mengirim..." : "Kirim Balasan"}
-              onPress={() => void submitReply()}
-              disabled={isReplying || !replyMessage.trim()}
-            />
-          </Card>
+            <Pressable
+              onPress={() => void handleSendReply()}
+              disabled={!replyMessage.trim() || isReplying}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: replyMessage.trim() ? c.primary : c.neutral200,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ color: "#fff", fontSize: 16 }}>➤</Text>
+            </Pressable>
+          </View>
         )}
 
         {banner && <StatusBanner message={banner} tone={inferBannerTone(banner)} />}
-      </KeyboardAvoidingView>
-    </ScreenShell>
+      </ScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
-  flexFill: { flex: 1 },
   loadingText: { color: "#4f6f77", fontSize: 14, textAlign: "center", padding: 20 },
   centeredCard: { padding: 20, alignItems: "center" },
   notFoundText: { color: "#4f6f77", marginBottom: 12 },
@@ -220,28 +295,4 @@ const styles = StyleSheet.create({
   ticketDate: { color: "#4f6f77", fontSize: 12 },
   ticketDesc: { color: "#1f2937", marginTop: 4 },
   ticketAttachment: { color: "#64748b", fontSize: 10, marginTop: 4 },
-  chatCard: { marginBottom: 12, maxHeight: 240 },
-  chatList: { gap: 8 },
-  replyBubble: { padding: 10, borderRadius: 10, maxWidth: "80%" },
-  customerBubble: { backgroundColor: "#dbeafe", alignSelf: "flex-start" },
-  agentBubble: { backgroundColor: "#f1f5f9", alignSelf: "flex-end" },
-  replyHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
-  replySender: { fontSize: 10, fontWeight: "600", color: "#334155" },
-  replyDate: { fontSize: 10, color: "#64748b" },
-  replyMessage: { fontSize: 13, color: "#1e293b" },
-  replyAttachment: { fontSize: 10, color: "#64748b", marginTop: 4 },
-  emptyChat: { color: "#94a3b8", textAlign: "center", padding: 20 },
-  replyCard: { marginTop: "auto", paddingTop: 12 },
-  replyInput: {
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 14,
-    marginBottom: 8,
-    minHeight: 80,
-  },
-  replyFooter: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
-  replyAttachmentCount: { fontSize: 11, color: "#64748b" },
-  addPhotoLink: { fontSize: 11, color: "#2563eb" },
 });

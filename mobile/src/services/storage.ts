@@ -1,31 +1,30 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 
 import { AuthState, PendingQueueItem } from "../types";
 
-const AUTH_STORAGE_KEY = "simdp-mobile-auth";
+const AUTH_SECURE_KEY = "simdp_auth_v1";
 const OFFLINE_QUEUE_KEY = "simdp-mobile-offline-queue";
 const AUTH_INACTIVE_AT_KEY = "simdp-mobile-auth-inactive-at";
 
 export async function getStoredAuth(): Promise<AuthState | null> {
-  const raw = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
-  if (!raw) {
-    return null;
-  }
-
   try {
+    const raw = await SecureStore.getItemAsync(AUTH_SECURE_KEY);
+    if (!raw) {
+      return null;
+    }
     return JSON.parse(raw) as AuthState;
   } catch {
-    await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
     return null;
   }
 }
 
 export async function setStoredAuth(value: AuthState): Promise<void> {
-  await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(value));
+  await SecureStore.setItemAsync(AUTH_SECURE_KEY, JSON.stringify(value));
 }
 
 export async function clearStoredAuth(): Promise<void> {
-  await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+  await SecureStore.deleteItemAsync(AUTH_SECURE_KEY);
 }
 
 export async function setAuthInactiveAt(value: number): Promise<void> {

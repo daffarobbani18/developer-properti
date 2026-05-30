@@ -157,37 +157,50 @@ export function formatDocumentStatusLabel(
 }
 
 export function inferBannerTone(
-  message: string
+   message: string
 ): "info" | "success" | "warning" | "danger" {
-  const normalized = message.toLowerCase();
+   const normalized = message.toLowerCase();
 
-  if (
-    normalized.includes("gagal") ||
-    normalized.includes("tidak valid") ||
-    normalized.includes("wajib") ||
-    normalized.includes("ditolak") ||
-    normalized.includes("error")
-  ) {
-    return "danger";
-  }
+   if (
+     normalized.includes("gagal") ||
+     normalized.includes("tidak valid") ||
+     normalized.includes("wajib") ||
+     normalized.includes("ditolak") ||
+     normalized.includes("error")
+   ) {
+     return "danger";
+   }
 
-  if (
-    normalized.includes("offline") ||
-    normalized.includes("antrian") ||
-    normalized.includes("menunggu") ||
-    normalized.includes("peringatan")
-  ) {
-    return "warning";
-  }
+   if (
+     normalized.includes("offline") ||
+     normalized.includes("antrian") ||
+     normalized.includes("menunggu") ||
+     normalized.includes("peringatan")
+   ) {
+     return "warning";
+   }
 
-  if (
-    normalized.includes("berhasil") ||
-    normalized.includes("selesai") ||
-    normalized.includes("dikonfirmasi") ||
-    normalized.includes("disimpan")
-  ) {
-    return "success";
-  }
+   if (
+     normalized.includes("berhasil") ||
+     normalized.includes("selesai") ||
+     normalized.includes("dikonfirmasi") ||
+     normalized.includes("disimpan")
+   ) {
+     return "success";
+   }
 
-  return "info";
-}
+   return "info";
+ }
+
+export function formatErrorMessage(error: unknown): string {
+   if (error instanceof Error) {
+     if (error.message.includes("Network") || error.message.includes("network")) {
+       return "Tidak dapat terhubung ke server. Periksa koneksi internet.";
+     }
+     if (error.message.includes("timeout") || error.message.includes("Timeout")) {
+       return "Permintaan habis waktu. Coba lagi nanti.";
+     }
+     return error.message;
+   }
+   return "Terjadi kesalahan yang tidak diketahui.";
+ }

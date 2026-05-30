@@ -77,12 +77,18 @@ export type IssueItem = {
 };
 
 export type NotificationItem = {
-  id: string;
-  role: Role;
-  title: string;
-  body: string;
-  isRead: boolean;
-  createdAt: string;
+   id: string;
+   role: Role;
+   title: string;
+   body: string;
+   isRead: boolean;
+   createdAt: string;
+   type?: "issue_update" | "milestone_update" | "deadline_alert" | "payment_confirmed" | "document_ready";
+   data?: {
+     route?: string;
+     unitId?: string;
+     projectId?: string;
+   };
 };
 
 export type InvoiceItem = {
@@ -210,4 +216,20 @@ export type AttendanceSummary = {
   sickDays: number;
   alphaDays: number;
   attendanceRate: number;
+};
+
+export interface HandoverChecklistItem {
+  id: string;
+  label: string;
+  description: string;
+  isCompleted: boolean;
+  completedAt?: string;
+}
+
+export interface HandoverInfo {
+  unitId: string;
+  plannedDate: string;
+  actualDate?: string;
+  status: 'SCHEDULED' | 'READY' | 'COMPLETED' | 'DELAYED';
+  checklist: HandoverChecklistItem[];
 };

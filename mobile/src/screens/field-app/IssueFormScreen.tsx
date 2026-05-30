@@ -13,7 +13,7 @@ import {
 import { useAuth } from "../../hooks/useAuth";
 import { createFieldIssue, getProjectOptions } from "../../services/api";
 import { IssueItem } from "../../types";
-import { formatIssueStatusLabel, formatIssueUrgencyLabel } from "../../utils/format";
+import { formatIssueUrgencyLabel } from "../../utils/format";
 import { capturePhoto, pickImages } from "../../services/media";
 
 const ISSUE_CATEGORIES: IssueItem["category"][] = [

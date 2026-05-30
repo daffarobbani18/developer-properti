@@ -1,21 +1,31 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Dimensions, Image, StyleSheet, Text, View, FlatList, TouchableOpacity } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useRoute } from "@react-navigation/native";
 
-import { Card, EmptyState, ScreenShell, SectionTitle } from "../../components/ui";
+import { Card, EmptyState, ScreenShell } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { getCustomerProgressData } from "../../services/api";
-import { Milestone } from "../../types";
+import { Milestone, MilestonePhoto } from "../../types";
 
 const { width } = Dimensions.get("window");
 
+type RouteParams = {
+  photos?: MilestonePhoto[];
+  initialIndex?: number;
+  title?: string;
+  milestoneName?: string;
+};
+
 export function PhotoGalleryScreen(): React.JSX.Element {
   const { auth } = useAuth();
+  const route = useRoute();
+  const { photos: passedPhotos, initialIndex = 0, title, milestoneName } = (route.params as RouteParams) || {};
+
   const [milestones, setMilestones] = useState<Milestone[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!passedPhotos);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const loadPhotos = useCallback(async () => {
+const loadPhotos = useCallback(async () => {
     if (!auth) {
       return;
     }
@@ -30,6 +40,10 @@ export function PhotoGalleryScreen(): React.JSX.Element {
 
   useFocusEffect(
     useCallback(() => {
+      if (passedPhotos) {
+        return;
+      }
+
       let cancelled = false;
 
       (async () => {
@@ -43,63 +57,59 @@ export function PhotoGalleryScreen(): React.JSX.Element {
       return () => {
         cancelled = true;
       };
-    }, [loadPhotos])
+    }, [loadPhotos, passedPhotos])
   );
 
-const allPhotos = milestones.flatMap((m) =>
-     m.photos.map((p) => ({
-       ...p,
-       milestoneName: m.name,
-     }))
-   );
+  const displayPhotos = passedPhotos || milestones.flatMap((m) => m.photos);
 
-   if (isLoading) {
-     return (
-       <ScreenShell title="Galeri Foto" subtitle="Dokumentasi progres pembangunan">
-         <Card>
-           <Text style={styles.loadingText}>Memuat foto progres...</Text>
-         </Card>
-       </ScreenShell>
-     );
-   }
+  if (isLoading) {
+    return (
+      <ScreenShell title={title || "Galeri Foto"} subtitle="Dokumentasi progres pembangunan">
+        <Card>
+          <Text style={styles.loadingText}>Memuat foto progres...</Text>
+        </Card>
+      </ScreenShell>
+    );
+  }
 
-   if (allPhotos.length === 0) {
-     return (
-       <ScreenShell title="Galeri Foto" subtitle="Dokumentasi progres pembangunan">
-         <EmptyState message="Belum ada foto progres yang tersedia." />
-       </ScreenShell>
-     );
-   }
+  if (displayPhotos.length === 0) {
+    return (
+      <ScreenShell title={title || "Galeri Foto"} subtitle="Dokumentasi progres pembangunan">
+        <EmptyState message="Belum ada foto progres yang tersedia." />
+      </ScreenShell>
+    );
+  }
 
-   const renderPhotoItem = ({ item }: { item: typeof allPhotos[0] }) => (
-     <TouchableOpacity style={styles.photoSlide} activeOpacity={0.9}>
-       <Image source={{ uri: item.url }} style={styles.photoFull} resizeMode="contain" />
-       <View style={styles.photoOverlay}>
-         <Text style={styles.photoCaption}>{item.caption}</Text>
-         <Text style={styles.photoMilestone}>{item.milestoneName}</Text>
-       </View>
-     </TouchableOpacity>
-   );
+  const renderPhotoItem = ({ item }: { item: MilestonePhoto }) => (
+    <TouchableOpacity style={styles.photoSlide} activeOpacity={0.9}>
+      <Image source={{ uri: item.url }} style={styles.photoFull} resizeMode="contain" />
+      <View style={styles.photoOverlay}>
+        <Text style={styles.photoCaption}>{item.caption}</Text>
+        {milestoneName ? <Text style={styles.photoMilestone}>{milestoneName}</Text> : null}
+      </View>
+    </TouchableOpacity>
+  );
 
-   return (
-     <ScreenShell title="Galeri Foto" subtitle="Dokumentasi progres pembangunan">
-       {errorMessage ? (
-         <Card>
-           <Text style={styles.errorText}>{errorMessage}</Text>
-         </Card>
-       ) : null}
+  return (
+    <ScreenShell title={title || "Galeri Foto"} subtitle="Dokumentasi progres pembangunan">
+      {errorMessage ? (
+        <Card>
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        </Card>
+      ) : null}
 
-       <FlatList
-         data={allPhotos}
-         keyExtractor={(item) => item.id}
-         renderItem={renderPhotoItem}
-         horizontal
-         pagingEnabled
-         showsHorizontalScrollIndicator={false}
-         style={styles.galleryList}
-       />
-     </ScreenShell>
-   );
+      <FlatList
+        data={displayPhotos}
+        keyExtractor={(item) => item.id}
+        renderItem={renderPhotoItem}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        style={styles.galleryList}
+        initialScrollIndex={initialIndex}
+      />
+    </ScreenShell>
+  );
 }
 
 const styles = StyleSheet.create({

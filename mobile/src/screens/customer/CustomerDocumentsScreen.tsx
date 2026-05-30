@@ -6,16 +6,20 @@ import {
   Badge,
   Card,
   EmptyState,
+  PrimaryButton,
   ScreenShell,
   SecondaryButton,
   SectionTitle,
+  Skeleton,
   StatusBanner,
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
-import { getCustomerDocuments } from "../../services/api";
+import { getCustomerDocuments, getHandoverInfo } from "../../services/api";
 import { downloadDocument } from "../../services/media";
-import { DocumentItem } from "../../types";
+import { DocumentItem, HandoverInfo } from "../../types";
 import { formatDocumentStatusLabel, inferBannerTone } from "../../utils/format";
+
+import { colors } from "../../theme/colors";
 
 function statusTone(status: DocumentItem["status"]): "neutral" | "warning" | "success" {
   if (status === "TERSEDIA") {
@@ -31,6 +35,7 @@ export function CustomerDocumentsScreen(): React.JSX.Element {
   const { auth } = useAuth();
 
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
+  const [handoverInfo, setHandoverInfo] = useState<HandoverInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -40,8 +45,12 @@ export function CustomerDocumentsScreen(): React.JSX.Element {
       return;
     }
 
-    const data = await getCustomerDocuments(auth);
+    const [data, handover] = await Promise.all([
+      getCustomerDocuments(auth),
+      getHandoverInfo(auth?.user?.id ? 'unit-1' : 'unit-001'),
+    ]);
     setDocuments(data);
+    setHandoverInfo(handover);
   }, [auth]);
 
   const handleReload = useCallback(async () => {
@@ -111,6 +120,81 @@ export function CustomerDocumentsScreen(): React.JSX.Element {
         <SectionTitle title="Status Dokumen" />
         <Text style={styles.summaryText}>Total dokumen: {documents.length}</Text>
       </Card>
+
+      {/* Handover Section */}
+      {handoverInfo === null ? (
+        <Card style={{ marginBottom: 20 }}>
+          <Skeleton width="60%" height={20} style={{ marginBottom: 8 }} />
+          <Skeleton width="100%" height={16} style={{ marginBottom: 8 }} />
+          <Skeleton width="100%" height={16} />
+        </Card>
+      ) : (
+        <Card style={{ marginBottom: 20 }}>
+          <View style={styles.handoverHeaderRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.handoverTitle}>Serah Terima Unit</Text>
+              <Text style={styles.handoverSubtitle}>
+                Rencana:{" "}
+                <Text style={{ fontWeight: "600", color: colors.primary }}>
+                  {new Date(handoverInfo.plannedDate).toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </Text>
+              </Text>
+            </View>
+            <Badge
+              label={
+                handoverInfo.checklist.every((i) => i.isCompleted) ? "Siap" : handoverInfo.status === "READY" ? "Siap" : "Persiapan"
+              }
+              tone={
+                handoverInfo.checklist.every((i) => i.isCompleted) ? "success" : "warning"
+              }
+            />
+          </View>
+
+          <Text style={styles.handoverSectionTitle}>CHECKLIST KESIAPAN</Text>
+
+          <View style={{ gap: 12 }}>
+            {handoverInfo.checklist.map((item, index) => (
+              <View key={item.id} style={styles.handoverItemRow}>
+                <View
+                  style={[
+                    styles.handoverCheckbox,
+                    item.isCompleted && styles.handoverCheckboxCompleted,
+                  ]}
+                >
+                  {item.isCompleted ? (
+                    <Text style={styles.handoverCheckboxMark}>✓</Text>
+                  ) : (
+                    <Text style={styles.handoverCheckboxNum}>{index + 1}</Text>
+                  )}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[
+                      styles.handoverItemLabel,
+                      item.isCompleted && styles.handoverItemDone,
+                    ]}
+                  >
+                    {item.label}
+                  </Text>
+                  <Text style={styles.handoverItemDesc}>{item.description}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+
+          {!handoverInfo.checklist.every((i) => i.isCompleted) && (
+            <View style={styles.handoverWarningBox}>
+              <Text style={styles.handoverWarningText}>
+                ⚠ Selesaikan semua checklist sebelum tanggal serah terima
+              </Text>
+            </View>
+          )}
+        </Card>
+      )}
 
       <SecondaryButton label="Muat Ulang Dokumen" onPress={() => void handleReload()} disabled={isLoading} />
 
@@ -207,5 +291,82 @@ const styles = StyleSheet.create({
   pendingText: {
     color: "#5b7980",
     fontSize: 12,
+  },
+  handoverHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 16,
+  },
+  handoverTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#123d47",
+  },
+  handoverSubtitle: {
+    fontSize: 13,
+    color: "#4a6870",
+    marginTop: 2,
+  },
+  handoverSectionTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#3a5f67",
+    marginBottom: 12,
+  },
+  handoverItemRow: {
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "flex-start",
+  },
+  handoverCheckbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#97bbc0",
+    backgroundColor: "#f8fcfc",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 1,
+  },
+  handoverCheckboxCompleted: {
+    backgroundColor: colors.success.text,
+    borderColor: colors.success.text,
+  },
+  handoverCheckboxMark: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  handoverCheckboxNum: {
+    color: "#547078",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  handoverItemLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#123d47",
+  },
+  handoverItemDone: {
+    textDecorationLine: "line-through",
+    color: "#7a949e",
+  },
+  handoverItemDesc: {
+    fontSize: 12,
+    color: "#547078",
+    marginTop: 2,
+  },
+  handoverWarningBox: {
+    marginTop: 16,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: colors.warning.bg,
+  },
+  handoverWarningText: {
+    fontSize: 12,
+    color: colors.warning.text,
+    fontWeight: "600",
   },
 });

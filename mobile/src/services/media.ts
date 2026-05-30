@@ -1,7 +1,6 @@
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import { Platform } from "react-native";
 
 type PickImageOptions = {
   selectionLimit?: number;

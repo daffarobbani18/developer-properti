@@ -3,14 +3,14 @@ import { StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useRoute } from "@react-navigation/native";
 
 import {
-  Badge,
-  Card,
-  EmptyState,
-  OfflineBanner,
-  ScreenShell,
-  SectionTitle,
-  StatusBanner,
-} from "../../components/ui";
+   Badge,
+   AnimatedProgressBar,
+   Card,
+   EmptyState,
+   ScreenShell,
+   SectionTitle,
+   StatusBanner,
+ } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { getUnitMilestones } from "../../services/api";
 import { Milestone } from "../../types";
@@ -105,14 +105,13 @@ export function MilestoneListScreen(): React.JSX.Element {
                       {milestone.checklistCompleted}/{milestone.checklistTotal} selesai
                     </Text>
                   </View>
-                  <View style={styles.checklistTrack}>
-                    <View 
-                      style={[
-                        styles.checklistFill, 
-                        { width: `${(milestone.checklistCompleted / milestone.checklistTotal) * 100}%` }
-                      ]} 
-                    />
-                  </View>
+                  <AnimatedProgressBar
+                    progress={milestone.checklistTotal > 0
+                      ? Math.round((milestone.checklistCompleted / milestone.checklistTotal) * 100)
+                      : 0}
+                    height={4}
+                    duration={600}
+                  />
                   <View style={styles.checklistItems}>
                     {milestone.checklist.slice(0, 3).map((item) => (
                       <View key={item.id} style={styles.checklistItem}>
@@ -219,17 +218,6 @@ const styles = StyleSheet.create({
   checklistProgress: {
     fontSize: 12,
     color: "#547078",
-  },
-  checklistTrack: {
-    height: 6,
-    borderRadius: 999,
-    backgroundColor: "#e0ecee",
-    marginBottom: 8,
-  },
-  checklistFill: {
-    height: "100%",
-    backgroundColor: "#1f7f8a",
-    borderRadius: 999,
   },
   checklistItems: {
     gap: 4,

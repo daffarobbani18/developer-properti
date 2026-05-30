@@ -13,8 +13,9 @@ import {
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { getProjectOptions } from "../../services/api";
+import { colors } from "../../theme/colors";
 import { ProjectSummary } from "../../types";
-import { formatDate, inferBannerTone } from "../../utils/format";
+import { inferBannerTone } from "../../utils/format";
 
 export function ProjectSelectScreen(): React.JSX.Element {
   const { auth } = useAuth();
@@ -188,9 +189,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#e0ecee",
     overflow: "hidden",
   },
-  progressFill: {
-    height: "100%",
-    backgroundColor: "#1f7f8a",
-    borderRadius: 999,
-  },
+progressFill: {
+     height: "100%",
+     backgroundColor: colors.primary,
+     borderRadius: 999,
+   },
 });

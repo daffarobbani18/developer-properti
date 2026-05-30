@@ -1,11 +1,10 @@
 import React, { useCallback, useState } from "react";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Linking, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 import {
   Card,
   EmptyState,
-  PrimaryButton,
   ScreenShell,
   SecondaryButton,
   SectionTitle,

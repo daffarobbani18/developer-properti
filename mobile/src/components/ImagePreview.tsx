@@ -23,13 +23,14 @@ export function ImagePreview({ uri, onRemove }: ImagePreviewProps): React.JSX.El
 
 type ImagePreviewGridProps = {
   uris: string[];
-  onRemove?: (uri: string) => void;
+  onRemove?: (index: number) => void;
+  style?: object;
 };
 
-export function ImagePreviewGrid({ uris, onRemove }: ImagePreviewGridProps): React.JSX.Element {
+export function ImagePreviewGrid({ uris, onRemove, style }: ImagePreviewGridProps): React.JSX.Element {
   if (uris.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
+      <View style={[styles.emptyContainer, style]}>
         <Text style={styles.emptyText}>Belum ada foto yang dipilih</Text>
       </View>
     );
@@ -41,14 +42,14 @@ export function ImagePreviewGrid({ uris, onRemove }: ImagePreviewGridProps): Rea
   }
 
   return (
-    <View style={styles.grid}>
+    <View style={[styles.grid, style]}>
       {rows.map((row, rowIndex) => (
         <View key={`row-${rowIndex}`} style={styles.row}>
           {row.map((uri, index) => (
             <ImagePreview
               key={`${uri}-${index}`}
               uri={uri}
-              onRemove={onRemove ? () => onRemove(uri) : undefined}
+              onRemove={onRemove ? () => onRemove(rowIndex * 3 + index) : undefined}
             />
           ))}
         </View>

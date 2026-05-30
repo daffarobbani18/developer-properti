@@ -183,26 +183,29 @@ export function LoginScreen(): React.JSX.Element {
           {savedBiometricCred ? (
             <SecondaryButton label="Nonaktifkan Login Biometrik" onPress={handleDisableBiometric} />
           ) : null}
-        </View>
 
-        <View style={styles.demoCard}>
-          <Text style={styles.demoTitle}>Akun Demo</Text>
-          <Text style={styles.demoHint}>{demoHint}</Text>
-          <View style={styles.credentialRowWrap}>
-            {demoCredentials.map((item) => (
-              <Pressable
-                key={item.email}
-                onPress={() => {
-                  setEmail(item.email);
-                  setPassword(item.password);
-                }}
-                style={({ pressed }) => [styles.credentialPill, pressed && styles.credentialPressed]}
-              >
-                <Text style={styles.credentialRole}>{item.role}</Text>
-                <Text style={styles.credentialEmail}>{item.email}</Text>
-              </Pressable>
-            ))}
-          </View>
+          {/* [DEV-ONLY] Demo credentials block - will not appear in production build */}
+          {__DEV__ ? (
+            <View style={styles.demoCard}>
+              <Text style={styles.demoTitle}>Akun Demo</Text>
+              <Text style={styles.demoHint}>{demoHint}</Text>
+              <View style={styles.credentialRowWrap}>
+                {demoCredentials.map((item) => (
+                  <Pressable
+                    key={item.email}
+                    onPress={() => {
+                      setEmail(item.email);
+                      setPassword(item.password);
+                    }}
+                    style={({ pressed }) => [styles.credentialPill, pressed && styles.credentialPressed]}
+                  >
+                    <Text style={styles.credentialRole}>{item.role}</Text>
+                    <Text style={styles.credentialEmail}>{item.email}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          ) : null}
         </View>
       </ScrollView>
     </SafeAreaView>

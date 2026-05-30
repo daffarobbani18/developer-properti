@@ -7,6 +7,7 @@ import {
   DailyReport,
   DocumentItem,
   FaqItem,
+  HandoverInfo,
   InvoiceItem,
   IssueItem,
   Milestone,
@@ -1086,3 +1087,30 @@ export function saveDailyReport(payload: {
 
   return clone(report);
 }
+
+export const mockHandoverInfo: HandoverInfo = {
+  unitId: 'unit-001',
+  plannedDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+  status: 'SCHEDULED',
+  checklist: [
+    {
+      id: 'kewajiban',
+      label: 'Pelunasan Kewajiban Finansial',
+      description: 'Semua tagihan dan cicilan telah dilunasi',
+      isCompleted: false,
+    },
+    {
+      id: 'kpr',
+      label: 'Kelengkapan Dokumen KPR',
+      description: 'Dokumen KPR dan akad kredit telah disiapkan',
+      isCompleted: true,
+      completedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: 'bast',
+      label: 'Penandatanganan BA Serah Terima',
+      description: 'Berita acara serah terima siap ditandatangani',
+      isCompleted: false,
+    },
+  ],
+};

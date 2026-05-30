@@ -1,18 +1,22 @@
 import React, { useCallback, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import {
   Badge,
   Card,
   EmptyState,
+  IconButton,
   LabeledInput,
   PrimaryButton,
   ScreenShell,
   SecondaryButton,
   SectionTitle,
+  SkeletonList,
   StatusBanner,
 } from "../../components/ui";
+import { UrgencyBadge } from "../../components/UrgencyBadge";
 import { useAuth } from "../../hooks/useAuth";
 import {
   changeIssueStatus,
@@ -23,11 +27,13 @@ import {
 import { capturePhoto, pickImages } from "../../services/media";
 import { IssueItem } from "../../types";
 import {
-  formatDateTime,
+  formatErrorMessage,
   formatIssueStatusLabel,
   formatIssueUrgencyLabel,
   inferBannerTone,
 } from "../../utils/format";
+import { formatRelativeDate } from "../../utils/dateUtils";
+import type { PengawasStackParamList } from "../../navigation/types";
 
 const ISSUE_CATEGORIES: IssueItem["category"][] = [
   "Kualitas Pekerjaan",
@@ -38,16 +44,8 @@ const ISSUE_CATEGORIES: IssueItem["category"][] = [
 ];
 
 const ISSUE_URGENCY: IssueItem["urgency"][] = ["RENDAH", "SEDANG", "TINGGI", "KRITIS"];
-
-function urgencyTone(level: IssueItem["urgency"]): "neutral" | "warning" | "danger" {
-  if (level === "KRITIS" || level === "TINGGI") {
-    return "danger";
-  }
-  if (level === "SEDANG") {
-    return "warning";
-  }
-  return "neutral";
-}
+const ISSUE_FILTER_STATUS: Array<"SEMUA" | IssueItem["status"]> = ["SEMUA", "BARU", "SEDANG_DITANGANI", "SELESAI"];
+const ISSUE_FILTER_URGENCY: Array<"SEMUA" | IssueItem["urgency"]> = ["SEMUA", "RENDAH", "SEDANG", "TINGGI", "KRITIS"];
 
 function statusTone(level: IssueItem["status"]): "neutral" | "warning" | "success" {
   if (level === "SELESAI") {
@@ -61,7 +59,7 @@ function statusTone(level: IssueItem["status"]): "neutral" | "warning" | "succes
 
 export function FieldIssuesScreen(): React.JSX.Element {
   const { auth } = useAuth();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<PengawasStackParamList>>();
 
   const [projects, setProjects] = useState<Array<{ id: string; name: string }>>([]);
   const [issues, setIssues] = useState<IssueItem[]>([]);
@@ -77,10 +75,24 @@ export function FieldIssuesScreen(): React.JSX.Element {
   const [selectedPhotoUris, setSelectedPhotoUris] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"SEMUA" | IssueItem["status"]>("SEMUA");
+  const [filterUrgency, setFilterUrgency] = useState<"SEMUA" | IssueItem["urgency"]>("SEMUA");
+
   const activeIssues = issues.filter((issue) => issue.status !== "SELESAI").length;
   const criticalIssues = issues.filter(
     (issue) => issue.urgency === "KRITIS" || issue.urgency === "TINGGI"
   ).length;
+
+  const filteredIssues = issues.filter((issue) => {
+    const matchesSearch = searchQuery.trim() === "" ||
+      issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      issue.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      issue.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = filterStatus === "SEMUA" || issue.status === filterStatus;
+    const matchesUrgency = filterUrgency === "SEMUA" || issue.urgency === filterUrgency;
+    return matchesSearch && matchesStatus && matchesUrgency;
+  });
 
   const loadData = useCallback(async () => {
     if (!auth) {
@@ -112,7 +124,7 @@ export function FieldIssuesScreen(): React.JSX.Element {
           await loadData();
         } catch (error) {
           if (!cancelled) {
-            setBanner(error instanceof Error ? error.message : "Gagal memuat data kendala");
+            setBanner(formatErrorMessage(error));
           }
         } finally {
           if (!cancelled) {
@@ -136,32 +148,32 @@ export function FieldIssuesScreen(): React.JSX.Element {
     setIsSubmitting(true);
     setBanner(null);
 
-    try {
-      await createFieldIssue(auth, {
-        projectId,
-        title: title.trim(),
-        description: description.trim(),
-        category,
-        urgency,
-        reporterName: auth.user.fullName,
-        recommendation: recommendation.trim() || undefined,
-        photoUrls: selectedPhotoUris,
-      });
+try {
+       await createFieldIssue(auth, {
+         projectId,
+         title: title.trim(),
+         description: description.trim(),
+         category,
+         urgency,
+         reporterName: auth.user.fullName,
+         recommendation: recommendation.trim() || undefined,
+         photoUrls: selectedPhotoUris,
+       });
 
-      setTitle("");
-      setDescription("");
-      setRecommendation("");
-      setCategory("Kualitas Pekerjaan");
-      setUrgency("SEDANG");
-      setSelectedPhotoUris([]);
+       setTitle("");
+       setDescription("");
+       setRecommendation("");
+       setCategory("Kualitas Pekerjaan");
+       setUrgency("SEDANG");
+       setSelectedPhotoUris([]);
 
-      await loadData();
-      setBanner("Kendala berhasil dibuat.");
-    } catch (error) {
-      setBanner(error instanceof Error ? error.message : "Gagal membuat kendala");
-    } finally {
-      setIsSubmitting(false);
-    }
+       await loadData();
+       setBanner("Kendala berhasil dibuat.");
+     } catch (error) {
+       setBanner(formatErrorMessage(error));
+     } finally {
+       setIsSubmitting(false);
+     }
   }, [
     auth,
     category,
@@ -181,7 +193,7 @@ export function FieldIssuesScreen(): React.JSX.Element {
         setSelectedPhotoUris((prev) => [...new Set([...prev, uri])].slice(0, 3));
       }
     } catch (error) {
-      setBanner(error instanceof Error ? error.message : "Gagal mengambil foto kendala.");
+      setBanner(formatErrorMessage(error));
     }
   }, []);
 
@@ -190,11 +202,11 @@ export function FieldIssuesScreen(): React.JSX.Element {
       const uris = await pickImages({ selectionLimit: 3 });
       setSelectedPhotoUris((prev) => [...new Set([...prev, ...uris])].slice(0, 3));
     } catch (error) {
-      setBanner(error instanceof Error ? error.message : "Gagal memilih foto kendala.");
+      setBanner(formatErrorMessage(error));
     }
   }, []);
 
-  const changeStatus = useCallback(
+const changeStatus = useCallback(
     async (issueId: string, status: IssueItem["status"]) => {
       if (!auth) {
         return;
@@ -204,14 +216,53 @@ export function FieldIssuesScreen(): React.JSX.Element {
         await changeIssueStatus(auth, issueId, status);
         await loadData();
       } catch (error) {
-        setBanner(error instanceof Error ? error.message : "Gagal mengubah status kendala");
+        setBanner(formatErrorMessage(error));
       }
     },
     [auth, loadData]
   );
 
+  const renderIssueItem = useCallback(
+    ({ item }: { item: IssueItem }) => (
+      <Card>
+        <View style={styles.issueTopRow}>
+          <Text style={styles.issueTitle}>{item.title}</Text>
+          <UrgencyBadge level={item.urgency} />
+        </View>
+        <Text style={styles.issueMeta}>Kategori: {item.category}</Text>
+        <Text style={styles.issueMeta}>Pelapor: {item.reporterName}</Text>
+        <Text style={styles.issueMeta}>{formatRelativeDate(item.createdAt)}</Text>
+        <Text style={styles.issueMeta}>Lampiran foto: {item.photoUrls?.length ?? 0}</Text>
+        <Text style={styles.issueDescription}>{item.description}</Text>
+        {item.recommendation ? (
+          <Text style={styles.issueRecommendation}>Rekomendasi: {item.recommendation}</Text>
+        ) : null}
+        <View style={styles.issueBottomRow}>
+          <Badge label={formatIssueStatusLabel(item.status)} tone={statusTone(item.status)} />
+          {item.status !== "SELESAI" ? (
+            <View style={styles.statusActions}>
+              <Pressable
+                onPress={() => void changeStatus(item.id, "SEDANG_DITANGANI")}
+                style={({ pressed }) => [styles.statusActionBtn, pressed && styles.pillPressed]}
+              >
+                <Text style={styles.statusActionText}>Tangani</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => void changeStatus(item.id, "SELESAI")}
+                style={({ pressed }) => [styles.statusActionBtn, pressed && styles.pillPressed]}
+              >
+                <Text style={styles.statusActionText}>Selesaikan</Text>
+              </Pressable>
+            </View>
+          ) : null}
+        </View>
+      </Card>
+    ),
+    [changeStatus]
+  );
+
   return (
-    <ScreenShell title="Kendala Lapangan" subtitle="Catat hambatan dan tindak lanjut tim">
+    <ScreenShell title="Kendala Lapangan" subtitle="Catat hambatan dan tindak lanjut tim" noScroll>
       <Card>
         <SectionTitle title="Ringkasan Kendala" caption="Pantau isu aktif sebelum membuat laporan baru" />
         <View style={styles.metricRow}>
@@ -229,7 +280,7 @@ export function FieldIssuesScreen(): React.JSX.Element {
           </View>
         </View>
         <View style={styles.historyButtonRow}>
-          <SecondaryButton label="Muat Ulang Kendala" onPress={() => void loadData()} />
+          <IconButton icon="refresh" onPress={() => void loadData()} />
           <SecondaryButton label="Riwayat Kendala" onPress={() => navigation.navigate({ name: "IssueHistory" } as never)} />
         </View>
       </Card>
@@ -306,7 +357,7 @@ export function FieldIssuesScreen(): React.JSX.Element {
               ]}
             >
               <Text style={[styles.pillText, urgency === item && styles.pillTextActive]}>
-                {formatIssueUrgencyLabel(item)}
+                {item}
               </Text>
             </Pressable>
           ))}
@@ -344,59 +395,85 @@ export function FieldIssuesScreen(): React.JSX.Element {
           </View>
         ) : null}
 
-        <PrimaryButton
-          label={isSubmitting ? "Menyimpan..." : "Simpan Kendala"}
-          onPress={() => void submitIssue()}
-          disabled={isSubmitting}
-        />
+<PrimaryButton
+           label={isSubmitting ? "Menyimpan..." : "Simpan Kendala"}
+           onPress={() => void submitIssue()}
+           disabled={isSubmitting}
+         />
       </Card>
+
+<Card>
+          <SectionTitle title="Daftar Kendala" caption="Cari dan filter kendala yang ada" />
+        </Card>
+
+        <View style={styles.stickyFilterContainer}>
+          <LabeledInput
+            label="Cari Kendala"
+            placeholder="Ketik judul, deskripsi, atau kategori..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            style={{ marginBottom: 8, flex: 1 }}
+          />
+          <IconButton icon="refresh" onPress={() => void loadData()} />
+        </View>
+
+        <View style={styles.stickyFilterRow}>
+          <Text style={styles.filterLabel}>Status:</Text>
+          <View style={styles.filterPillRow}>
+            {ISSUE_FILTER_STATUS.map((item) => (
+              <Pressable
+                key={item}
+                onPress={() => setFilterStatus(item)}
+                style={({ pressed }) => [
+                  styles.filterPill,
+                  filterStatus === item && styles.filterPillActive,
+                  pressed && styles.pillPressed,
+                ]}
+              >
+                <Text style={[styles.filterPillText, filterStatus === item && styles.filterPillTextActive]}>
+                  {item === "SEMUA" ? "Semua" : formatIssueStatusLabel(item as IssueItem["status"])}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+        <View style={styles.stickyFilterRow}>
+          <Text style={styles.filterLabel}>Urgensi:</Text>
+          <View style={styles.filterPillRow}>
+            {ISSUE_FILTER_URGENCY.map((item) => (
+              <Pressable
+                key={item}
+                onPress={() => setFilterUrgency(item)}
+                style={({ pressed }) => [
+                  styles.filterPill,
+                  filterUrgency === item && styles.filterPillActive,
+                  pressed && styles.pillPressed,
+                ]}
+              >
+                <Text style={[styles.filterPillText, filterUrgency === item && styles.filterPillTextActive]}>
+                  {item === "SEMUA" ? "Semua" : formatIssueUrgencyLabel(item as IssueItem["urgency"])}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
 
       {banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
 
       {isLoading ? (
-        <Card>
-          <Text style={styles.loadingText}>Memuat daftar kendala...</Text>
-        </Card>
-      ) : issues.length === 0 ? (
-        <EmptyState message="Belum ada kendala pada proyek ini." />
+        <SkeletonList count={3} />
       ) : (
-        <View style={styles.issueList}>
-          {issues.map((issue) => (
-            <Card key={issue.id}>
-              <View style={styles.issueTopRow}>
-                <Text style={styles.issueTitle}>{issue.title}</Text>
-                <Badge label={formatIssueUrgencyLabel(issue.urgency)} tone={urgencyTone(issue.urgency)} />
-              </View>
-              <Text style={styles.issueMeta}>Kategori: {issue.category}</Text>
-              <Text style={styles.issueMeta}>Pelapor: {issue.reporterName}</Text>
-              <Text style={styles.issueMeta}>{formatDateTime(issue.createdAt)}</Text>
-              <Text style={styles.issueMeta}>Lampiran foto: {issue.photoUrls?.length ?? 0}</Text>
-              <Text style={styles.issueDescription}>{issue.description}</Text>
-              {issue.recommendation ? (
-                <Text style={styles.issueRecommendation}>Rekomendasi: {issue.recommendation}</Text>
-              ) : null}
-              <View style={styles.issueBottomRow}>
-                <Badge label={formatIssueStatusLabel(issue.status)} tone={statusTone(issue.status)} />
-                {auth?.user.role === "PROJECT_MANAGER" && issue.status !== "SELESAI" ? (
-                  <View style={styles.statusActions}>
-                    <Pressable
-                      onPress={() => void changeStatus(issue.id, "SEDANG_DITANGANI")}
-                      style={({ pressed }) => [styles.statusActionBtn, pressed && styles.pillPressed]}
-                    >
-                      <Text style={styles.statusActionText}>Tangani</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => void changeStatus(issue.id, "SELESAI")}
-                      style={({ pressed }) => [styles.statusActionBtn, pressed && styles.pillPressed]}
-                    >
-                      <Text style={styles.statusActionText}>Selesaikan</Text>
-                    </Pressable>
-                  </View>
-                ) : null}
-              </View>
-            </Card>
-          ))}
-        </View>
+        <FlatList
+          data={filteredIssues}
+          keyExtractor={(item) => item.id}
+          renderItem={renderIssueItem}
+          contentContainerStyle={styles.issueList}
+          ListEmptyComponent={
+            searchQuery || filterStatus !== "SEMUA" || filterUrgency !== "SEMUA"
+              ? <EmptyState message="Tidak ada kendala yang sesuai dengan filter." />
+              : <EmptyState message="Belum ada kendala pada proyek ini." />
+          }
+        />
       )}
     </ScreenShell>
   );
@@ -423,7 +500,6 @@ const styles = StyleSheet.create({
     color: "#4a6f78",
     fontSize: 11,
     fontWeight: "700",
-    textTransform: "uppercase",
   },
   metricValue: {
     color: "#184b55",
@@ -434,8 +510,6 @@ const styles = StyleSheet.create({
     color: "#1f4f5a",
     fontSize: 12,
     fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.4,
     marginBottom: 4,
   },
   pillRow: {
@@ -559,5 +633,58 @@ const styles = StyleSheet.create({
   historyButtonRow: {
     flexDirection: "row",
     gap: 8,
+  },
+  filterRow: {
+    marginTop: 8,
+    gap: 6,
+  },
+  filterLabel: {
+    color: "#3a5f67",
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.4,
+  },
+  filterPillRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  filterPill: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#97bbc0",
+    backgroundColor: "#f8fcfc",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  filterPillActive: {
+    borderColor: "#1e6f78",
+    backgroundColor: "#dff3f5",
+  },
+  filterPillText: {
+    color: "#3a646d",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  filterPillTextActive: {
+    color: "#114a53",
+  },
+  stickyFilterContainer: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+    zIndex: 10,
+  },
+  stickyFilterRow: {
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    gap: 6,
   },
 });

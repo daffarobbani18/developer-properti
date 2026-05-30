@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 
 import {
   Card,
@@ -9,23 +9,16 @@ import {
   SecondaryButton,
 } from "../../components/ui";
 import { ImagePreviewGrid } from "../../components/ImagePreview";
-import { useAuth } from "../../hooks/useAuth";
-import { capturePhoto, pickImages, uploadPhoto } from "../../services/media";
+import { capturePhoto, pickImages } from "../../services/media";
 
-type RouteParams = { milestoneId?: string; unitId?: string };
+import { consumeCaptureCallback } from "../../utils/captureCallback";
 
 export function PhotoCaptureScreen(): React.JSX.Element {
   const navigation = useNavigation();
-  const route = useRoute();
-  const { milestoneId, unitId } = route.params as RouteParams;
 
   const [selectedPhotoUris, setSelectedPhotoUris] = useState<string[]>([]);
   const [isCapturing, setIsCapturing] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadResult, setUploadResult] = useState<{ url: string } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const { auth } = useAuth();
 
   const takePhoto = useCallback(async () => {
     setIsCapturing(true);
@@ -52,44 +45,30 @@ export function PhotoCaptureScreen(): React.JSX.Element {
     }
   }, []);
 
-  const removePhoto = useCallback((uriToRemove: string) => {
-    setSelectedPhotoUris((prev) => prev.filter((uri) => uri !== uriToRemove));
+  const removePhoto = useCallback((indexToRemove: number) => {
+    setSelectedPhotoUris((prev) => prev.filter((_, index) => index !== indexToRemove));
   }, []);
 
-  const handleUploadAndUse = useCallback(async () => {
+  const handleUsePhotos = useCallback(() => {
     if (selectedPhotoUris.length === 0) {
       setErrorMessage("Belum ada foto yang dipilih.");
       return;
     }
 
-    setIsUploading(true);
-    setErrorMessage(null);
-
-    try {
-      const results = await Promise.all(
-        selectedPhotoUris.map((uri) => uploadPhoto(uri, auth))
-      );
-      const successfulUploads = results.filter((r): r is { url: string } => r !== null);
-      if (successfulUploads.length > 0) {
-        setUploadResult(successfulUploads[0]);
-        navigation.goBack();
-      } else {
-        setErrorMessage("Gagal mengunggah foto. Coba lagi nanti.");
-      }
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Gagal mengunggah foto");
-    } finally {
-      setIsUploading(false);
+    const callback = consumeCaptureCallback();
+    if (callback) {
+      callback(selectedPhotoUris);
     }
-  }, [auth, navigation, selectedPhotoUris]);
+    navigation.goBack();
+  }, [navigation, selectedPhotoUris]);
 
   return (
     <ScreenShell title="Ambil Foto" subtitle="Kamera atau galeri untuk dokumentasi">
       <Card>
         <Text style={styles.sectionTitle}>Sumber Foto</Text>
         <View style={styles.buttonRow}>
-          <SecondaryButton label="Kamera" onPress={() => void takePhoto()} disabled={isCapturing || isUploading} />
-          <SecondaryButton label="Galeri" onPress={() => void pickFromGallery()} disabled={isCapturing || isUploading} />
+<SecondaryButton label="Kamera" onPress={() => void takePhoto()} disabled={isCapturing} />
+           <SecondaryButton label="Galeri" onPress={() => void pickFromGallery()} disabled={isCapturing} />
         </View>
       </Card>
 
@@ -105,13 +84,12 @@ export function PhotoCaptureScreen(): React.JSX.Element {
        </Card>
 
       <View style={styles.actionRow}>
-        <SecondaryButton label="Batal" onPress={() => navigation.goBack()} disabled={isUploading} />
-        <PrimaryButton
-          label={isUploading ? "Mengunggah..." : "Gunakan & Unggah"}
-          onPress={handleUploadAndUse}
-          disabled={selectedPhotoUris.length === 0}
-          loading={isUploading}
-        />
+        <SecondaryButton label="Batal" onPress={() => navigation.goBack()} />
+<PrimaryButton
+           label="Gunakan Foto"
+           onPress={handleUsePhotos}
+           disabled={selectedPhotoUris.length === 0}
+         />
       </View>
     </ScreenShell>
   );

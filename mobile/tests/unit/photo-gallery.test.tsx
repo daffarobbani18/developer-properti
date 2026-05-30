@@ -1,8 +1,7 @@
-import { render, waitFor, act } from "@testing-library/react-native";
+import { render, waitFor } from "@testing-library/react-native";
 import { NavigationContainer } from "@react-navigation/native";
 
 import { PhotoGalleryScreen } from "../../src/screens/customer/PhotoGalleryScreen";
-import { Milestone } from "../../src/types";
 
 jest.mock("../../src/hooks/useAuth", () => ({
   useAuth: () => ({

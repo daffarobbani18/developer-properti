@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useCallback, useState, useEffect, useRef } from "react";
+import { StyleSheet, Text, View, Animated, Easing } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import * as Haptics from "expo-haptics";
+import { Ionicons } from "@expo/vector-icons";
 
 import {
   Badge,
@@ -14,6 +15,7 @@ import {
   SectionTitle,
   StatusBanner,
   SkeletonList,
+  CountUpNumber,
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import {
@@ -24,7 +26,26 @@ import {
 } from "../../services/api";
 import { AttendanceItem, AttendanceSummary } from "../../types";
 import { formatAttendanceStatusLabel } from "../../utils/format";
+import { formatRelativeDate } from "../../utils/dateUtils";
 import { getCurrentLocation, requestLocationPermission, validateLocation } from "../../services/location";
+
+function getStatusIcon(status: AttendanceItem["status"]): React.JSX.Element {
+  const iconMap: Record<AttendanceItem["status"], "checkmark-circle" | "time" | "document-text" | "medkit" | "alert-circle"> = {
+    HADIR: "checkmark-circle",
+    TERLAMBAT: "time",
+    IZIN: "document-text",
+    SAKIT: "medkit",
+    ALPHA: "alert-circle",
+  };
+  const iconColor: Record<AttendanceItem["status"], string> = {
+    HADIR: "#10b981",
+    TERLAMBAT: "#f59e0b",
+    IZIN: "#6b7280",
+    SAKIT: "#8b5cf6",
+    ALPHA: "#ef4444",
+  };
+  return <Ionicons name={iconMap[status]} size={16} color={iconColor[status]} />;
+}
 
 function getStatusTone(status: AttendanceItem["status"]): "success" | "warning" | "neutral" | "danger" {
   switch (status) {
@@ -55,6 +76,93 @@ export function FieldAttendanceScreen(): React.JSX.Element {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [todayAttendance, setTodayAttendance] = useState<AttendanceItem | null>(null);
   const [checkoutNotes, setCheckoutNotes] = useState("");
+
+  const checkInScale = useRef(new Animated.Value(1)).current;
+  const pulseScale = useRef(new Animated.Value(1)).current;
+
+  const checkInButtonStyle = {
+    transform: [{ scale: checkInScale }],
+  };
+
+  const pulseStyle = {
+    transform: [{ scale: pulseScale }],
+  };
+
+  useEffect(() => {
+    let pulseAnimation: Animated.CompositeAnimation | null = null;
+
+    if (todayAttendance?.status === "HADIR") {
+      pulseAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseScale, {
+            toValue: 1.08,
+            duration: 800,
+            useNativeDriver: true,
+            easing: Easing.inOut(Easing.ease),
+          }),
+          Animated.timing(pulseScale, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+            easing: Easing.inOut(Easing.ease),
+          }),
+        ])
+      );
+      pulseAnimation.start();
+    } else {
+      Animated.timing(pulseScale, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    }
+
+    return () => {
+      pulseAnimation?.stop();
+    };
+  }, [todayAttendance?.status, pulseScale]);
+
+  const animatedHandleCheckIn = async () => {
+    Animated.sequence([
+      Animated.spring(checkInScale, {
+        toValue: 0.95,
+        useNativeDriver: true,
+        speed: 50,
+        bounciness: 0,
+      }),
+      Animated.spring(checkInScale, {
+        toValue: 1.05,
+        useNativeDriver: true,
+        speed: 30,
+        bounciness: 2,
+      }),
+      Animated.spring(checkInScale, {
+        toValue: 1,
+        useNativeDriver: true,
+        speed: 20,
+        bounciness: 4,
+      }),
+    ]).start();
+    await handleCheckIn();
+  };
+
+  const animatedHandleCheckOut = async () => {
+    Animated.sequence([
+      Animated.spring(checkInScale, {
+        toValue: 0.95,
+        useNativeDriver: true,
+        speed: 50,
+        bounciness: 0,
+      }),
+      Animated.spring(checkInScale, {
+        toValue: 1,
+        useNativeDriver: true,
+        speed: 20,
+        bounciness: 4,
+      }),
+    ]).start();
+    await handleCheckOut();
+  };
 
   const todayDate = new Date().toISOString().split("T")[0];
 
@@ -193,10 +301,12 @@ export function FieldAttendanceScreen(): React.JSX.Element {
           <View style={styles.todayWrap}>
             {todayAttendance ? (
               <View style={styles.todayItem}>
-                <View style={styles.todayRow}>
-                  <Text style={styles.todayLabel}>Status</Text>
-                  <Badge label={getStatusLabel(todayAttendance.status)} tone={getStatusTone(todayAttendance.status)} />
-                </View>
+<View style={styles.todayRow}>
+                   <Text style={styles.todayLabel}>Status</Text>
+                   <Animated.View style={pulseStyle}>
+                     <Badge label={getStatusLabel(todayAttendance.status)} tone={getStatusTone(todayAttendance.status)} />
+                   </Animated.View>
+                 </View>
 
                 {todayAttendance.checkInTime && (
                   <View style={styles.todayRow}>
@@ -227,17 +337,19 @@ export function FieldAttendanceScreen(): React.JSX.Element {
                   </View>
                 )}
               </View>
-            ) : (
-              <View style={styles.todayItem}>
-                <Text style={styles.notCheckedText}>Belum absen masuk hari ini</Text>
-                <PrimaryButton
-                  label="Absen Masuk"
-                  onPress={() => void handleCheckIn()}
-                  disabled={isSubmitting}
-                  loading={isSubmitting}
-                />
-              </View>
-            )}
+) : (
+               <View style={styles.todayItem}>
+                 <Text style={styles.notCheckedText}>Belum absen masuk hari ini</Text>
+                 <Animated.View style={checkInButtonStyle}>
+                   <PrimaryButton
+                     label="Absen Masuk"
+                     onPress={() => void animatedHandleCheckIn()}
+                     disabled={isSubmitting}
+                     loading={isSubmitting}
+                   />
+                 </Animated.View>
+               </View>
+             )}
           </View>
         )}
       </Card>
@@ -246,24 +358,24 @@ export function FieldAttendanceScreen(): React.JSX.Element {
         <Card>
           <SectionTitle title="Ringkasan Bulanan" caption="Statistik kehadiran 30 hari terakhir" />
           
-          <View style={styles.statsGrid}>
-            <View style={styles.statPill}>
-              <Text style={styles.statLabel}>Kehadiran</Text>
-              <Text style={styles.statValue}>{summary.attendanceRate}%</Text>
-            </View>
-            <View style={styles.statPill}>
-              <Text style={styles.statLabel}>Hadir</Text>
-              <Text style={styles.statValue}>{summary.presentDays}</Text>
-            </View>
-            <View style={styles.statPill}>
-              <Text style={styles.statLabel}>Terlambat</Text>
-              <Text style={styles.statValue}>{summary.lateDays}</Text>
-            </View>
-            <View style={styles.statPill}>
-              <Text style={styles.statLabel}>Izin/Sakit</Text>
-              <Text style={styles.statValue}>{summary.permissionDays + summary.sickDays}</Text>
-            </View>
-          </View>
+<View style={styles.statsGrid}>
+             <View style={styles.statPill}>
+               <Text style={styles.statLabel}>Kehadiran</Text>
+               <CountUpNumber value={summary.attendanceRate} duration={1000} suffix="%" style={styles.statValue} />
+             </View>
+             <View style={styles.statPill}>
+               <Text style={styles.statLabel}>Hadir</Text>
+               <CountUpNumber value={summary.presentDays} duration={800} style={styles.statValue} />
+             </View>
+             <View style={styles.statPill}>
+               <Text style={styles.statLabel}>Terlambat</Text>
+               <CountUpNumber value={summary.lateDays} duration={800} style={styles.statValue} />
+             </View>
+             <View style={styles.statPill}>
+               <Text style={styles.statLabel}>Izin/Sakit</Text>
+               <CountUpNumber value={summary.permissionDays + summary.sickDays} duration={800} style={styles.statValue} />
+             </View>
+           </View>
         </Card>
       )}
 
@@ -275,24 +387,27 @@ export function FieldAttendanceScreen(): React.JSX.Element {
         ) : history.length === 0 ? (
           <EmptyState message="Belum ada data absensi" />
         ) : (
-          <View style={styles.historyList}>
-            {history.slice(0, 5).map((item) => (
-              <View key={item.id} style={styles.historyItem}>
-                <View style={styles.historyHeader}>
-                  <Text style={styles.historyDate}>{item.date}</Text>
-                  <Badge label={getStatusLabel(item.status)} tone={getStatusTone(item.status)} />
-                </View>
-                <View style={styles.historyTimes}>
-                  {item.checkInTime && (
-                    <Text style={styles.historyTime}>Masuk: {item.checkInTime}</Text>
-                  )}
-                  {item.checkOutTime && (
-                    <Text style={styles.historyTime}>Pulang: {item.checkOutTime}</Text>
-                  )}
-                </View>
-              </View>
-            ))}
-          </View>
+<View style={styles.historyList}>
+             {history.slice(0, 5).map((item) => (
+               <View key={item.id} style={styles.historyItem}>
+<View style={styles.historyHeader}>
+                    <Text style={styles.historyDate}>{formatRelativeDate(item.date)}</Text>
+                    <View style={styles.statusWithIcon}>
+                      {getStatusIcon(item.status)}
+                      <Badge label={getStatusLabel(item.status)} tone={getStatusTone(item.status)} />
+                    </View>
+                  </View>
+                 <View style={styles.historyTimes}>
+                   {item.checkInTime && (
+                     <Text style={styles.historyTime}>Masuk: {item.checkInTime}</Text>
+                   )}
+                   {item.checkOutTime && (
+                     <Text style={styles.historyTime}>Pulang: {item.checkOutTime}</Text>
+                   )}
+                 </View>
+               </View>
+             ))}
+           </View>
         )}
         
 <SecondaryButton
@@ -359,7 +474,6 @@ const styles = StyleSheet.create({
     color: "#4a6f78",
     fontSize: 11,
     fontWeight: "700",
-    textTransform: "uppercase",
   },
   statValue: {
     color: "#184b55",
@@ -392,5 +506,10 @@ const styles = StyleSheet.create({
   historyTime: {
     color: "#4a6f78",
     fontSize: 12,
+  },
+  statusWithIcon: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
 });

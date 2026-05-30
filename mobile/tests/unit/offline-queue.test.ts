@@ -31,7 +31,7 @@ jest.mock("../../src/services/api", () => ({
   submitMilestoneUpdate: jest.fn(),
 }));
 
-// Get reference to the mocked function
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const mockSubmitMilestoneUpdate = require("../../src/services/api").submitMilestoneUpdate;
 
 describe("useOfflineQueue Hook", () => {

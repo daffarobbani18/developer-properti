@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 
@@ -13,6 +13,7 @@ import {
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { getUnitMilestones } from "../../services/api";
+import { colors } from "../../theme/colors";
 import { Milestone } from "../../types";
 import { formatDate, formatMilestoneStatusLabel } from "../../utils/format";
 
@@ -159,11 +160,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#e0ecee",
     overflow: "hidden",
   },
-  progressFillLarge: {
-    height: "100%",
-    backgroundColor: "#1f7f8a",
-    borderRadius: 999,
-  },
+progressFillLarge: {
+     height: "100%",
+     backgroundColor: colors.primary,
+     borderRadius: 999,
+   },
   progressMeta: {
     fontSize: 13,
     color: "#4a6870",

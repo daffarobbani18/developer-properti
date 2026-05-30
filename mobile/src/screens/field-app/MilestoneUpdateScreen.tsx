@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import * as Haptics from "expo-haptics";
 
 import {
@@ -10,57 +10,39 @@ import {
   ScreenShell,
   SecondaryButton,
 } from "../../components/ui";
+import { c } from "../../theme/colors";
+import { ImagePreviewGrid } from "../../components/ImagePreview";
 import { useAuth } from "../../hooks/useAuth";
 import { submitMilestoneUpdate } from "../../services/api";
 import { useOfflineQueue } from "../../hooks/useOfflineQueue";
-import { capturePhoto, pickImages, uploadPhoto } from "../../services/media";
+import { setCaptureCallback } from "../../utils/captureCallback";
+import { uploadPhoto } from "../../services/media";
+import type { MilestoneUpdateScreenProps } from "../../navigation/types";
 
-type RouteParams = { milestoneId?: string; unitId?: string };
-
-export function MilestoneUpdateScreen(): React.JSX.Element {
+export function MilestoneUpdateScreen({ route }: MilestoneUpdateScreenProps): React.JSX.Element {
   const { auth } = useAuth();
   const navigation = useNavigation();
-  const route = useRoute();
-  const { milestoneId, unitId } = route.params as RouteParams;
+  const { milestoneId, milestone } = route.params;
 
   const [note, setNote] = useState("");
-  const [selectedPhotoUri, setSelectedPhotoUri] = useState<string | null>(null);
+  const [selectedPhotoUris, setSelectedPhotoUris] = useState<string[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED'>(
+    milestone?.status ?? 'IN_PROGRESS'
+  );
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { enqueueMilestone } = useOfflineQueue(auth);
 
-  const handleTakePhoto = useCallback(async () => {
-    setIsUploading(true);
-    setErrorMessage(null);
-    try {
-      const uri = await capturePhoto();
-      if (uri) {
-        setSelectedPhotoUri(uri);
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Gagal mengambil foto");
-    } finally {
-      setIsUploading(false);
-    }
-  }, []);
-
-  const handlePickPhoto = useCallback(async () => {
-    setIsUploading(true);
-    setErrorMessage(null);
-    try {
-      const uris = await pickImages({ selectionLimit: 1 });
-      if (uris[0]) {
-        setSelectedPhotoUri(uris[0]);
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Gagal memilih foto");
-    } finally {
-      setIsUploading(false);
-    }
-  }, []);
+  const navigateToPhotoCapture = useCallback(() => {
+    setCaptureCallback((uris: string[]) => {
+      setSelectedPhotoUris(prev => [...prev, ...uris].slice(0, 5));
+    });
+    navigation.navigate({
+      name: 'PhotoCapture',
+      params: {} as never,
+    } as never);
+  }, [navigation]);
 
   const handleSubmit = useCallback(async () => {
     if (!auth) {
@@ -72,21 +54,28 @@ export function MilestoneUpdateScreen(): React.JSX.Element {
       return;
     }
 
+    if (selectedPhotoUris.length === 0) {
+      setErrorMessage('Minimal 1 foto bukti wajib diupload.');
+      return;
+    }
+
     setIsSubmitting(true);
     setErrorMessage(null);
 
-    let finalPhotoUrl = null;
+    const photoUrls: string[] = [];
     try {
-      if (selectedPhotoUri) {
-        const uploadResult = await uploadPhoto(selectedPhotoUri, auth);
-        finalPhotoUrl = uploadResult?.url ?? null;
+      for (const uri of selectedPhotoUris) {
+        const result = await uploadPhoto(uri, auth);
+        if (result?.url) {
+          photoUrls.push(result.url);
+        }
       }
 
       await submitMilestoneUpdate(auth, {
         milestoneId,
-        status: "COMPLETED",
+        status: selectedStatus,
         note: note.trim() || undefined,
-        photoUrl: finalPhotoUrl ?? undefined,
+        photoUrls: photoUrls.length > 0 ? photoUrls : undefined,
       });
 
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -97,23 +86,47 @@ export function MilestoneUpdateScreen(): React.JSX.Element {
 
       await enqueueMilestone({
         milestoneId,
-        status: "COMPLETED",
+        status: selectedStatus,
         note: note.trim() || undefined,
-        photoUrl: finalPhotoUrl ?? selectedPhotoUri ?? undefined,
+        photoUrls: photoUrls.length > 0 ? photoUrls : selectedPhotoUris,
       });
       navigation.goBack();
     } finally {
       setIsSubmitting(false);
     }
-  }, [auth, enqueueMilestone, milestoneId, navigation, note, selectedPhotoUri]);
-
-  const handleRemovePhoto = useCallback(() => {
-    setSelectedPhotoUri(null);
-  }, []);
+  }, [auth, enqueueMilestone, milestoneId, navigation, note, selectedPhotoUris, selectedStatus]);
 
   return (
     <ScreenShell title="Update Milestone" subtitle="Tandai milestone sebagai selesai">
       <Card>
+        {/* Status Picker */}
+        <Text style={styles.label}>Status Pekerjaan</Text>
+        <View style={styles.pillRow}>
+          {(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'] as const).map((status) => {
+            const labels = {
+              NOT_STARTED: 'Belum Mulai',
+              IN_PROGRESS: 'Sedang Berjalan',
+              COMPLETED: 'Selesai',
+            };
+            const isSelected = selectedStatus === status;
+            return (
+              <Pressable
+                key={status}
+                onPress={() => setSelectedStatus(status)}
+                style={({ pressed }) => [
+                  styles.pill,
+                  isSelected && styles.pillActive,
+                  pressed && styles.pillPressed,
+                ]}
+              >
+                <Text style={[styles.pillText, isSelected && styles.pillTextActive]}>
+                  {labels[status]}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
         <LabeledInput
           label="Catatan (Opsional)"
           placeholder="Tambahkan catatan pekerjaan"
@@ -123,30 +136,29 @@ export function MilestoneUpdateScreen(): React.JSX.Element {
           numberOfLines={3}
         />
 
-        <Text style={styles.label}>Foto Bukti (Opsional)</Text>
-        <View style={styles.photoActions}>
-          <SecondaryButton
-            label="Ambil Foto"
-            onPress={() => void handleTakePhoto()}
-            disabled={isUploading || isSubmitting}
-          />
-          <SecondaryButton
-            label="Pilih Galeri"
-            onPress={() => void handlePickPhoto()}
-            disabled={isUploading || isSubmitting}
-          />
-        </View>
+        <Text style={styles.label}>
+          Foto Bukti * <Text style={{ color: c.danger.bg }}>({selectedPhotoUris.length}/5)</Text>
+        </Text>
 
-        {selectedPhotoUri ? (
-          <View style={styles.photoPreviewContainer}>
-            <Image source={{ uri: selectedPhotoUri }} style={styles.photoPreview} />
-            <SecondaryButton
-              label="Hapus Foto"
-              onPress={() => void handleRemovePhoto()}
-              disabled={isSubmitting}
-            />
-          </View>
-        ) : null}
+        {selectedPhotoUris.length > 0 && (
+          <ImagePreviewGrid
+            uris={selectedPhotoUris}
+            onRemove={(index) => setSelectedPhotoUris(prev => prev.filter((_, i) => i !== index))}
+            style={{ marginBottom: 12 }}
+          />
+        )}
+
+        {selectedPhotoUris.length < 5 && (
+          <SecondaryButton
+            label={selectedPhotoUris.length === 0 ? '📷  Ambil Foto Bukti' : '📷  Tambah Foto'}
+            onPress={navigateToPhotoCapture}
+            disabled={isSubmitting || isUploading}
+          />
+        )}
+
+        <Text style={{ fontSize: 12, color: c.danger.bg, marginTop: 4 }}>
+          * Minimal 1 foto bukti wajib diisi (maksimal 5 foto)
+        </Text>
 
         {errorMessage ? (
           <Text style={styles.errorText}>{errorMessage}</Text>
@@ -162,6 +174,7 @@ export function MilestoneUpdateScreen(): React.JSX.Element {
             label="Simpan"
             onPress={() => void handleSubmit()}
             loading={isSubmitting || isUploading}
+            disabled={isSubmitting || isUploading || selectedPhotoUris.length === 0}
           />
         </View>
       </Card>
@@ -178,20 +191,34 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     marginBottom: 4,
   },
-  photoActions: {
+  pillRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
+    marginBottom: 6,
   },
-  photoPreviewContainer: {
-    alignItems: "center",
-    gap: 8,
-    marginTop: 8,
+  pill: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#97bbc0",
+    backgroundColor: "#f8fcfc",
+    paddingVertical: 8,
+    paddingHorizontal: 11,
   },
-  photoPreview: {
-    width: "100%",
-    height: 200,
-    borderRadius: 12,
-    backgroundColor: "#f0f0f0",
+  pillActive: {
+    borderColor: "#1e6f78",
+    backgroundColor: "#dff3f5",
+  },
+  pillPressed: {
+    opacity: 0.82,
+  },
+  pillText: {
+    color: "#3a646d",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  pillTextActive: {
+    color: "#114a53",
   },
   errorText: {
     color: "#c14953",

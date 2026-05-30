@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useEffect } from "react";
+import React, { PropsWithChildren, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -13,14 +13,19 @@ import {
   TextInputProps,
   View,
   ViewStyle,
+  TextStyle,
+  Easing,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNetInfo } from "@react-native-community/netinfo";
+import { Ionicons } from "@expo/vector-icons";
+import { c } from "../theme/colors";
 
 type ScreenShellProps = PropsWithChildren<{
   title: string;
   subtitle?: string;
   scrollable?: boolean;
+  noScroll?: boolean;
   rightAction?: React.ReactNode;
   refreshing?: boolean;
   onRefresh?: () => void;
@@ -30,6 +35,7 @@ export function ScreenShell({
   title,
   subtitle,
   scrollable = true,
+  noScroll = false,
   rightAction,
   refreshing,
   onRefresh,
@@ -49,6 +55,28 @@ export function ScreenShell({
     scrollProps.refreshControl = <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />;
   }
 
+  const content = (
+    <>
+      {isOffline ? <OfflineBanner /> : null}
+      {children}
+    </>
+  );
+
+  if (noScroll) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.headerRow}>
+          <View style={styles.headerTextWrap}>
+            <Text style={styles.headerTitle}>{title}</Text>
+            {subtitle ? <Text style={styles.headerSubtitle}>{subtitle}</Text> : null}
+          </View>
+          {rightAction ? <View>{rightAction}</View> : null}
+        </View>
+        <View style={{ flex: 1 }}>{content}</View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.headerRow}>
@@ -58,8 +86,7 @@ export function ScreenShell({
         </View>
         {rightAction ? <View>{rightAction}</View> : null}
       </View>
-      {isOffline ? <OfflineBanner /> : null}
-      {scrollable ? <ScrollView {...scrollProps}>{children}</ScrollView> : <View style={styles.body}>{children}</View>}
+      {scrollable ? <ScrollView {...scrollProps}>{content}</ScrollView> : <View style={styles.body}>{content}</View>}
     </SafeAreaView>
   );
 }
@@ -154,7 +181,7 @@ export function SectionTitle({ title, caption }: { title: string; caption?: stri
   );
 }
 
-export function Badge({ label, tone = "neutral" }: { label: string; tone?: "neutral" | "success" | "warning" | "danger" }): React.JSX.Element {
+export function Badge({ label, tone = "neutral" }: { label: string; tone?: "neutral" | "success" | "warning" | "danger" | "info" }): React.JSX.Element {
   const toneStyle =
     tone === "success"
       ? styles.badgeSuccess
@@ -162,7 +189,9 @@ export function Badge({ label, tone = "neutral" }: { label: string; tone?: "neut
         ? styles.badgeWarning
         : tone === "danger"
           ? styles.badgeDanger
-          : styles.badgeNeutral;
+          : tone === "info"
+            ? styles.badgeInfo
+            : styles.badgeNeutral;
 
   const toneLabelStyle =
     tone === "success"
@@ -171,7 +200,9 @@ export function Badge({ label, tone = "neutral" }: { label: string; tone?: "neut
         ? styles.badgeLabelWarning
         : tone === "danger"
           ? styles.badgeLabelDanger
-          : styles.badgeLabelNeutral;
+          : tone === "info"
+            ? styles.badgeLabelInfo
+            : styles.badgeLabelNeutral;
 
   return (
     <View style={[styles.badge, toneStyle]}>
@@ -213,30 +244,54 @@ export function StatusBanner({
 }
 
 export function PrimaryButton({
-  label,
-  onPress,
-  disabled,
-  loading,
-}: {
-  label: string;
-  onPress: () => void;
-  disabled?: boolean;
-  loading?: boolean;
-}): React.JSX.Element {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled || loading}
-      style={({ pressed }) => [
-        styles.primaryButton,
-        (disabled || loading) && styles.buttonDisabled,
-        pressed && !disabled && !loading && styles.buttonPressed,
-      ]}
-    >
-      {loading ? <ActivityIndicator color="#ffffff" /> : <Text style={styles.primaryButtonText}>{label}</Text>}
-    </Pressable>
-  );
-}
+   label,
+   onPress,
+   disabled,
+   loading,
+ }: {
+   label: string;
+   onPress: () => void;
+   disabled?: boolean;
+   loading?: boolean;
+ }): React.JSX.Element {
+   const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+   const handlePressIn = () => {
+     Animated.spring(scaleAnim, {
+       toValue: 0.97,
+       useNativeDriver: true,
+       speed: 50,
+       bounciness: 0,
+     }).start();
+   };
+
+   const handlePressOut = () => {
+     Animated.spring(scaleAnim, {
+       toValue: 1,
+       useNativeDriver: true,
+       speed: 30,
+       bounciness: 4,
+     }).start();
+   };
+
+   return (
+     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+       <Pressable
+         onPressIn={handlePressIn}
+         onPressOut={handlePressOut}
+         onPress={onPress}
+         disabled={disabled || loading}
+         style={({ pressed }) => [
+           styles.primaryButton,
+           (disabled || loading) && styles.buttonDisabled,
+           pressed && !disabled && !loading && styles.buttonPressed,
+         ]}
+       >
+         {loading ? <ActivityIndicator color="#ffffff" /> : <Text style={styles.primaryButtonText}>{label}</Text>}
+       </Pressable>
+     </Animated.View>
+   );
+ }
 
 export function SecondaryButton({
   label,
@@ -258,6 +313,58 @@ export function SecondaryButton({
       ]}
     >
       <Text style={styles.secondaryButtonText}>{label}</Text>
+    </Pressable>
+  );
+}
+
+export function TextButton({
+  label,
+  onPress,
+  disabled,
+}: {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+}): React.JSX.Element {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={({ pressed }) => [
+        styles.textButton,
+        disabled && styles.buttonDisabled,
+        pressed && !disabled && styles.buttonPressed,
+      ]}
+    >
+      <Text style={styles.textButtonText}>{label}</Text>
+    </Pressable>
+  );
+}
+
+type TabIconName = React.ComponentProps<typeof Ionicons>["name"];
+
+export function IconButton({
+  icon,
+  onPress,
+  disabled,
+  size = 24,
+}: {
+  icon: TabIconName;
+  onPress: () => void;
+  disabled?: boolean;
+  size?: number;
+}): React.JSX.Element {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={({ pressed }) => [
+        styles.iconButton,
+        disabled && styles.buttonDisabled,
+        pressed && !disabled && styles.buttonPressed,
+      ]}
+    >
+      <Ionicons name={icon} size={size} color="#117a85" />
     </Pressable>
   );
 }
@@ -315,7 +422,7 @@ export function Skeleton({ width, height, borderRadius = 4, style }: { width: nu
     ).start();
   }, [opacity]);
 
-  return <Animated.View style={[{ width: width as number, height, borderRadius, backgroundColor: "#e5e7e8" }, style, { opacity }]} />;
+  return <Animated.View style={[{ width: width as number, height, borderRadius, backgroundColor: c.neutral200 }, style, { opacity }]} />;
 }
 
 export function SkeletonList({ count = 3 }: { count?: number }): React.JSX.Element {
@@ -333,45 +440,149 @@ export function SkeletonList({ count = 3 }: { count?: number }): React.JSX.Eleme
 }
 
 export function ConfirmationDialog({
-  visible,
-  title,
-  message,
-  confirmLabel = "Ya",
-  cancelLabel = "Batal",
-  onConfirm,
-  onCancel,
-}: {
-  visible: boolean;
-  title: string;
-  message: string;
-  confirmLabel?: string;
-  cancelLabel?: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-}): React.JSX.Element | null {
-  if (!visible) {
-    return null;
+   visible,
+   title,
+   message,
+   confirmLabel = "Ya",
+   cancelLabel = "Batal",
+   onConfirm,
+   onCancel,
+ }: {
+   visible: boolean;
+   title: string;
+   message: string;
+   confirmLabel?: string;
+   cancelLabel?: string;
+   onConfirm: () => void;
+   onCancel: () => void;
+ }): React.JSX.Element | null {
+   if (!visible) {
+     return null;
+   }
+
+   return (
+     <View style={styles.dialogOverlay}>
+       <View style={styles.dialogBox}>
+         <Text style={styles.dialogTitle}>{title}</Text>
+         <Text style={styles.dialogMessage}>{message}</Text>
+         <View style={styles.dialogButtons}>
+           <SecondaryButton label={cancelLabel} onPress={onCancel} />
+           <PrimaryButton label={confirmLabel} onPress={onConfirm} />
+         </View>
+       </View>
+     </View>
+   );
+ }
+
+interface AnimatedProgressBarProps {
+   progress: number;
+   height?: number;
+   color?: string;
+   backgroundColor?: string;
+   duration?: number;
+   style?: ViewStyle;
+ }
+
+export function AnimatedProgressBar({
+   progress,
+   height = 6,
+   color = c.primary,
+   backgroundColor = c.neutral200,
+   duration = 800,
+   style,
+  }: AnimatedProgressBarProps): React.JSX.Element {
+   const widthAnim = React.useRef(new Animated.Value(0)).current;
+
+   useEffect(() => {
+     Animated.timing(widthAnim, {
+       toValue: progress,
+       duration,
+       delay: 200,
+       useNativeDriver: false,
+     }).start();
+   }, [progress, duration, widthAnim]);
+
+   return (
+     <View
+       style={[
+         { height, backgroundColor, borderRadius: height / 2, overflow: "hidden" },
+         style,
+       ]}
+     >
+       <Animated.View
+         style={{
+           height,
+           borderRadius: height / 2,
+           backgroundColor: color,
+           width: widthAnim.interpolate({
+             inputRange: [0, 100],
+             outputRange: ["0%", "100%"],
+           }),
+         }}
+       />
+     </View>
+   );
   }
 
-  return (
-    <View style={styles.dialogOverlay}>
-      <View style={styles.dialogBox}>
-        <Text style={styles.dialogTitle}>{title}</Text>
-        <Text style={styles.dialogMessage}>{message}</Text>
-        <View style={styles.dialogButtons}>
-          <SecondaryButton label={cancelLabel} onPress={onCancel} />
-          <PrimaryButton label={confirmLabel} onPress={onConfirm} />
-        </View>
-      </View>
-    </View>
-  );
-}
+interface CountUpNumberProps {
+   value: number;
+   duration?: number;
+   suffix?: string;
+   prefix?: string;
+   style?: TextStyle;
+   decimals?: number;
+  }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#f2f7f8",
-  },
+export function CountUpNumber({
+    value,
+    duration = 1000,
+    suffix = "",
+    prefix = "",
+    style,
+    decimals = 0,
+  }: CountUpNumberProps): React.JSX.Element {
+    const [displayValue, setDisplayValue] = useState(0);
+    const startTime = useRef<number | null>(null);
+    const frameRef = useRef<ReturnType<typeof requestAnimationFrame> | null>(null);
+    const startValue = useRef(0);
+
+    useEffect(() => {
+      startValue.current = 0;
+      startTime.current = null;
+
+      const animate = (timestamp: number) => {
+        if (startTime.current === null) startTime.current = timestamp;
+        const elapsed = timestamp - startTime.current;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = startValue.current + (value - startValue.current) * eased;
+        setDisplayValue(
+          Math.round(current * Math.pow(10, decimals)) / Math.pow(10, decimals)
+        );
+        if (progress < 1) {
+          frameRef.current = requestAnimationFrame(animate);
+        }
+      };
+
+      frameRef.current = requestAnimationFrame(animate);
+
+      return () => {
+        if (frameRef.current) cancelAnimationFrame(frameRef.current);
+      };
+    }, [value, duration, decimals]);
+
+    return (
+      <Text style={style}>
+        {prefix}{displayValue.toFixed(decimals)}{suffix}
+      </Text>
+    );
+  }
+
+  const styles = StyleSheet.create({
+   safeArea: {
+     flex: 1,
+     backgroundColor: c.neutral50,
+   },
   headerRow: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -380,8 +591,8 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#d5e3e5",
-    backgroundColor: "#edf5f6",
+    borderBottomColor: c.neutral200,
+    backgroundColor: "#ffffff",
   },
   headerTextWrap: {
     flex: 1,
@@ -414,16 +625,16 @@ const styles = StyleSheet.create({
     paddingBottom: 98,
   },
   card: {
-    borderRadius: 16,
-    padding: 15,
+    borderRadius: 8,
+    padding: 16,
     backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#d7e5e8",
+    borderColor: c.neutral200,
     gap: 8,
     shadowColor: "#0f2f38",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
     elevation: 2,
   },
   sectionHeader: {
@@ -449,50 +660,56 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   badgeNeutral: {
-    backgroundColor: "#e7f0f3",
+    backgroundColor: c.neutral100,
   },
   badgeSuccess: {
-    backgroundColor: "#dcf6e4",
+    backgroundColor: c.success.bg,
   },
   badgeWarning: {
-    backgroundColor: "#fff3d3",
+    backgroundColor: c.warning.bg,
   },
-  badgeDanger: {
-    backgroundColor: "#ffe2dd",
-  },
-  badgeLabelNeutral: {
-    color: "#35546b",
-  },
-  badgeLabelSuccess: {
-    color: "#2f6a44",
-  },
-  badgeLabelWarning: {
-    color: "#805f24",
-  },
-  badgeLabelDanger: {
-    color: "#8e3128",
-  },
-  statusBanner: {
-    borderRadius: 12,
+badgeDanger: {
+     backgroundColor: c.danger.bg,
+   },
+   badgeInfo: {
+     backgroundColor: c.info.bg,
+   },
+   badgeLabelNeutral: {
+     color: c.neutral600,
+   },
+   badgeLabelSuccess: {
+     color: c.success.text,
+   },
+   badgeLabelWarning: {
+     color: c.warning.text,
+   },
+   badgeLabelDanger: {
+     color: c.danger.text,
+   },
+   badgeLabelInfo: {
+     color: c.info.text,
+   },
+   statusBanner: {
+    borderRadius: 8,
     borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   statusBannerInfo: {
-    borderColor: "#b9d6dc",
-    backgroundColor: "#eef8fa",
+    borderColor: c.info.border,
+    backgroundColor: c.info.bg,
   },
   statusBannerSuccess: {
-    borderColor: "#b7ddc2",
-    backgroundColor: "#edf9f1",
+    borderColor: c.success.border,
+    backgroundColor: c.success.bg,
   },
   statusBannerWarning: {
-    borderColor: "#e7d2a0",
-    backgroundColor: "#fff7e5",
+    borderColor: c.warning.border,
+    backgroundColor: c.warning.bg,
   },
   statusBannerDanger: {
-    borderColor: "#e2b8b3",
-    backgroundColor: "#fff0ee",
+    borderColor: c.danger.border,
+    backgroundColor: c.danger.bg,
   },
   statusBannerText: {
     fontSize: 13,
@@ -500,24 +717,24 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   statusBannerTextInfo: {
-    color: "#1f5661",
+    color: c.info.text,
   },
   statusBannerTextSuccess: {
-    color: "#296747",
+    color: c.success.text,
   },
   statusBannerTextWarning: {
-    color: "#795a1f",
+    color: c.warning.text,
   },
   statusBannerTextDanger: {
-    color: "#8c3128",
+    color: c.danger.text,
   },
   primaryButton: {
-    borderRadius: 12,
-    minHeight: 46,
+    borderRadius: 8,
+    minHeight: 36,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#1a6d78",
-    paddingHorizontal: 14,
+    backgroundColor: c.primary600,
+    paddingHorizontal: 24,
   },
   primaryButtonText: {
     color: "#ffffff",
@@ -525,19 +742,40 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   secondaryButton: {
-    borderRadius: 12,
-    minHeight: 44,
+    borderRadius: 8,
+    minHeight: 40,
+    minWidth: 44,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#a3c0c6",
-    backgroundColor: "#eff8fa",
-    paddingHorizontal: 14,
+    borderColor: c.neutral300,
+    backgroundColor: c.neutral50,
+    paddingHorizontal: 20,
   },
   secondaryButtonText: {
-    color: "#1c5660",
+    color: c.primary600,
     fontWeight: "700",
     fontSize: 14,
+  },
+  textButton: {
+    minHeight: 44,
+    minWidth: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 8,
+  },
+  textButtonText: {
+    color: c.primary600,
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  iconButton: {
+    minHeight: 44,
+    minWidth: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 8,
   },
   buttonPressed: {
     opacity: 0.82,
@@ -549,7 +787,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   inputLabel: {
-    color: "#1b4a55",
+    color: c.neutral700,
     fontSize: 12,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -557,34 +795,34 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: "#bfd4d8",
-    borderRadius: 10,
+    borderColor: c.neutral300,
+    borderRadius: 6,
     backgroundColor: "#ffffff",
-    color: "#132e37",
-    minHeight: 44,
+    color: c.neutral800,
+    minHeight: 40,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
+    paddingVertical: 8,
+    fontSize: 16,
   },
   inputFocused: {
-    borderColor: "#4f98a2",
-    backgroundColor: "#f7fcfd",
+    borderColor: c.primary600,
+    backgroundColor: "#ffffff",
   },
   inputHint: {
-    color: "#547078",
+    color: c.neutral500,
     fontSize: 12,
   },
   emptyWrap: {
     borderWidth: 1,
-    borderColor: "#cadee2",
+    borderColor: c.neutral200,
     borderStyle: "dashed",
-    borderRadius: 12,
+    borderRadius: 8,
     paddingVertical: 16,
     paddingHorizontal: 14,
-    backgroundColor: "#f8fbfc",
+    backgroundColor: c.neutral50,
   },
   emptyText: {
-    color: "#55707a",
+    color: c.neutral500,
     fontSize: 13,
   },
   emptyAction: {
@@ -592,7 +830,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   emptyActionText: {
-    color: "#1a6d78",
+    color: c.primary600,
     fontSize: 13,
     fontWeight: "700",
   },
@@ -615,7 +853,7 @@ const styles = StyleSheet.create({
   },
   dialogBox: {
     backgroundColor: "#ffffff",
-    borderRadius: 16,
+    borderRadius: 8,
     padding: 20,
     width: "100%",
     maxWidth: 340,
@@ -624,11 +862,11 @@ const styles = StyleSheet.create({
   dialogTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#102f38",
+    color: c.neutral800,
   },
   dialogMessage: {
     fontSize: 14,
-    color: "#4a6a73",
+    color: c.neutral500,
     lineHeight: 20,
   },
   dialogButtons: {
@@ -637,15 +875,15 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   offlineBanner: {
-    backgroundColor: "#fff3d3",
+    backgroundColor: c.warning.bg,
     borderBottomWidth: 1,
-    borderBottomColor: "#e7d2a0",
+    borderBottomColor: c.warning.border,
     paddingVertical: 8,
     paddingHorizontal: 16,
     alignItems: "center",
   },
   offlineBannerText: {
-    color: "#805f24",
+    color: c.warning.text,
     fontSize: 12,
     fontWeight: "700",
   },

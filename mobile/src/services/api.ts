@@ -7,6 +7,7 @@ import {
   DailyReport,
   DocumentItem,
   FaqItem,
+  HandoverInfo,
   InvoiceItem,
   IssueItem,
   Milestone,
@@ -17,7 +18,7 @@ import {
   Unit,
 } from "../types";
 import {
-  addIssue,
+   addIssue,
   authenticateMock,
   createTicket,
   getBillingData,
@@ -28,10 +29,10 @@ import {
   getMilestones,
   getNotifications,
   getProjectSummaries,
-  getProjects,
   getSupportData,
   getUnits,
   markNotificationsRead,
+  mockHandoverInfo,
   replyToTicket as mockReplyToTicket,
   updateIssueStatus,
   updateMilestone,
@@ -39,7 +40,7 @@ import {
 } from "./mock-data";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
-const REQUEST_TIMEOUT_MS = 2500;
+const REQUEST_TIMEOUT_MS = 10000;
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -573,7 +574,7 @@ export async function replyToTicket(
 }
 
 import {
-  getAttendanceHistory,
+   getAttendanceHistory,
   getAttendanceSummary,
   getDailyReports,
   getDailyReport,
@@ -581,6 +582,7 @@ import {
   saveDailyReport,
   updateAttendance,
 } from "./mock-data";
+export { mockHandoverInfo } from "./mock-data";
 
 export async function getFieldAttendanceHistory(
   auth: AuthState | null,
@@ -752,5 +754,17 @@ export async function submitDailyReport(
       userName: session.user.fullName,
       ...payload,
     });
+  }
+}
+
+export async function getHandoverInfo(unitId: string): Promise<HandoverInfo> {
+  try {
+    const response = await requestJson<HandoverInfo | { data: HandoverInfo }>(`/mobile/customer/handover/${unitId}`);
+    return unwrapData(response);
+  } catch {
+    return {
+      ...mockHandoverInfo,
+      unitId,
+    };
   }
 }

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 
 import {
   Badge,
@@ -15,6 +15,7 @@ import {
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { getFieldUnits, getProjectOptions } from "../../services/api";
+import { colors } from "../../theme/colors";
 import { ProjectSummary, Unit } from "../../types";
 import { formatUnitStatusLabel } from "../../utils/format";
 
@@ -30,7 +31,6 @@ function toneByStatus(status: Unit["status"]): "success" | "warning" | "neutral"
 
 export function FieldUnitsScreen(): React.JSX.Element {
    const { auth } = useAuth();
-   const navigation = useNavigation();
 
    const [projects, setProjects] = useState<ProjectSummary[]>([]);
    const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>(undefined);
@@ -40,42 +40,33 @@ export function FieldUnitsScreen(): React.JSX.Element {
    const [isRefreshing, setIsRefreshing] = useState(false);
    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-   const handleUnitPress = useCallback(
-    (unitId: string) => {
-      (navigation as { navigate: (route: string, params?: object) => void }).navigate("UnitDetail", {
-        unitId,
-      });
-    },
-    [navigation]
-  );
-
    const loadProjects = useCallback(async () => {
-     if (!auth) {
-       return;
-     }
+      if (!auth) {
+        return;
+      }
 
-     const data = await getProjectOptions(auth);
-     setProjects(data);
-     if (!selectedProjectId && data[0]) {
-       setSelectedProjectId(data[0].id);
-     }
-   }, [auth, selectedProjectId]);
+      const data = await getProjectOptions(auth);
+      setProjects(data);
+      if (!selectedProjectId && data[0]) {
+        setSelectedProjectId(data[0].id);
+      }
+    }, [auth, selectedProjectId]);
 
-   const loadUnits = useCallback(async () => {
-     if (!auth) {
-       return;
-     }
+    const loadUnits = useCallback(async () => {
+      if (!auth) {
+        return;
+      }
 
-     setErrorMessage(null);
-     try {
-       const data = await getFieldUnits(auth, { projectId: selectedProjectId, search });
-       setUnits(data);
-     } catch (error) {
-       setErrorMessage(error instanceof Error ? error.message : "Gagal memuat data unit");
-     }
-   }, [auth, search, selectedProjectId]);
+      setErrorMessage(null);
+      try {
+        const data = await getFieldUnits(auth, { projectId: selectedProjectId, search });
+        setUnits(data);
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : "Gagal memuat data unit");
+      }
+    }, [auth, search, selectedProjectId]);
 
-   const handleRefresh = useCallback(async () => {
+    const handleRefresh = useCallback(async () => {
      setIsRefreshing(true);
      setErrorMessage(null);
      try {
@@ -312,9 +303,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#e0ecee",
     overflow: "hidden",
   },
-  progressFill: {
-    height: "100%",
-    backgroundColor: "#1f7f8a",
-    borderRadius: 999,
-  },
+progressFill: {
+     height: "100%",
+     backgroundColor: colors.primary,
+     borderRadius: 999,
+   },
 });

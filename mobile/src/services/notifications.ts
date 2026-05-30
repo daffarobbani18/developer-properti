@@ -196,6 +196,16 @@ export async function registerDeviceForPush(
 ): Promise<PushRegistrationResult> {
   configureNotificationBehavior();
 
+  const appOwnership = (Constants as any).appOwnership as string | null;
+  if (appOwnership === 'expo') {
+    console.log('[Notifications] Skipping push token registration in Expo Go (not supported since SDK 53)');
+    return {
+      token: null,
+      enabled: false,
+      message: "Push notification tidak didukung di Expo Go.",
+    };
+  }
+
   if (!isPhysicalDevice()) {
     return {
       token: null,

@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 import {
@@ -12,6 +12,7 @@ import {
   StatusBanner,
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
+import { colors } from "../../theme/colors";
 import { getFieldUnits, getUnitMilestones } from "../../services/api";
 import { Milestone, Unit } from "../../types";
 import { formatDate, formatMilestoneStatusLabel, formatUnitStatusLabel, inferBannerTone } from "../../utils/format";
@@ -168,11 +169,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#e0ecee",
     overflow: "hidden",
   },
-  progressFill: {
-    height: "100%",
-    backgroundColor: "#1f7f8a",
-    borderRadius: 999,
-  },
+progressFill: {
+     height: "100%",
+     backgroundColor: colors.primary,
+     borderRadius: 999,
+   },
   progressText: {
     textAlign: "center",
     color: "#184b55",

@@ -1,6 +1,3 @@
-import React from "react";
-import { render } from "@testing-library/react-native";
-
 import { formatCurrency, formatDate, formatMilestoneStatusLabel, formatUnitStatusLabel } from "../../src/utils/format";
 
 describe("Format Utilities", () => {

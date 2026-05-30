@@ -1,25 +1,29 @@
 import React, { useCallback, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import {
   Badge,
   Card,
   EmptyState,
-  ScreenShell,
   SecondaryButton,
+  ScreenShell,
+  TextButton,
   SectionTitle,
+  SkeletonList,
   StatusBanner,
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { useOfflineQueue } from "../../hooks/useOfflineQueue";
 import { getFieldProjects, getRoleNotifications } from "../../services/api";
 import { ProjectSummary } from "../../types";
-import { inferBannerTone } from "../../utils/format";
+import { formatErrorMessage, inferBannerTone } from "../../utils/format";
+import type { PengawasStackParamList } from "../../navigation/types";
 
-export function FieldHomeScreen({ globalBanner }: { globalBanner?: string | null }): React.JSX.Element {
+export function FieldHomeScreen(): React.JSX.Element {
   const { auth, signOut } = useAuth();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<PengawasStackParamList>>();
   const { queueCount, isSyncing } = useOfflineQueue(auth);
 
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
@@ -43,7 +47,7 @@ export function FieldHomeScreen({ globalBanner }: { globalBanner?: string | null
 
   const goToTab = useCallback(
     (tabName: "Milestone" | "Unit" | "Kendala" | "Notifikasi") => {
-      (navigation as { navigate: (routeName: string) => void }).navigate(tabName);
+      navigation.navigate(tabName as never);
     },
     [navigation]
   );
@@ -61,7 +65,7 @@ export function FieldHomeScreen({ globalBanner }: { globalBanner?: string | null
           }
         } catch (error) {
           if (!cancelled) {
-            setBanner(error instanceof Error ? error.message : "Gagal memuat dashboard lapangan");
+            setBanner(formatErrorMessage(error));
           }
         } finally {
           if (!cancelled) {
@@ -80,8 +84,8 @@ export function FieldHomeScreen({ globalBanner }: { globalBanner?: string | null
     <ScreenShell
       title="Dashboard Lapangan"
       subtitle={auth ? `${auth.user.fullName} • ${auth.user.role}` : ""}
-      rightAction={<SecondaryButton label="Logout" onPress={() => void signOut()} />}
-    >
+rightAction={<TextButton label="Logout" onPress={() => void signOut()} />}
+     >
 <View style={styles.highlightRow}>
          <Card style={styles.highlightCard}>
            <Text style={styles.highlightLabel}>Queue Offline</Text>
@@ -143,7 +147,7 @@ export function FieldHomeScreen({ globalBanner }: { globalBanner?: string | null
             try {
               await loadData();
             } catch (error) {
-              setBanner(error instanceof Error ? error.message : "Gagal memuat dashboard lapangan");
+              setBanner(formatErrorMessage(error));
             } finally {
               setIsLoading(false);
             }
@@ -151,18 +155,14 @@ export function FieldHomeScreen({ globalBanner }: { globalBanner?: string | null
         }}
       />
 
-      {banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
+{banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
 
-      {globalBanner ? <StatusBanner message={globalBanner} tone={inferBannerTone(globalBanner)} /> : null}
-
-      <Card>
+       <Card>
         <Text style={styles.sectionTitle}>Ringkasan Proyek</Text>
       </Card>
 
       {isLoading ? (
-        <Card>
-          <Text style={styles.loadingText}>Memuat ringkasan proyek...</Text>
-        </Card>
+        <SkeletonList count={3} />
       ) : projects.length === 0 ? (
         <EmptyState message="Belum ada proyek yang terdaftar untuk akun ini." />
       ) : (
@@ -191,91 +191,90 @@ export function FieldHomeScreen({ globalBanner }: { globalBanner?: string | null
 }
 
 const styles = StyleSheet.create({
-  highlightRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
-  highlightCard: {
-    flex: 1,
-    minWidth: 148,
-  },
-  highlightLabel: {
-    color: "#3a5f67",
+   highlightRow: {
+     flexDirection: "row",
+     flexWrap: "wrap",
+     gap: 12,
+   },
+   highlightCard: {
+     flex: 1,
+     minWidth: 148,
+   },
+highlightLabel: {
+    color: "#475569",
     fontSize: 12,
     fontWeight: "700",
-    textTransform: "uppercase",
   },
-  highlightValue: {
-    color: "#123d47",
-    fontSize: 26,
-    fontWeight: "800",
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#153f49",
-  },
-  loadingText: {
-    color: "#4f6f77",
-    fontSize: 14,
-  },
-  quickActionGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  quickActionBtn: {
-    flexGrow: 1,
-    flexBasis: "48%",
-    minHeight: 72,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#cae1e5",
-    backgroundColor: "#f4fbfc",
-    paddingHorizontal: 10,
-    paddingVertical: 9,
-    justifyContent: "center",
-    gap: 2,
-  },
-  quickActionBtnPressed: {
-    opacity: 0.86,
-  },
-  quickActionTitle: {
-    color: "#184a55",
-    fontSize: 13,
-    fontWeight: "800",
-  },
-  quickActionCaption: {
-    color: "#4a7078",
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  projectListWrap: {
-    gap: 10,
-  },
-  projectName: {
-    color: "#123b45",
-    fontSize: 16,
-    fontWeight: "800",
-  },
-  projectMetaRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  projectMeta: {
-    color: "#43616b",
-    fontSize: 13,
-  },
-  progressTrack: {
-    height: 10,
-    borderRadius: 999,
-    backgroundColor: "#e1ecec",
-    overflow: "hidden",
-  },
-  progressFill: {
+   highlightValue: {
+     color: "#0f172a",
+     fontSize: 24,
+     fontWeight: "800",
+   },
+   sectionTitle: {
+     fontSize: 16,
+     fontWeight: "700",
+     color: "#1e293b",
+   },
+   loadingText: {
+     color: "#64748b",
+     fontSize: 14,
+   },
+   quickActionGrid: {
+     flexDirection: "row",
+     flexWrap: "wrap",
+     gap: 8,
+   },
+   quickActionBtn: {
+     flexGrow: 1,
+     flexBasis: "48%",
+     minHeight: 72,
+     borderRadius: 8,
+     borderWidth: 1,
+     borderColor: "#e2e8f0",
+     backgroundColor: "#ffffff",
+     paddingHorizontal: 10,
+     paddingVertical: 9,
+     justifyContent: "center",
+     gap: 2,
+   },
+   quickActionBtnPressed: {
+     opacity: 0.86,
+   },
+   quickActionTitle: {
+     color: "#1e4459",
+     fontSize: 13,
+     fontWeight: "700",
+   },
+   quickActionCaption: {
+     color: "#64748b",
+     fontSize: 11,
+     fontWeight: "500",
+   },
+   projectListWrap: {
+     gap: 12,
+   },
+   projectName: {
+     color: "#1e293b",
+     fontSize: 16,
+     fontWeight: "700",
+   },
+   projectMetaRow: {
+     flexDirection: "row",
+     justifyContent: "space-between",
+   },
+   projectMeta: {
+     color: "#64748b",
+     fontSize: 13,
+   },
+   progressTrack: {
+     height: 10,
+     borderRadius: 999,
+     backgroundColor: "#e2e8f0",
+     overflow: "hidden",
+   },
+progressFill: {
     height: "100%",
     borderRadius: 999,
-    backgroundColor: "#20818c",
+    backgroundColor: "#1a6d78",
   },
-});
+ });

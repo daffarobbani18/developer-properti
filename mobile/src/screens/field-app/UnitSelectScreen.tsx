@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import {
   Badge,
@@ -14,10 +15,14 @@ import {
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { getFieldUnits } from "../../services/api";
+import { colors } from "../../theme/colors";
 import { Unit } from "../../types";
 import { formatUnitStatusLabel } from "../../utils/format";
+import type { FieldStackParamList } from "../../navigation/types";
 
-type RouteParams = { projectId: string };
+type UnitSelectRouteParams = {
+  projectId?: string;
+};
 
 function toneByStatus(status: Unit["status"]): "success" | "warning" | "neutral" {
   if (status === "DONE") {
@@ -31,9 +36,9 @@ function toneByStatus(status: Unit["status"]): "success" | "warning" | "neutral"
 
 export function UnitSelectScreen(): React.JSX.Element {
   const { auth } = useAuth();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<FieldStackParamList>>();
   const route = useRoute();
-  const { projectId } = route.params as RouteParams;
+  const projectId = (route.params as UnitSelectRouteParams | undefined)?.projectId ?? null;
 
   const [search, setSearch] = useState("");
   const [units, setUnits] = useState<Unit[]>([]);
@@ -47,7 +52,7 @@ export function UnitSelectScreen(): React.JSX.Element {
 
     setErrorMessage(null);
     try {
-      const data = await getFieldUnits(auth, { projectId, search });
+      const data = await getFieldUnits(auth, { projectId: projectId ?? undefined, search });
       setUnits(data);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Gagal memuat data unit");
@@ -92,7 +97,7 @@ export function UnitSelectScreen(): React.JSX.Element {
 
   const handleSelectUnit = useCallback(
     (unit: Unit) => {
-      (navigation as { navigate: (route: string, params?: object) => void }).navigate("MilestoneList", {
+      navigation.navigate("MilestoneList", {
         unitId: unit.id,
         unitCode: unit.code,
       });
@@ -100,8 +105,30 @@ export function UnitSelectScreen(): React.JSX.Element {
     [navigation]
   );
 
+  const renderUnitItem = useCallback(
+    ({ item }: { item: Unit }) => (
+      <Card>
+        <Pressable
+          onPress={() => handleSelectUnit(item)}
+          style={({ pressed }) => [styles.unitCard, pressed && styles.unitCardPressed]}
+        >
+          <View style={styles.rowTop}>
+            <Text style={styles.unitCode}>{item.code}</Text>
+            <Badge label={formatUnitStatusLabel(item.status)} tone={toneByStatus(item.status)} />
+          </View>
+          <Text style={styles.unitType}>{item.typeName}</Text>
+          <Text style={styles.unitMeta}>Progres: {item.progress}%</Text>
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, { width: `${Math.max(4, item.progress)}%` }]} />
+          </View>
+        </Pressable>
+      </Card>
+    ),
+    [handleSelectUnit]
+  );
+
   return (
-    <ScreenShell title="Pilih Unit" subtitle={`Proyek ${projectId}`}>
+    <ScreenShell title="Pilih Unit" subtitle={projectId ? `Proyek ${projectId}` : "Semua Proyek"} noScroll>
       <Card>
         <SectionTitle title="Filter Unit" caption="Cari unit berdasarkan kode atau tipe" />
         <LabeledInput
@@ -137,29 +164,14 @@ export function UnitSelectScreen(): React.JSX.Element {
         <Card>
           <Text style={styles.loadingText}>Memuat unit...</Text>
         </Card>
-      ) : units.length === 0 ? (
-        <EmptyState message="Tidak ada unit di proyek ini." />
       ) : (
-        <View style={styles.listWrap}>
-          {units.map((unit) => (
-            <Card key={unit.id}>
-              <Pressable
-                onPress={() => handleSelectUnit(unit)}
-                style={({ pressed }) => [styles.unitCard, pressed && styles.unitCardPressed]}
-              >
-                <View style={styles.rowTop}>
-                  <Text style={styles.unitCode}>{unit.code}</Text>
-                  <Badge label={formatUnitStatusLabel(unit.status)} tone={toneByStatus(unit.status)} />
-                </View>
-                <Text style={styles.unitType}>{unit.typeName}</Text>
-                <Text style={styles.unitMeta}>Progres: {unit.progress}%</Text>
-                <View style={styles.progressTrack}>
-                  <View style={[styles.progressFill, { width: `${Math.max(4, unit.progress)}%` }]} />
-                </View>
-              </Pressable>
-            </Card>
-          ))}
-        </View>
+        <FlatList
+          data={units}
+          keyExtractor={(item) => item.id}
+          renderItem={renderUnitItem}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={<EmptyState message="Tidak ada unit di proyek ini." />}
+        />
       )}
     </ScreenShell>
   );
@@ -196,8 +208,11 @@ const styles = StyleSheet.create({
     color: "#4f6f77",
     fontSize: 14,
   },
-  listWrap: {
+  listContent: {
     gap: 9,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 100,
   },
   unitCard: {
     borderRadius: 12,
@@ -232,9 +247,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#e0ecee",
     overflow: "hidden",
   },
-  progressFill: {
+progressFill: {
     height: "100%",
-    backgroundColor: "#1f7f8a",
+    backgroundColor: colors.primary,
     borderRadius: 999,
   },
 });

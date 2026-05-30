@@ -3,16 +3,18 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 import {
-  Badge,
-  Card,
-  EmptyState,
-  LabeledInput,
-  PrimaryButton,
-  SecondaryButton,
-  ScreenShell,
-  SectionTitle,
-  StatusBanner,
-} from "../../components/ui";
+   Badge,
+   Card,
+   EmptyState,
+   LabeledInput,
+   PrimaryButton,
+   SecondaryButton,
+   ScreenShell,
+   SectionTitle,
+   SkeletonList,
+   StatusBanner,
+ } from "../../components/ui";
+import * as Haptics from "expo-haptics";
 import { useAuth } from "../../hooks/useAuth";
 import { getCustomerBillingData, submitPaymentProof } from "../../services/api";
 import { capturePhoto, pickImages, uploadPhotoForPayment } from "../../services/media";
@@ -160,6 +162,7 @@ export function CustomerBillingScreen(): React.JSX.Element {
         proofUrl: resolvedProofUrl,
       });
 
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setProofUrl("");
       setSelectedProofPhotoUri(null);
       await loadData();
@@ -173,6 +176,7 @@ export function CustomerBillingScreen(): React.JSX.Element {
 
   const takeProofPhoto = useCallback(async () => {
     try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const uri = await capturePhoto();
       if (uri) {
         setSelectedProofPhotoUri(uri);
@@ -184,6 +188,7 @@ export function CustomerBillingScreen(): React.JSX.Element {
 
   const pickProofPhoto = useCallback(async () => {
     try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const uris = await pickImages({ selectionLimit: 1 });
       if (uris[0]) {
         setSelectedProofPhotoUri(uris[0]);
@@ -317,9 +322,7 @@ export function CustomerBillingScreen(): React.JSX.Element {
       {banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
 
       {isLoading ? (
-        <Card>
-          <Text style={styles.loadingText}>Memuat data billing...</Text>
-        </Card>
+        <SkeletonList count={3} />
       ) : (
         <>
           <Card>
