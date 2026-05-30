@@ -228,6 +228,9 @@ export class FinanceService {
         },
       });
     } else if (data.mode === "Auto-Split") {
+      if (booking.paymentMethod.toUpperCase().includes("KPR")) {
+        throw new Error("Mode Auto-Split (Bagi Rata) tidak diizinkan untuk metode pembayaran KPR karena sisa tagihan akan dicairkan oleh Bank.");
+      }
       if (!data.tenor || !data.startDate) throw new Error("Tenor dan Tanggal Mulai wajib diisi untuk mode Auto-Split");
       
       // Calculate remaining balance

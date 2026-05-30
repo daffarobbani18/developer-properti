@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { 
   Bank, FileText, CheckCircle, WarningCircle, CaretRight, 
   UploadSimple, DownloadSimple, User, Building, MapPin, Spinner, X, MagnifyingGlass, Eye, HouseSimple, Columns, ListBullets
@@ -33,6 +34,7 @@ export default function PipelineKprPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [mounted, setMounted] = useState(false);
   
   // View mode
   const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
@@ -87,15 +89,22 @@ export default function PipelineKprPage() {
   };
 
   useEffect(() => {
+    setMounted(true);
     fetchKpr();
   }, []);
 
   const handleOpenModal = (booking: any) => {
     setSelectedBooking(booking);
+    
+    // Hitung sisa tagihan dasar (Harga Unit - Booking Fee)
+    // Dalam implementasi nyata, jika ada DP tambahan, harus dikurangi juga
+    const unitPrice = booking.unit.totalPrice || booking.unit.price || 0;
+    const sisaTagihan = unitPrice - (booking.bookingFee || 0);
+
     setKprForm({
       status: booking.kprApplication?.status || "Kumpul Berkas",
       bankName: booking.kprApplication?.bankName || "",
-      plafondPengajuan: booking.kprApplication?.plafondPengajuan || 0,
+      plafondPengajuan: booking.kprApplication?.plafondPengajuan || sisaTagihan,
       plafondDisetujui: booking.kprApplication?.plafondDisetujui || 0,
       notes: booking.kprApplication?.notes || ""
     });
@@ -437,8 +446,8 @@ export default function PipelineKprPage() {
       )}
 
       {/* Modal Kelola KPR */}
-      {isModalOpen && selectedBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      {isModalOpen && selectedBooking && mounted && createPortal(
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
             <div className="px-6 py-4 border-b border-zinc-100 flex justify-between items-center bg-zinc-50">
               <div>
@@ -505,16 +514,33 @@ export default function PipelineKprPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-2">Plafond Pengajuan</label>
+                      <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-2 flex justify-between items-center">
+                        Plafond Pengajuan
+                        <button 
+                          onClick={() => {
+                            const unitPrice = selectedBooking.unit.totalPrice || selectedBooking.unit.price || 0;
+                            setKprForm({...kprForm, plafondPengajuan: unitPrice - (selectedBooking.bookingFee || 0)});
+                          }}
+                          className="text-blue-600 hover:text-blue-700 text-[10px] bg-blue-50 px-2 py-0.5 rounded"
+                        >
+                          Isi Sisa Tagihan
+                        </button>
+                      </label>
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-zinc-400">Rp</span>
                         <input 
-                          type="number" 
-                          value={kprForm.plafondPengajuan}
-                          onChange={e => setKprForm({...kprForm, plafondPengajuan: Number(e.target.value)})}
+                          type="text" 
+                          value={kprForm.plafondPengajuan ? new Intl.NumberFormat('id-ID').format(kprForm.plafondPengajuan) : ""}
+                          onChange={e => {
+                            const rawValue = e.target.value.replace(/\D/g, "");
+                            setKprForm({...kprForm, plafondPengajuan: Number(rawValue)});
+                          }}
                           className="w-full border-2 border-zinc-200 bg-white rounded-xl py-3 pl-10 pr-4 text-sm font-black text-zinc-800 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
                         />
                       </div>
+                      <p className="text-[10px] text-zinc-500 mt-2 font-medium">
+                        *Estimasi Sisa Tagihan Unit: <strong className="text-blue-600">Rp {((selectedBooking.unit.totalPrice || selectedBooking.unit.price || 0) - (selectedBooking.bookingFee || 0)).toLocaleString("id-ID")}</strong>
+                      </p>
                     </div>
                     <div>
                       <label className="block text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-2 flex items-center gap-1">
@@ -523,9 +549,12 @@ export default function PipelineKprPage() {
                       <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-zinc-400">Rp</span>
                         <input 
-                          type="number" 
-                          value={kprForm.plafondDisetujui}
-                          onChange={e => setKprForm({...kprForm, plafondDisetujui: Number(e.target.value)})}
+                          type="text" 
+                          value={kprForm.plafondDisetujui ? new Intl.NumberFormat('id-ID').format(kprForm.plafondDisetujui) : ""}
+                          onChange={e => {
+                            const rawValue = e.target.value.replace(/\D/g, "");
+                            setKprForm({...kprForm, plafondDisetujui: Number(rawValue)});
+                          }}
                           disabled={kprForm.status === "Kumpul Berkas" || kprForm.status === "BI Checking" || kprForm.status === "Wawancara Bank"}
                           className="w-full border-2 border-zinc-200 bg-white rounded-xl py-3 pl-10 pr-4 text-sm font-black disabled:bg-zinc-100 disabled:text-zinc-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
                           placeholder="Diisi saat SP3K Terbit"
@@ -655,7 +684,8 @@ export default function PipelineKprPage() {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Toast */}

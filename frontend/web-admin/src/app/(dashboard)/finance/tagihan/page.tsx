@@ -609,8 +609,9 @@ export default function TagihanFinancePage() {
                     {unbilledBalance > 0 ? (
                       <button
                         onClick={() => {
-                          setGenerateMode("Auto-Split");
-                          setInvoiceType("Cicilan Termin");
+                          const isKPR = selectedBooking.paymentMethod.toUpperCase().includes("KPR");
+                          setGenerateMode(isKPR ? "Manual" : "Auto-Split");
+                          setInvoiceType(isKPR ? "Penambahan Uang Muka (DP)" : "Cicilan Termin");
                           setTenor("12");
                           setStartDate("");
                           setIsGenerateModalOpen(true);
@@ -702,15 +703,24 @@ export default function TagihanFinancePage() {
           </DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="flex gap-2 p-1 bg-zinc-100 rounded-xl">
-              <button 
-                onClick={() => setGenerateMode("Auto-Split")}
-                className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${generateMode === "Auto-Split" ? "bg-white shadow text-violet-600" : "text-zinc-500"}`}
-              >Auto-Split (Bagi Rata)</button>
+              {!selectedBooking?.paymentMethod?.toUpperCase().includes("KPR") && (
+                <button 
+                  onClick={() => setGenerateMode("Auto-Split")}
+                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${generateMode === "Auto-Split" ? "bg-white shadow text-violet-600" : "text-zinc-500"}`}
+                >Auto-Split (Bagi Rata)</button>
+              )}
               <button 
                 onClick={() => setGenerateMode("Manual")}
                 className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${generateMode === "Manual" ? "bg-white shadow text-blue-600" : "text-zinc-500"}`}
-              >Manual</button>
+              >Manual (Sekali Bayar)</button>
             </div>
+            
+            {selectedBooking?.paymentMethod?.toUpperCase().includes("KPR") && (
+              <div className="bg-amber-50 text-amber-700 p-3 rounded-xl text-xs font-medium border border-amber-200 shadow-sm flex items-start gap-2">
+                 <ExclamationMark className="shrink-0 text-amber-500 mt-0.5" size={16} weight="bold" />
+                 <span>Untuk pembayaran <b>KPR</b>, sisa tagihan utama akan dicairkan otomatis oleh Bank di akhir (Selesai Akad). Anda hanya diizinkan membuat tagihan manual untuk Uang Muka Tambahan, Pajak, atau Biaya Administrasi Bank.</span>
+              </div>
+            )}
             
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2 block">Tipe Tagihan</label>

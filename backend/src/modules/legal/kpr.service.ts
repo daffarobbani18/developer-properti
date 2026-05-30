@@ -57,6 +57,16 @@ export class KprService {
     let isPlafonTurun = false;
     let selisihPlafon = 0;
 
+    // Aturan Blokir (Siap Akad)
+    if (data.status === "Siap Akad") {
+      const unpaidSelisih = booking.invoices.find(inv => 
+        inv.invoiceType === "Selisih Plafon KPR" && inv.status !== "Paid"
+      );
+      if (unpaidSelisih) {
+        throw new Error("Tidak dapat pindah ke Siap Akad. Tagihan Selisih Plafon KPR belum dilunasi oleh klien.");
+      }
+    }
+
     // Kalkulasi edge case Plafon Turun pada saat SP3K
     if (data.status === "SP3K Terbit" && data.plafondDisetujui !== undefined) {
       // Hitung total DP yang sudah ditagih/dibayar
@@ -67,6 +77,59 @@ export class KprService {
       if (data.plafondDisetujui < expectedKprAmount) {
         isPlafonTurun = true;
         selisihPlafon = expectedKprAmount - data.plafondDisetujui;
+
+        // Auto-generate invoice Selisih Plafon KPR jika belum ada
+        const existingInvoice = booking.invoices.find(inv => inv.invoiceType === "Selisih Plafon KPR");
+        if (!existingInvoice) {
+          const count = await prisma.invoice.count();
+          const invoiceNumber = `INV-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(count + 1).padStart(4, "0")}`;
+          
+          const dueDate = new Date();
+          dueDate.setDate(dueDate.getDate() + 7); // 7 hari jatuh tempo
+
+          await prisma.invoice.create({
+            data: {
+              bookingId,
+              invoiceNumber,
+              invoiceType: "Selisih Plafon KPR",
+              amountDue: selisihPlafon,
+              dueDate,
+              status: "Unpaid"
+            }
+          });
+        }
+      }
+    }
+
+    // Trigger 2: Pencairan KPR Bank saat Selesai Akad
+    if (data.status === "Selesai Akad") {
+      const existingPencairan = booking.invoices.find(inv => inv.invoiceType === "Pencairan KPR Bank");
+      if (!existingPencairan) {
+        // Ambil plafond disetujui
+        let approvedPlafond = data.plafondDisetujui;
+        if (approvedPlafond === undefined) {
+           const kprApp = await prisma.kprApplication.findUnique({ where: { bookingId } });
+           approvedPlafond = kprApp?.plafondDisetujui || 0;
+        }
+
+        if (approvedPlafond && approvedPlafond > 0) {
+          const count = await prisma.invoice.count();
+          const invoiceNumber = `INV-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(count + 1).padStart(4, "0")}`;
+          
+          const dueDate = new Date();
+          dueDate.setDate(dueDate.getDate() + 7); // 7 hari pencairan
+
+          await prisma.invoice.create({
+            data: {
+              bookingId,
+              invoiceNumber,
+              invoiceType: "Pencairan KPR Bank",
+              amountDue: approvedPlafond,
+              dueDate,
+              status: "Unpaid"
+            }
+          });
+        }
       }
     }
 
