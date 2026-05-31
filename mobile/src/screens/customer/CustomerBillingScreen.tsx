@@ -1,21 +1,23 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 import {
-  Badge,
-  Card,
-  EmptyState,
-  LabeledInput,
-  PrimaryButton,
-  SecondaryButton,
-  ScreenShell,
-  SectionTitle,
-  StatusBanner,
-} from "../../components/ui";
+   Badge,
+   Card,
+   EmptyState,
+   LabeledInput,
+   PrimaryButton,
+   SecondaryButton,
+   ScreenShell,
+   SectionTitle,
+   SkeletonList,
+   StatusBanner,
+ } from "../../components/ui";
+import * as Haptics from "expo-haptics";
 import { useAuth } from "../../hooks/useAuth";
 import { getCustomerBillingData, submitPaymentProof } from "../../services/api";
-import { capturePhoto, pickImages } from "../../services/media";
+import { capturePhoto, pickImages, uploadPhotoForPayment } from "../../services/media";
 import { BillingSummary, InvoiceItem, PaymentItem } from "../../types";
 import {
   formatCurrency,
@@ -122,9 +124,7 @@ export function CustomerBillingScreen(): React.JSX.Element {
   );
 
   const submitProof = useCallback(async () => {
-    const resolvedProofUrl = selectedProofPhotoUri ?? proofUrl.trim();
-
-    if (!auth || !selectedInvoiceId || !resolvedProofUrl) {
+    if (!auth || !selectedInvoiceId) {
       setBanner("Pilih invoice dan lampirkan bukti pembayaran (kamera/galeri/URL).");
       return;
     }
@@ -139,12 +139,30 @@ export function CustomerBillingScreen(): React.JSX.Element {
     setBanner(null);
 
     try {
+      let resolvedProofUrl = proofUrl.trim();
+
+      if (selectedProofPhotoUri) {
+        const uploadResult = await uploadPhotoForPayment(selectedProofPhotoUri, auth);
+        if (uploadResult?.url) {
+          resolvedProofUrl = uploadResult.url;
+        } else {
+          resolvedProofUrl = selectedProofPhotoUri;
+        }
+      }
+
+      if (!resolvedProofUrl) {
+        setBanner("Lampirkan bukti pembayaran (kamera/galeri/URL).");
+        setIsSubmitting(false);
+        return;
+      }
+
       await submitPaymentProof(auth, {
         invoiceId: selectedInvoiceId,
         amount,
         proofUrl: resolvedProofUrl,
       });
 
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setProofUrl("");
       setSelectedProofPhotoUri(null);
       await loadData();
@@ -158,6 +176,7 @@ export function CustomerBillingScreen(): React.JSX.Element {
 
   const takeProofPhoto = useCallback(async () => {
     try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const uri = await capturePhoto();
       if (uri) {
         setSelectedProofPhotoUri(uri);
@@ -169,6 +188,7 @@ export function CustomerBillingScreen(): React.JSX.Element {
 
   const pickProofPhoto = useCallback(async () => {
     try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const uris = await pickImages({ selectionLimit: 1 });
       if (uris[0]) {
         setSelectedProofPhotoUri(uris[0]);
@@ -279,8 +299,8 @@ export function CustomerBillingScreen(): React.JSX.Element {
             </View>
 
             {selectedProofPhotoUri ? (
-              <View style={styles.photoItemRow}>
-                <Text style={styles.photoItemText}>{selectedProofPhotoUri}</Text>
+              <View style={styles.photoPreviewContainer}>
+                <Image source={{ uri: selectedProofPhotoUri }} style={styles.photoPreview} resizeMode="cover" />
                 <Pressable
                   onPress={() => setSelectedProofPhotoUri(null)}
                   style={({ pressed }) => [styles.pill, pressed && styles.pillPressed]}
@@ -302,9 +322,7 @@ export function CustomerBillingScreen(): React.JSX.Element {
       {banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
 
       {isLoading ? (
-        <Card>
-          <Text style={styles.loadingText}>Memuat data billing...</Text>
-        </Card>
+        <SkeletonList count={3} />
       ) : (
         <>
           <Card>
@@ -459,6 +477,17 @@ const styles = StyleSheet.create({
     flex: 1,
     color: "#3a646d",
     fontSize: 12,
+  },
+  photoPreviewContainer: {
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  photoPreview: {
+    width: 120,
+    height: 120,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#c6dbde",
   },
   loadingText: {
     color: "#4f6f77",

@@ -1,9 +1,13 @@
 import {
+  AttendanceItem,
+  AttendanceSummary,
   AuthState,
   BillingSummary,
   CustomerOverview,
+  DailyReport,
   DocumentItem,
   FaqItem,
+  HandoverInfo,
   InvoiceItem,
   IssueItem,
   Milestone,
@@ -112,6 +116,14 @@ const milestones: Milestone[] = [
         createdAt: "2026-03-09T08:00:00.000Z",
       },
     ],
+    checklist: [
+      { id: "check-1-1", milestoneId: "mil-1", name: "Pembersihan lahan", description: "Bersihkan area pondasi", orderNo: 1, isCompleted: true, completedAt: "2026-03-01T09:00:00.000Z" },
+      { id: "check-1-2", milestoneId: "mil-1", name: "Pemasangan formwork", description: "Pasang formwork pondasi", orderNo: 2, isCompleted: true, completedAt: "2026-03-02T10:00:00.000Z" },
+      { id: "check-1-3", milestoneId: "mil-1", name: "Pengecoran beton", description: "Lakukan pengecoran pondasi", orderNo: 3, isCompleted: true, completedAt: "2026-03-08T15:00:00.000Z" },
+      { id: "check-1-4", milestoneId: "mil-1", name: "Pelelehan dan pengecekan", description: "Pelelehan beton selama 7 hari", orderNo: 4, isCompleted: true, completedAt: "2026-03-09T08:00:00.000Z" },
+    ],
+    checklistCompleted: 4,
+    checklistTotal: 4,
   },
   {
     id: "mil-2",
@@ -130,6 +142,15 @@ const milestones: Milestone[] = [
         createdAt: "2026-03-27T08:00:00.000Z",
       },
     ],
+    checklist: [
+      { id: "check-2-1", milestoneId: "mil-2", name: "Pemasangan kolom", description: "Pasang kolom utama struktur", orderNo: 1, isCompleted: true, completedAt: "2026-03-15T10:00:00.000Z" },
+      { id: "check-2-2", milestoneId: "mil-2", name: "Pemasangan balok", description: "Pasang balok pelat lantai", orderNo: 2, isCompleted: true, completedAt: "2026-03-20T14:00:00.000Z" },
+      { id: "check-2-3", milestoneId: "mil-2", name: "Pengecoran plat lantai 1", description: "Lakukan pengecoran plat lantai 1", orderNo: 3, isCompleted: true, completedAt: "2026-03-25T11:00:00.000Z" },
+      { id: "check-2-4", milestoneId: "mil-2", name: "Pelelehan struktur", description: "Waktu pelelehan 7 hari", orderNo: 4, isCompleted: false },
+      { id: "check-2-5", milestoneId: "mil-2", name: "Pemasangan plat lantai 2", description: "Pasang dan cor plat lantai 2", orderNo: 5, isCompleted: false },
+    ],
+    checklistCompleted: 3,
+    checklistTotal: 5,
   },
   {
     id: "mil-3",
@@ -139,6 +160,14 @@ const milestones: Milestone[] = [
     targetDate: "2026-04-16",
     status: "NOT_STARTED",
     photos: [],
+    checklist: [
+      { id: "check-3-1", milestoneId: "mil-3", name: "Pemasangan kuda-kuda", description: "Pasang kuda-kuda dinding", orderNo: 1, isCompleted: false },
+      { id: "check-3-2", milestoneId: "mil-3", name: "Pemasangan briksan", description: "Pasang briksan dinding bagian dalam", orderNo: 2, isCompleted: false },
+      { id: "check-3-3", milestoneId: "mil-3", name: "Pasangan dinding luar", description: "Pasang dinding bagian luar", orderNo: 3, isCompleted: false },
+      { id: "check-3-4", milestoneId: "mil-3", name: "Pengecatan dinding", description: "Lakukan pengecatan dinding", orderNo: 4, isCompleted: false },
+    ],
+    checklistCompleted: 0,
+    checklistTotal: 4,
   },
   {
     id: "mil-4",
@@ -148,6 +177,16 @@ const milestones: Milestone[] = [
     targetDate: "2026-05-10",
     status: "NOT_STARTED",
     photos: [],
+    checklist: [
+      { id: "check-4-1", milestoneId: "mil-4", name: "Plester dan acian", description: "Lakukan plester dinding", orderNo: 1, isCompleted: false },
+      { id: "check-4-2", milestoneId: "mil-4", name: "Pemasangan keramik", description: "Pasang keramik lantai dan dinding", orderNo: 2, isCompleted: false },
+      { id: "check-4-3", milestoneId: "mil-4", name: "Pemasangan plafon", description: "Pasang plafon gypsum", orderNo: 3, isCompleted: false },
+      { id: "check-4-4", milestoneId: "mil-4", name: "Pemasangan sanitair", description: "Pasang water heater, closet, wastafel", orderNo: 4, isCompleted: false },
+      { id: "check-4-5", milestoneId: "mil-4", name: "Pemasangan listrik", description: "Pasang listrik temporary dan permanen", orderNo: 5, isCompleted: false },
+      { id: "check-4-6", milestoneId: "mil-4", name: "Cat dan finishing akhir", description: "Lakukan pengecetan akhir", orderNo: 6, isCompleted: false },
+    ],
+    checklistCompleted: 0,
+    checklistTotal: 6,
   },
   {
     id: "mil-5",
@@ -157,6 +196,14 @@ const milestones: Milestone[] = [
     targetDate: "2026-03-15",
     status: "COMPLETED",
     photos: [],
+    checklist: [
+      { id: "check-5-1", milestoneId: "mil-5", name: "Pembersihan lahan", description: "Bersihkan area pondasi", orderNo: 1, isCompleted: true, completedAt: "2026-03-05T09:00:00.000Z" },
+      { id: "check-5-2", milestoneId: "mil-5", name: "Pemasangan formwork", description: "Pasang formwork pondasi", orderNo: 2, isCompleted: true, completedAt: "2026-03-08T10:00:00.000Z" },
+      { id: "check-5-3", milestoneId: "mil-5", name: "Pengecoran beton", description: "Lakukan pengecoran pondasi", orderNo: 3, isCompleted: true, completedAt: "2026-03-12T15:00:00.000Z" },
+      { id: "check-5-4", milestoneId: "mil-5", name: "Pelelehan dan pengecekan", description: "Pelelehan beton selama 7 hari", orderNo: 4, isCompleted: true, completedAt: "2026-03-15T08:00:00.000Z" },
+    ],
+    checklistCompleted: 4,
+    checklistTotal: 4,
   },
   {
     id: "mil-6",
@@ -166,6 +213,14 @@ const milestones: Milestone[] = [
     targetDate: "2026-04-05",
     status: "IN_PROGRESS",
     photos: [],
+    checklist: [
+      { id: "check-6-1", milestoneId: "mil-6", name: "Pemasangan kolom", description: "Pasang kolom utama struktur", orderNo: 1, isCompleted: true, completedAt: "2026-03-18T10:00:00.000Z" },
+      { id: "check-6-2", milestoneId: "mil-6", name: "Pemasangan balok", description: "Pasang balok pelat lantai", orderNo: 2, isCompleted: true, completedAt: "2026-03-22T14:00:00.000Z" },
+      { id: "check-6-3", milestoneId: "mil-6", name: "Pengecoran plat lantai 1", description: "Lakukan pengecoran plat lantai 1", orderNo: 3, isCompleted: false },
+      { id: "check-6-4", milestoneId: "mil-6", name: "Pemasangan plat lantai 2", description: "Pasang dan cor plat lantai 2", orderNo: 4, isCompleted: false },
+    ],
+    checklistCompleted: 2,
+    checklistTotal: 4,
   },
   {
     id: "mil-7",
@@ -176,6 +231,13 @@ const milestones: Milestone[] = [
     actualDate: "2026-01-28",
     status: "COMPLETED",
     photos: [],
+    checklist: [
+      { id: "check-7-1", milestoneId: "mil-7", name: "Pengecekan akhir", description: "Pengecekan semua instalasi", orderNo: 1, isCompleted: true, completedAt: "2026-01-25T09:00:00.000Z" },
+      { id: "check-7-2", milestoneId: "mil-7", name: "Pembersihan akhir", description: "Pembersihan unit serta lokasi", orderNo: 2, isCompleted: true, completedAt: "2026-01-26T10:00:00.000Z" },
+      { id: "check-7-3", milestoneId: "mil-7", name: "BAST serah terima", description: "Tanda tangan berita acara serah terima", orderNo: 3, isCompleted: true, completedAt: "2026-01-28T14:00:00.000Z" },
+    ],
+    checklistCompleted: 3,
+    checklistTotal: 3,
   },
   {
     id: "mil-8",
@@ -185,6 +247,13 @@ const milestones: Milestone[] = [
     targetDate: "2026-04-20",
     status: "NOT_STARTED",
     photos: [],
+    checklist: [
+      { id: "check-8-1", milestoneId: "mil-8", name: "Pemetaan lahan", description: "Pemetaan dan stake out lahan", orderNo: 1, isCompleted: false },
+      { id: "check-8-2", milestoneId: "mil-8", name: "Pembersihan lahan", description: "Pembersihan vegetasi", orderNo: 2, isCompleted: false },
+      { id: "check-8-3", milestoneId: "mil-8", name: "Pemasangan pagar sementara", description: "Pasang pagar untuk menandai area", orderNo: 3, isCompleted: false },
+    ],
+    checklistCompleted: 0,
+    checklistTotal: 3,
   },
 ];
 
@@ -684,6 +753,7 @@ export function createTicket(payload: {
     status: "BARU",
     photoUrls: payload.photoUrls,
     createdAt: new Date().toISOString(),
+    replies: [],
   };
 
   tickets.unshift(ticket);
@@ -700,6 +770,35 @@ export function createTicket(payload: {
   return clone(ticket);
 }
 
+export function replyToTicket(payload: {
+  ticketId: string;
+  message: string;
+  photoUrls?: string[];
+}): TicketItem {
+  const ticket = tickets.find((t) => t.id === payload.ticketId);
+  if (!ticket) {
+    throw new Error("Tiket tidak ditemukan");
+  }
+
+  const reply = {
+    id: `reply-${Date.now()}`,
+    ticketId: payload.ticketId,
+    sender: "Anda",
+    senderRole: "CUSTOMER" as const,
+    message: payload.message,
+    createdAt: new Date().toISOString(),
+    photoUrl: payload.photoUrls?.[0],
+  };
+
+  if (!ticket.replies) {
+    ticket.replies = [];
+  }
+  ticket.replies.push(reply);
+  ticket.status = "SEDANG_DITANGANI";
+
+  return clone(ticket);
+}
+
 export function queueItemTemplate(payload: PendingQueueItem["payload"]): PendingQueueItem {
   return {
     id: `queue-${Date.now()}`,
@@ -708,3 +807,310 @@ export function queueItemTemplate(payload: PendingQueueItem["payload"]): Pending
     createdAt: new Date().toISOString(),
   };
 }
+
+const attendanceRecords: AttendanceItem[] = [
+  {
+    id: "att-1",
+    userId: "u-engineer-1",
+    userName: "Rizky Wahyudi",
+    date: "2026-05-16",
+    checkInTime: "07:45",
+    checkOutTime: "17:00",
+    status: "HADIR",
+    location: {
+      latitude: -6.2088,
+      longitude: 106.8456,
+      address: "Cluster Magnolia, Blok A",
+    },
+    createdAt: "2026-05-16T07:45:00.000Z",
+  },
+  {
+    id: "att-2",
+    userId: "u-engineer-1",
+    userName: "Rizky Wahyudi",
+    date: "2026-05-15",
+    checkInTime: "08:15",
+    checkOutTime: "17:15",
+    status: "TERLAMBAT",
+    notes: "Macet di tol Cipularang",
+    location: {
+      latitude: -6.2088,
+      longitude: 106.8456,
+    },
+    createdAt: "2026-05-15T08:15:00.000Z",
+  },
+  {
+    id: "att-3",
+    userId: "u-engineer-1",
+    userName: "Rizky Wahyudi",
+    date: "2026-05-14",
+    status: "IZIN",
+    notes: "Ada urusan keluarga",
+    createdAt: "2026-05-14T06:00:00.000Z",
+  },
+  {
+    id: "att-4",
+    userId: "u-engineer-1",
+    userName: "Rizky Wahyudi",
+    date: "2026-05-13",
+    checkInTime: "07:30",
+    checkOutTime: "17:00",
+    status: "HADIR",
+    location: {
+      latitude: -6.2088,
+      longitude: 106.8456,
+    },
+    createdAt: "2026-05-13T07:30:00.000Z",
+  },
+  {
+    id: "att-5",
+    userId: "u-engineer-1",
+    userName: "Rizky Wahyudi",
+    date: "2026-05-12",
+    checkInTime: "07:50",
+    checkOutTime: "17:00",
+    status: "HADIR",
+    location: {
+      latitude: -6.2088,
+      longitude: 106.8456,
+    },
+    createdAt: "2026-05-12T07:50:00.000Z",
+  },
+];
+
+const dailyReports: DailyReport[] = [
+  {
+    id: "dr-1",
+    userId: "u-engineer-1",
+    userName: "Rizky Wahyudi",
+    date: "2026-05-16",
+    projectId: "project-1",
+    summary: "Progres struktur lantai 2 Unit MG-A12 mencapai 75%",
+    activities: [
+      "Pemeriksaan pondasi blok A",
+      "Quality check pengecoran balok",
+      "Koordinasi dengan mandor kontraktor",
+    ],
+    issues: ["Material besi terlambat 1 hari"],
+    weather: "CERAH",
+    temperature: 32,
+    photoUrls: [
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd",
+    ],
+    isDraft: false,
+    createdAt: "2026-05-16T17:30:00.000Z",
+    updatedAt: "2026-05-16T17:30:00.000Z",
+  },
+  {
+    id: "dr-2",
+    userId: "u-engineer-1",
+    userName: "Rizky Wahyudi",
+    date: "2026-05-15",
+    projectId: "project-1",
+    summary: "Pengerjaan struktur lantai 2 selesai 50%",
+    activities: [
+      "Pengawasan pengecoran kolom K-12",
+      "Cek mutu beton",
+      "Laporan kendala material",
+    ],
+    issues: ["Butuh tambahan besi wf 100"],
+    weather: "MENDUNG",
+    temperature: 28,
+    photoUrls: [],
+    isDraft: false,
+    createdAt: "2026-05-15T17:00:00.000Z",
+    updatedAt: "2026-05-15T17:00:00.000Z",
+  },
+];
+
+export function getAttendanceHistory(
+  userId: string,
+  params?: { month?: string; limit?: number }
+): AttendanceItem[] {
+  let filtered = clone(attendanceRecords).filter((item) => item.userId === userId);
+
+  if (params?.month) {
+    const month = params.month;
+    filtered = filtered.filter((item) => item.date.startsWith(month));
+  }
+
+  filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  if (params?.limit) {
+    filtered = filtered.slice(0, params.limit);
+  }
+
+  return filtered;
+}
+
+export function getAttendanceSummary(userId: string): AttendanceSummary {
+  const records = getAttendanceHistory(userId);
+  const total = records.length;
+
+  const present = records.filter((r) => r.status === "HADIR").length;
+  const late = records.filter((r) => r.status === "TERLAMBAT").length;
+  const permission = records.filter((r) => r.status === "IZIN").length;
+  const sick = records.filter((r) => r.status === "SAKIT").length;
+  const alpha = records.filter((r) => r.status === "ALPHA").length;
+
+  return {
+    totalDays: total,
+    presentDays: present,
+    lateDays: late,
+    permissionDays: permission,
+    sickDays: sick,
+    alphaDays: alpha,
+    attendanceRate: total > 0 ? Math.round(((present + late) / total) * 100) : 0,
+  };
+}
+
+export function recordAttendance(payload: {
+  userId: string;
+  userName: string;
+  date: string;
+  checkInTime?: string;
+  checkOutTime?: string;
+  status: AttendanceItem["status"];
+  notes?: string;
+  location?: AttendanceItem["location"];
+}): AttendanceItem {
+  const newRecord: AttendanceItem = {
+    id: `att-${Date.now()}`,
+    userId: payload.userId,
+    userName: payload.userName,
+    date: payload.date,
+    checkInTime: payload.checkInTime,
+    checkOutTime: payload.checkOutTime,
+    status: payload.status,
+    notes: payload.notes,
+    location: payload.location,
+    createdAt: new Date().toISOString(),
+  };
+
+  attendanceRecords.unshift(newRecord);
+  return clone(newRecord);
+}
+
+export function updateAttendance(
+  attendanceId: string,
+  payload: { checkOutTime?: string; notes?: string }
+): AttendanceItem {
+  const found = attendanceRecords.find((item) => item.id === attendanceId);
+  if (!found) {
+    throw new Error("Record absensi tidak ditemukan");
+  }
+
+  if (payload.checkOutTime) {
+    found.checkOutTime = payload.checkOutTime;
+  }
+  if (payload.notes) {
+    found.notes = payload.notes;
+  }
+
+  return clone(found);
+}
+
+export function getDailyReports(
+  userId: string,
+  params?: { month?: string; includeDraft?: boolean }
+): DailyReport[] {
+  let filtered = clone(dailyReports).filter((item) => item.userId === userId);
+
+  if (params?.month) {
+    const month = params.month;
+    filtered = filtered.filter((item) => item.date.startsWith(month));
+  }
+
+  if (!params?.includeDraft) {
+    filtered = filtered.filter((item) => !item.isDraft);
+  }
+
+  return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
+export function getDailyReport(reportId: string): DailyReport | null {
+  const found = dailyReports.find((item) => item.id === reportId);
+  return found ? clone(found) : null;
+}
+
+export function saveDailyReport(payload: {
+  userId: string;
+  userName: string;
+  date: string;
+  projectId?: string;
+  unitId?: string;
+  summary: string;
+  activities: string[];
+  issues: string[];
+  weather: DailyReport["weather"];
+  temperature?: number;
+  photoUrls: string[];
+  isDraft: boolean;
+}): DailyReport {
+  const existingIndex = dailyReports.findIndex(
+    (item) => item.userId === payload.userId && item.date === payload.date
+  );
+
+  const now = new Date().toISOString();
+  const report: DailyReport = {
+    id: existingIndex >= 0 ? dailyReports[existingIndex].id : `dr-${Date.now()}`,
+    userId: payload.userId,
+    userName: payload.userName,
+    date: payload.date,
+    projectId: payload.projectId,
+    unitId: payload.unitId,
+    summary: payload.summary,
+    activities: payload.activities,
+    issues: payload.issues,
+    weather: payload.weather,
+    temperature: payload.temperature,
+    photoUrls: payload.photoUrls,
+    isDraft: payload.isDraft,
+    createdAt: existingIndex >= 0 ? dailyReports[existingIndex].createdAt : now,
+    updatedAt: now,
+  };
+
+  if (existingIndex >= 0) {
+    dailyReports[existingIndex] = report;
+  } else {
+    dailyReports.unshift(report);
+  }
+
+  notifications.unshift({
+    id: `notif-${Date.now()}`,
+    role: "SITE_ENGINEER",
+    title: payload.isDraft ? "Draft laporan disimpan" : "Laporan harian terkirim",
+    body: `Laporan untuk ${payload.date} berhasil ${payload.isDraft ? "disimpan sebagai draft" : "dikirim"}`,
+    isRead: false,
+    createdAt: now,
+  });
+
+  return clone(report);
+}
+
+export const mockHandoverInfo: HandoverInfo = {
+  unitId: 'unit-001',
+  plannedDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+  status: 'SCHEDULED',
+  checklist: [
+    {
+      id: 'kewajiban',
+      label: 'Pelunasan Kewajiban Finansial',
+      description: 'Semua tagihan dan cicilan telah dilunasi',
+      isCompleted: false,
+    },
+    {
+      id: 'kpr',
+      label: 'Kelengkapan Dokumen KPR',
+      description: 'Dokumen KPR dan akad kredit telah disiapkan',
+      isCompleted: true,
+      completedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: 'bast',
+      label: 'Penandatanganan BA Serah Terima',
+      description: 'Berita acara serah terima siap ditandatangani',
+      isCompleted: false,
+    },
+  ],
+};

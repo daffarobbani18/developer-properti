@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useNetInfo } from "@react-native-community/netinfo";
 
@@ -35,7 +35,7 @@ type MilestoneStatus = Milestone["status"];
 export function FieldMilestonesScreen(): React.JSX.Element {
   const { auth } = useAuth();
   const netInfo = useNetInfo();
-  const { queueCount, enqueueMilestone, flushQueue, refreshQueueCount } = useOfflineQueue();
+  const { queueCount, enqueueMilestone, flushQueue, refreshQueueCount } = useOfflineQueue(auth);
 
   const [projects, setProjects] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -514,7 +514,10 @@ export function FieldMilestonesScreen(): React.JSX.Element {
               <View style={styles.photoListWrap}>
                 {selectedPhotoUris.map((uri, index) => (
                   <View key={`${uri}-${index}`} style={styles.photoItemRow}>
-                    <Text style={styles.photoItemText}>{uri}</Text>
+                    <Image source={{ uri }} style={styles.photoPreviewThumb} resizeMode="cover" />
+                    <Text style={styles.photoItemText} numberOfLines={1}>
+                      {uri}
+                    </Text>
                     <Pressable
                       onPress={() => {
                         setSelectedPhotoUris((prev) => prev.filter((_, idx) => idx !== index));
@@ -686,6 +689,14 @@ const styles = StyleSheet.create({
     flex: 1,
     color: "#3a646d",
     fontSize: 12,
+  },
+  photoPreviewThumb: {
+    width: 40,
+    height: 40,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#c6dbde",
+    marginRight: 8,
   },
   removePhotoBtn: {
     borderRadius: 8,

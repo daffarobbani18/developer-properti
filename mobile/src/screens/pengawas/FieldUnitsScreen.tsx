@@ -11,10 +11,12 @@ import {
   SecondaryButton,
   SectionTitle,
   StatusBanner,
+  SkeletonList,
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { getFieldUnits, getProjectOptions } from "../../services/api";
-import { Unit } from "../../types";
+import { colors } from "../../theme/colors";
+import { ProjectSummary, Unit } from "../../types";
 import { formatUnitStatusLabel } from "../../utils/format";
 
 function toneByStatus(status: Unit["status"]): "success" | "warning" | "neutral" {
@@ -28,40 +30,54 @@ function toneByStatus(status: Unit["status"]): "success" | "warning" | "neutral"
 }
 
 export function FieldUnitsScreen(): React.JSX.Element {
-  const { auth } = useAuth();
+   const { auth } = useAuth();
 
-  const [projects, setProjects] = useState<Array<{ id: string; name: string }>>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>(undefined);
-  const [search, setSearch] = useState("");
-  const [units, setUnits] = useState<Unit[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+   const [projects, setProjects] = useState<ProjectSummary[]>([]);
+   const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>(undefined);
+   const [search, setSearch] = useState("");
+   const [units, setUnits] = useState<Unit[]>([]);
+   const [isLoading, setIsLoading] = useState(true);
+   const [isRefreshing, setIsRefreshing] = useState(false);
+   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const loadProjects = useCallback(async () => {
-    if (!auth) {
-      return;
-    }
+   const loadProjects = useCallback(async () => {
+      if (!auth) {
+        return;
+      }
 
-    const data = await getProjectOptions(auth);
-    setProjects(data);
-    if (!selectedProjectId && data[0]) {
-      setSelectedProjectId(data[0].id);
-    }
-  }, [auth, selectedProjectId]);
+      const data = await getProjectOptions(auth);
+      setProjects(data);
+      if (!selectedProjectId && data[0]) {
+        setSelectedProjectId(data[0].id);
+      }
+    }, [auth, selectedProjectId]);
 
-  const loadUnits = useCallback(async () => {
-    if (!auth) {
-      return;
-    }
+    const loadUnits = useCallback(async () => {
+      if (!auth) {
+        return;
+      }
 
-    setErrorMessage(null);
-    try {
-      const data = await getFieldUnits(auth, { projectId: selectedProjectId, search });
-      setUnits(data);
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Gagal memuat data unit");
-    }
-  }, [auth, search, selectedProjectId]);
+      setErrorMessage(null);
+      try {
+        const data = await getFieldUnits(auth, { projectId: selectedProjectId, search });
+        setUnits(data);
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : "Gagal memuat data unit");
+      }
+    }, [auth, search, selectedProjectId]);
+
+    const handleRefresh = useCallback(async () => {
+     setIsRefreshing(true);
+     setErrorMessage(null);
+     try {
+       await loadProjects();
+       await loadUnits();
+     } catch (error) {
+       setErrorMessage(error instanceof Error ? error.message : "Gagal memuat data");
+     } finally {
+       setIsRefreshing(false);
+     }
+   }, [loadProjects, loadUnits]);
 
   useFocusEffect(
     useCallback(() => {
@@ -108,7 +124,12 @@ export function FieldUnitsScreen(): React.JSX.Element {
   }, [units]);
 
   return (
-    <ScreenShell title="Monitoring Unit" subtitle="Filter unit berdasarkan proyek dan progres">
+    <ScreenShell
+      title="Monitoring Unit"
+      subtitle="Filter unit berdasarkan proyek dan progres"
+      refreshing={isRefreshing}
+      onRefresh={handleRefresh}
+    >
       <Card>
         <SectionTitle title="Filter" caption="Pilih proyek lalu cari unit yang dibutuhkan" />
         <View style={styles.filterWrap}>
@@ -165,13 +186,11 @@ export function FieldUnitsScreen(): React.JSX.Element {
 
       {errorMessage ? <StatusBanner message={errorMessage} tone="danger" /> : null}
 
-      {isLoading ? (
-        <Card>
-          <Text style={styles.loadingText}>Memuat unit...</Text>
-        </Card>
-      ) : units.length === 0 ? (
-        <EmptyState message="Tidak ada unit sesuai filter." />
-      ) : (
+{isLoading ? (
+         <SkeletonList count={3} />
+       ) : units.length === 0 ? (
+         <EmptyState message="Tidak ada unit sesuai filter." />
+       ) : (
         <View style={styles.listWrap}>
           {units.map((unit) => (
             <Card key={unit.id}>
@@ -284,9 +303,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#e0ecee",
     overflow: "hidden",
   },
-  progressFill: {
-    height: "100%",
-    backgroundColor: "#1f7f8a",
-    borderRadius: 999,
-  },
+progressFill: {
+     height: "100%",
+     backgroundColor: colors.primary,
+     borderRadius: 999,
+   },
 });

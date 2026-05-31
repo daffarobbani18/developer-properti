@@ -1,20 +1,26 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import {
-  Badge,
-  Card,
-  EmptyState,
-  ScreenShell,
-  SecondaryButton,
-  SectionTitle,
-  StatusBanner,
-} from "../../components/ui";
+   Badge,
+   Card,
+   EmptyState,
+   ScreenShell,
+   SecondaryButton,
+   SectionTitle,
+   AnimatedProgressBar,
+   SlideInView,
+   SkeletonList,
+   StatusBanner,
+  } from "../../components/ui";
+import * as Haptics from "expo-haptics";
 import { useAuth } from "../../hooks/useAuth";
 import { getCustomerProgressData } from "../../services/api";
 import { Milestone } from "../../types";
 import { formatDate, formatMilestoneStatusLabel, inferBannerTone } from "../../utils/format";
+import type { CustomerStackParamList } from "../../navigation/types";
 
 function toneByStatus(status: Milestone["status"]): "neutral" | "warning" | "success" {
   if (status === "COMPLETED") {
@@ -28,6 +34,7 @@ function toneByStatus(status: Milestone["status"]): "neutral" | "warning" | "suc
 
 export function CustomerProgressScreen(): React.JSX.Element {
   const { auth } = useAuth();
+  const navigation = useNavigation<NativeStackNavigationProp<CustomerStackParamList>>();
 
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -100,46 +107,57 @@ export function CustomerProgressScreen(): React.JSX.Element {
 
       <SecondaryButton label="Muat Ulang Progres" onPress={() => void handleReload()} disabled={isLoading} />
 
-      {isLoading ? (
-        <Card>
-          <Text style={styles.loadingText}>Memuat data progres...</Text>
-        </Card>
+{isLoading ? (
+        <SkeletonList count={3} />
       ) : errorMessage ? (
         <StatusBanner message={errorMessage} tone={inferBannerTone(errorMessage)} />
       ) : milestones.length === 0 ? (
         <EmptyState message="Belum ada data milestone untuk unit Anda." />
       ) : (
         <View style={styles.listWrap}>
-          {milestones.map((item) => (
-            <Card key={item.id}>
-              <View style={styles.rowTop}>
-                <Text style={styles.title}>{item.orderNo}. {item.name}</Text>
-                <Badge label={formatMilestoneStatusLabel(item.status)} tone={toneByStatus(item.status)} />
-              </View>
-              <Text style={styles.meta}>Target: {formatDate(item.targetDate)}</Text>
-              <Text style={styles.meta}>Aktual: {item.actualDate ? formatDate(item.actualDate) : "-"}</Text>
-              {item.note ? <Text style={styles.note}>Catatan: {item.note}</Text> : null}
-
-              <SectionTitle title="Foto Progress" />
-              {item.photos.length === 0 ? (
-                <Text style={styles.meta}>Belum ada foto</Text>
-              ) : (
-                <View style={styles.photoList}>
-                  {item.photos.map((photo) => (
-                    <Pressable
-                      key={photo.id}
-                      onPress={() => {
-                        void Linking.openURL(photo.url);
-                      }}
-                      style={({ pressed }) => [styles.photoLink, pressed && styles.photoLinkPressed]}
-                    >
-                      <Text style={styles.photoLabel}>{photo.caption}</Text>
-                      <Text style={styles.photoUrl}>{photo.url}</Text>
-                    </Pressable>
-                  ))}
+          {milestones.map((item, index) => (
+            <SlideInView
+              key={item.id}
+              direction="up"
+              delay={Math.min(index * 80, 500)}
+              duration={350}
+            >
+              <Card>
+                <View style={styles.rowTop}>
+                  <Text style={styles.title}>{item.orderNo}. {item.name}</Text>
+                  <Badge label={formatMilestoneStatusLabel(item.status)} tone={toneByStatus(item.status)} />
                 </View>
-              )}
-            </Card>
+                <Text style={styles.meta}>Target: {formatDate(item.targetDate)}</Text>
+                <Text style={styles.meta}>Aktual: {item.actualDate ? formatDate(item.actualDate) : "-"}</Text>
+                {item.note ? <Text style={styles.note}>Catatan: {item.note}</Text> : null}
+
+                <SectionTitle title="Foto Progress" />
+                {item.photos.length === 0 ? (
+                  <Text style={styles.meta}>Belum ada foto</Text>
+                ) : (
+                  <View style={styles.photoList}>
+                    {item.photos.map((photo) => (
+                      <Pressable
+                        key={photo.id}
+                        onPress={async () => {
+                          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          navigation.navigate("PhotoGallery", {
+                            photos: item.photos,
+                            initialIndex: 0,
+                            title: `Foto: ${item.name}`,
+                            milestoneName: item.name,
+                          });
+                        }}
+                        style={({ pressed }) => [styles.photoLink, pressed && styles.photoLinkPressed]}
+                      >
+                        <Text style={styles.photoLabel}>{photo.caption}</Text>
+                        <Text style={styles.photoUrl}>{photo.url}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
+              </Card>
+            </SlideInView>
           ))}
         </View>
       )}
