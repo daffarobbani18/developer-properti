@@ -92,4 +92,39 @@ export class PublicController {
       });
     }
   }
+  static async submitLead(req: Request, res: Response) {
+    try {
+      const { name, phone, email, notes } = req.body;
+
+      if (!name || !phone) {
+        return res.status(400).json({
+          success: false,
+          message: "Nama dan Telepon wajib diisi",
+        });
+      }
+
+      const lead = await prisma.lead.create({
+        data: {
+          name,
+          phone,
+          email: email || null,
+          source: "Website Lead",
+          notes: notes || null,
+        },
+      });
+
+      res.status(201).json({
+        success: true,
+        data: lead,
+        message: "Lead berhasil disimpan",
+      });
+    } catch (error) {
+      console.error("Error submitting lead:", error);
+      res.status(500).json({
+        success: false,
+        message: "Terjadi kesalahan internal saat menyimpan lead",
+      });
+    }
+  }
 }
+
