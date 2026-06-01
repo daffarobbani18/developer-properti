@@ -21,6 +21,7 @@ export type FieldStackParamList = {
   IssueHistory: undefined;
   Attendance: undefined;
   AttendanceHistory: undefined;
+  ProjectDetail: { projectId: string; projectName: string };
 };
 
 export type CustomerStackParamList = {
@@ -52,6 +53,7 @@ export type PengawasStackParamList = {
   FieldIssues: undefined;
   FieldDailyReport: undefined;
   FieldAttendance: undefined;
+  ProjectDetail: { projectId: string; projectName: string };
 };
 
 export type MilestoneUpdateScreenProps = NativeStackScreenProps<FieldStackParamList, "MilestoneUpdate">;

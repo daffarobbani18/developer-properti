@@ -529,7 +529,7 @@ interface CountUpNumberProps {
    duration?: number;
    suffix?: string;
    prefix?: string;
-   style?: TextStyle;
+   style?: StyleProp<TextStyle>;
    decimals?: number;
   }
 

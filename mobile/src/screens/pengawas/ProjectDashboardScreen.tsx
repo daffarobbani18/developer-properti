@@ -184,6 +184,15 @@ rightAction={<TextButton label="Logout" onPress={() => void signOut()} />}
               delay={Math.min(index * 100, 500)}
               duration={400}
             >
+              <Pressable
+                onPress={() =>
+                  (navigation as { navigate: (name: string, params: object) => void }).navigate("ProjectDetail", {
+                    projectId: project.id,
+                    projectName: project.name,
+                  })
+                }
+                style={({ pressed }) => [pressed && { opacity: 0.85 }]}
+              >
               <Card>
                 <Text style={styles.projectName}>{project.name}</Text>
                 <View style={styles.projectMetaRow}>
@@ -193,11 +202,15 @@ rightAction={<TextButton label="Logout" onPress={() => void signOut()} />}
                 <View style={styles.progressTrack}>
                   <View style={[styles.progressFill, { width: `${Math.max(4, project.progress)}%` }]} />
                 </View>
-                <Badge
-                  label={`Alert deadline: ${project.milestoneDeadlineAlerts}`}
-                  tone={project.milestoneDeadlineAlerts > 0 ? "danger" : "success"}
-                />
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                  <Badge
+                    label={`Alert deadline: ${project.milestoneDeadlineAlerts}`}
+                    tone={project.milestoneDeadlineAlerts > 0 ? "danger" : "success"}
+                  />
+                  <Text style={{ fontSize: 11, color: "#1a6d78", fontWeight: "700" }}>Lihat Detail →</Text>
+                </View>
               </Card>
+              </Pressable>
             </SlideInView>
           ))}
         </View>

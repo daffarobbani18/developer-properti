@@ -32,6 +32,7 @@ import { IssueHistoryScreen } from "../screens/pengawas/IssueHistoryScreen";
 import { ProjectDashboardScreen } from "../screens/pengawas/ProjectDashboardScreen";
 import { TeamManagementScreen } from "../screens/pengawas/TeamManagementScreen";
 import { ApprovalScreen } from "../screens/pengawas/ApprovalScreen";
+import { ProjectDetailScreen } from "../screens/pengawas/ProjectDetailScreen";
 import { ProjectSelectScreen } from "../screens/field-app/ProjectSelectScreen";
 import { UnitSelectScreen } from "../screens/field-app/UnitSelectScreen";
 import { MilestoneListScreen } from "../screens/field-app/MilestoneListScreen";
@@ -59,17 +60,17 @@ const FieldStack = createNativeStackNavigator<FieldStackParamList>();
 const CustomerStack = createNativeStackNavigator<CustomerStackParamList>();
 const ProjectManagerStack = createNativeStackNavigator<PengawasStackParamList>();
 
-type FieldRouteName = "Beranda" | "Milestone" | "Unit" | "Kendala" | "Notifikasi" | "UnitDetail" | "UpdateHistory" | "ProjectSelect" | "UnitSelect" | "MilestoneList" | "MilestoneUpdate" | "UnitDetailField" | "PhotoCapture" | "IssueForm" | "UpdateHistoryField" | "IssueHistory" | "Attendance" | "AttendanceHistory";
+type FieldRouteName = "Beranda" | "Milestone" | "Unit" | "Kendala" | "Notifikasi" | "UnitDetail" | "UpdateHistory" | "ProjectSelect" | "UnitSelect" | "MilestoneList" | "MilestoneUpdate" | "UnitDetailField" | "PhotoCapture" | "IssueForm" | "UpdateHistoryField" | "IssueHistory" | "Attendance" | "AttendanceHistory" | "ProjectDetail";
 
 type CustomerRouteName = "Beranda" | "Progres" | "Tagihan" | "Dokumen" | "Bantuan" | "PhotoGallery" | "TicketDetail" | "FaqContact";
 
-type ProjectManagerRouteName = "Dashboard" | "Approval" | "Team" | "Laporan" | "Notifikasi" | "IssueHistory" | "AttendanceHistory" | "TeamAttendance" | "FieldUnits" | "FieldUnitDetail" | "FieldMilestones" | "MilestoneList" | "FieldIssues" | "FieldDailyReport" | "FieldAttendance";
+type ProjectManagerRouteName = "Dashboard" | "Approval" | "Team" | "Laporan" | "Notifikasi" | "IssueHistory" | "AttendanceHistory" | "TeamAttendance" | "FieldUnits" | "FieldUnitDetail" | "FieldMilestones" | "MilestoneList" | "FieldIssues" | "FieldDailyReport" | "FieldAttendance" | "ProjectDetail";
 
-const FIELD_ROUTE_NAMES: FieldRouteName[] = ["Beranda", "Milestone", "Unit", "Kendala", "Notifikasi", "UnitDetail", "UpdateHistory", "ProjectSelect", "UnitSelect", "MilestoneList", "MilestoneUpdate", "UnitDetailField", "PhotoCapture", "IssueForm", "UpdateHistoryField", "IssueHistory", "Attendance", "AttendanceHistory"];
+const FIELD_ROUTE_NAMES: FieldRouteName[] = ["Beranda", "Milestone", "Unit", "Kendala", "Notifikasi", "UnitDetail", "UpdateHistory", "ProjectSelect", "UnitSelect", "MilestoneList", "MilestoneUpdate", "UnitDetailField", "PhotoCapture", "IssueForm", "UpdateHistoryField", "IssueHistory", "Attendance", "AttendanceHistory", "ProjectDetail"];
 
 const CUSTOMER_ROUTE_NAMES: CustomerRouteName[] = ["Beranda", "Progres", "Tagihan", "Dokumen", "Bantuan", "PhotoGallery", "TicketDetail", "FaqContact"];
 
-const PROJECT_MANAGER_ROUTE_NAMES: ProjectManagerRouteName[] = ["Dashboard", "Approval", "Team", "Laporan", "Notifikasi", "IssueHistory", "AttendanceHistory", "TeamAttendance", "FieldUnits", "FieldUnitDetail", "FieldMilestones", "MilestoneList", "FieldIssues", "FieldDailyReport", "FieldAttendance"];
+const PROJECT_MANAGER_ROUTE_NAMES: ProjectManagerRouteName[] = ["Dashboard", "Approval", "Team", "Laporan", "Notifikasi", "IssueHistory", "AttendanceHistory", "TeamAttendance", "FieldUnits", "FieldUnitDetail", "FieldMilestones", "MilestoneList", "FieldIssues", "FieldDailyReport", "FieldAttendance", "ProjectDetail"];
 
 function getCommonTabOptions(): BottomTabNavigationOptions {
    return {
@@ -217,6 +218,11 @@ function FieldTabsNavigator(): React.JSX.Element {
           component={AttendanceHistoryScreen}
           options={{ title: "Riwayat Absensi" }}
         />
+        <FieldStack.Screen
+          name="ProjectDetail"
+          component={ProjectDetailScreen}
+          options={{ title: "Detail Proyek", headerShown: true, headerBackTitle: "Kembali" }}
+        />
       </FieldStack.Navigator>
     );
   }
@@ -332,6 +338,11 @@ function FieldTabsNavigator(): React.JSX.Element {
          <ProjectManagerStack.Screen name="FieldIssues" component={FieldIssuesScreen} options={{ title: "Kendala Lapangan" }} />
          <ProjectManagerStack.Screen name="FieldDailyReport" component={FieldDailyReportScreen} />
          <ProjectManagerStack.Screen name="FieldAttendance" component={FieldAttendanceScreen} />
+         <ProjectManagerStack.Screen
+           name="ProjectDetail"
+           component={ProjectDetailScreen}
+           options={{ title: "Detail Proyek", headerShown: true, headerBackTitle: "Kembali" }}
+         />
        </ProjectManagerStack.Navigator>
      );
    }
