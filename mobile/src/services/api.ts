@@ -122,7 +122,7 @@ function normalizeAuthResponse(payload: unknown): AuthState | null {
     !user ||
     typeof user !== "object" ||
     !("id" in user) ||
-    !("fullName" in user) ||
+    !("id" in user) ||
     !("email" in user) ||
     !("role" in user)
   ) {
@@ -133,7 +133,7 @@ function normalizeAuthResponse(payload: unknown): AuthState | null {
     token,
     user: {
       id: String((user as { id: unknown }).id),
-      fullName: String((user as { fullName: unknown }).fullName),
+      fullName: String((user as { fullName?: unknown }).fullName || (user as { email: unknown }).email),
       email: String((user as { email: unknown }).email),
       role: (user as { role: AuthState["user"]["role"] }).role,
     },
@@ -149,7 +149,7 @@ function ensureAuth(auth: AuthState | null): AuthState {
 
 export async function login(email: string, password: string): Promise<AuthState> {
   try {
-    const response = await requestJson<unknown>("/auth/login", {
+    const response = await requestJson<unknown>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
@@ -171,15 +171,11 @@ export async function login(email: string, password: string): Promise<AuthState>
 export async function getFieldProjects(auth: AuthState | null): Promise<ProjectSummary[]> {
   const session = ensureAuth(auth);
 
-  try {
-    const response = await requestJson<ProjectSummary[] | { data: ProjectSummary[] }>(
-      "/mobile/field/projects",
-      { token: session.token }
-    );
-    return unwrapData(response);
-  } catch {
-    return getProjectSummaries();
-  }
+  const response = await requestJson<ProjectSummary[] | { data: ProjectSummary[] }>(
+    "/mobile/field/projects",
+    { token: session.token }
+  );
+  return unwrapData(response);
 }
 
 export async function getProjectOptions(
@@ -187,15 +183,11 @@ export async function getProjectOptions(
 ): Promise<ProjectSummary[]> {
   const session = ensureAuth(auth);
 
-  try {
-    const response = await requestJson<ProjectSummary[] | { data: ProjectSummary[] }>(
-      "/mobile/field/project-options",
-      { token: session.token }
-    );
-    return unwrapData(response);
-  } catch {
-    return getProjectSummaries();
-  }
+  const response = await requestJson<ProjectSummary[] | { data: ProjectSummary[] }>(
+    "/mobile/field/project-options",
+    { token: session.token }
+  );
+  return unwrapData(response);
 }
 
 export async function getFieldUnits(
