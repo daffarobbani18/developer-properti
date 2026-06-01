@@ -3,6 +3,7 @@ import {
   Animated,
   Dimensions,
   Image,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -19,6 +20,7 @@ import {
   CountUpNumber,
   EmptyState,
   FadeInView,
+  IconButton,
   ScreenShell,
   SectionTitle,
   Skeleton,
@@ -98,6 +100,23 @@ type ProjectDetailData = {
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
 
+function getImageUrl(path: string | null): string | undefined {
+  if (!path) return undefined;
+  
+  let safePath = path;
+  if (safePath.startsWith("http://localhost:4000")) {
+    safePath = safePath.replace("http://localhost:4000", "");
+  }
+  
+  if (safePath.startsWith("http")) return safePath;
+  
+  const baseUrl = API_BASE_URL.endsWith("/") ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+  const hasUploads = safePath.includes("uploads/");
+  const cleanPath = safePath.startsWith("/") ? safePath : `/${safePath}`;
+  
+  return `${baseUrl}${hasUploads ? cleanPath : `/uploads${cleanPath}`}`;
+}
+
 function formatCurrency(value: number): string {
   if (value >= 1_000_000_000) {
     return `Rp ${(value / 1_000_000_000).toFixed(1)} M`;
@@ -166,7 +185,7 @@ function HeroSection({ project }: { project: ProjectDetailData }) {
     <Animated.View style={[s.heroContainer, { opacity: fadeAnim }]}>
       {project.imageUrl ? (
         <Image
-          source={{ uri: `${API_BASE_URL}/uploads/${project.imageUrl}` }}
+          source={{ uri: getImageUrl(project.imageUrl) }}
           style={s.heroImage}
           resizeMode="cover"
         />
@@ -301,9 +320,7 @@ function InfoSection({ project }: { project: ProjectDetailData }) {
   );
 }
 
-function PropertyTypesSection({ types }: { types: PropertyTypeDetail[] }) {
-  const [expanded, setExpanded] = useState<string | null>(null);
-
+function PropertyTypesSection({ types, onSelect }: { types: PropertyTypeDetail[], onSelect: (pt: PropertyTypeDetail) => void }) {
   if (types.length === 0) return null;
 
   return (
@@ -316,11 +333,10 @@ function PropertyTypesSection({ types }: { types: PropertyTypeDetail[] }) {
         {types.map((pt) => (
           <Pressable
             key={pt.id}
-            onPress={() => setExpanded(expanded === pt.id ? null : pt.id)}
+            onPress={() => onSelect(pt)}
             style={({ pressed }) => [
               s.typeCard,
               pressed && { opacity: 0.85 },
-              expanded === pt.id && s.typeCardExpanded,
             ]}
           >
             <View style={s.typeHeader}>
@@ -328,45 +344,15 @@ function PropertyTypesSection({ types }: { types: PropertyTypeDetail[] }) {
                 <Text style={s.typeName}>{pt.name}</Text>
                 <Text style={s.typePrice}>{formatCurrency(pt.basePrice)}</Text>
               </View>
-              <Ionicons
-                name={expanded === pt.id ? "chevron-up" : "chevron-down"}
-                size={20}
-                color="#64748b"
-              />
+              <View style={s.typeActionRow}>
+                <Text style={s.typeActionText}>Lihat Detail</Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color="#1a6d78"
+                />
+              </View>
             </View>
-
-            {expanded === pt.id && (
-              <FadeInView duration={200}>
-                <View style={s.typeDetailGrid}>
-                  <View style={s.typeDetailItem}>
-                    <Ionicons name="resize-outline" size={16} color="#1a6d78" />
-                    <Text style={s.typeDetailLabel}>Luas Tanah</Text>
-                    <Text style={s.typeDetailValue}>{pt.luasTanah} m²</Text>
-                  </View>
-                  <View style={s.typeDetailItem}>
-                    <Ionicons name="home-outline" size={16} color="#1a6d78" />
-                    <Text style={s.typeDetailLabel}>Luas Bangunan</Text>
-                    <Text style={s.typeDetailValue}>{pt.luasBangunan} m²</Text>
-                  </View>
-                  <View style={s.typeDetailItem}>
-                    <Ionicons name="bed-outline" size={16} color="#1a6d78" />
-                    <Text style={s.typeDetailLabel}>Kamar Tidur</Text>
-                    <Text style={s.typeDetailValue}>{pt.kamarTidur}</Text>
-                  </View>
-                  <View style={s.typeDetailItem}>
-                    <Ionicons name="water-outline" size={16} color="#1a6d78" />
-                    <Text style={s.typeDetailLabel}>Kamar Mandi</Text>
-                    <Text style={s.typeDetailValue}>{pt.kamarMandi}</Text>
-                  </View>
-                </View>
-                {pt.facilities && (
-                  <View style={s.facilitiesWrap}>
-                    <Text style={s.facilitiesLabel}>Fasilitas:</Text>
-                    <Text style={s.facilitiesText}>{pt.facilities}</Text>
-                  </View>
-                )}
-              </FadeInView>
-            )}
           </Pressable>
         ))}
       </Card>
@@ -383,7 +369,7 @@ function SitePlanSection({ sitePlan }: { sitePlan: SitePlanData | null }) {
         <SectionTitle title="Site Plan" caption="Denah proyek" />
         <View style={s.sitePlanWrap}>
           <Image
-            source={{ uri: `${API_BASE_URL}/uploads/${sitePlan.imageUrl}` }}
+            source={{ uri: getImageUrl(sitePlan.imageUrl) }}
             style={s.sitePlanImage}
             resizeMode="contain"
           />
@@ -557,6 +543,7 @@ export function ProjectDetailScreen(): React.JSX.Element {
   const [project, setProject] = useState<ProjectDetailData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<PropertyTypeDetail | null>(null);
 
   const loadProject = useCallback(async () => {
     if (!auth) return;
@@ -623,14 +610,83 @@ export function ProjectDetailScreen(): React.JSX.Element {
   }
 
   return (
-    <ScreenShell title="" subtitle="">
-      <HeroSection project={project} />
-      <StatsRow summary={project.statusSummary} progress={project.overallProgress} />
-      <InfoSection project={project} />
-      <PropertyTypesSection types={project.propertyTypes} />
-      <SitePlanSection sitePlan={project.sitePlan} />
-      <BlocksSection blocks={project.blocks} />
-    </ScreenShell>
+    <>
+      <ScreenShell title="" subtitle="">
+        <HeroSection project={project} />
+        <StatsRow summary={project.statusSummary} progress={project.overallProgress} />
+        <InfoSection project={project} />
+        <PropertyTypesSection types={project.propertyTypes} onSelect={setSelectedType} />
+        <SitePlanSection sitePlan={project.sitePlan} />
+        <BlocksSection blocks={project.blocks} />
+      </ScreenShell>
+
+      <Modal visible={!!selectedType} animationType="slide" transparent={true} onRequestClose={() => setSelectedType(null)}>
+        <View style={s.modalOverlay}>
+          <View style={s.modalContainer}>
+            <View style={s.modalHeader}>
+              <Text style={s.modalTitle}>Detail Tipe Rumah</Text>
+              <IconButton icon="close" onPress={() => setSelectedType(null)} />
+            </View>
+            <ScrollView style={s.modalScroll} contentContainerStyle={s.modalScrollContent}>
+              {selectedType?.imageUrl ? (
+                <Image source={{ uri: getImageUrl(selectedType.imageUrl) }} style={s.modalImage} resizeMode="cover" />
+              ) : (
+                <View style={s.modalImagePlaceholder}>
+                  <Ionicons name="home" size={64} color="#94a3b8" />
+                  <Text style={s.modalImagePlaceholderText}>Tidak ada foto</Text>
+                </View>
+              )}
+              
+              <View style={s.modalContent}>
+                <Text style={s.modalTypeName}>{selectedType?.name}</Text>
+                <Text style={s.modalPrice}>{selectedType ? formatCurrency(selectedType.basePrice) : ""}</Text>
+                
+                <Text style={s.modalSectionLabel}>Spesifikasi Tipe</Text>
+                <View style={s.typeDetailGrid}>
+                  <View style={s.typeDetailItem}>
+                    <Ionicons name="resize-outline" size={18} color="#1a6d78" />
+                    <View>
+                      <Text style={s.typeDetailLabel}>Luas Tanah</Text>
+                      <Text style={s.typeDetailValue}>{selectedType?.luasTanah} m²</Text>
+                    </View>
+                  </View>
+                  <View style={s.typeDetailItem}>
+                    <Ionicons name="home-outline" size={18} color="#1a6d78" />
+                    <View>
+                      <Text style={s.typeDetailLabel}>Luas Bangunan</Text>
+                      <Text style={s.typeDetailValue}>{selectedType?.luasBangunan} m²</Text>
+                    </View>
+                  </View>
+                  <View style={s.typeDetailItem}>
+                    <Ionicons name="bed-outline" size={18} color="#1a6d78" />
+                    <View>
+                      <Text style={s.typeDetailLabel}>Kamar Tidur</Text>
+                      <Text style={s.typeDetailValue}>{selectedType?.kamarTidur}</Text>
+                    </View>
+                  </View>
+                  <View style={s.typeDetailItem}>
+                    <Ionicons name="water-outline" size={18} color="#1a6d78" />
+                    <View>
+                      <Text style={s.typeDetailLabel}>Kamar Mandi</Text>
+                      <Text style={s.typeDetailValue}>{selectedType?.kamarMandi}</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {selectedType?.facilities && (
+                  <>
+                    <Text style={s.modalSectionLabel}>Fasilitas & Keunggulan</Text>
+                    <View style={s.modalFacilitiesWrap}>
+                      <Text style={s.modalFacilitiesText}>{selectedType.facilities}</Text>
+                    </View>
+                  </>
+                )}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -909,10 +965,11 @@ const s = StyleSheet.create({
   unitGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    justifyContent: "space-between",
+    rowGap: 10,
   },
   unitCard: {
-    width: (SCREEN_WIDTH - 64) / 2 - 4,
+    width: "48.5%",
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "#e2e8f0",
@@ -992,4 +1049,102 @@ const s = StyleSheet.create({
     fontWeight: "600",
     flex: 1,
   },
+
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
+    justifyContent: "flex-end",
+  },
+  modalContainer: {
+    backgroundColor: "#ffffff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    height: "85%",
+    overflow: "hidden",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#1e293b",
+  },
+  modalScroll: {
+    flex: 1,
+  },
+  modalScrollContent: {
+    paddingBottom: 40,
+  },
+  modalImage: {
+    width: "100%",
+    height: 240,
+  },
+  modalImagePlaceholder: {
+    width: "100%",
+    height: 240,
+    backgroundColor: "#f8fafc",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  modalImagePlaceholderText: {
+    color: "#94a3b8",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  modalContent: {
+    padding: 20,
+  },
+  modalTypeName: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#1e293b",
+  },
+  modalPrice: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#1a6d78",
+    marginTop: 4,
+  },
+  modalSectionLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#475569",
+    marginTop: 24,
+    marginBottom: 12,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  modalFacilitiesWrap: {
+    backgroundColor: "#f8fafc",
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  modalFacilitiesText: {
+    fontSize: 14,
+    color: "#475569",
+    lineHeight: 22,
+  },
+  typeActionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  typeActionText: {
+    fontSize: 12,
+    color: "#1a6d78",
+    fontWeight: "700",
+  },
 });
+
