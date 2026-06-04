@@ -196,3 +196,160 @@ export const getProjectDetail = async (req: Request, res: Response): Promise<voi
     res.status(500).json({ error: "Terjadi kesalahan server" });
   }
 };
+
+export const getFieldUnits = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const projectId = req.query.projectId as string | undefined;
+    const search = req.query.search as string | undefined;
+    
+    const whereClause: any = {};
+    if (projectId) {
+      whereClause.projectId = projectId;
+    }
+    
+    // Asumsikan pengawas lapangan hanya melihat unit yang sedang/sudah dibangun
+    whereClause.statusPenjualan = { not: "Tersedia" }; // Atau bisa disesuaikan dengan rule bisnis
+    // Untuk saat ini mari kita ambil semua unit saja
+    delete whereClause.statusPenjualan; 
+
+    const units = await prisma.unit.findMany({
+      where: whereClause,
+      include: {
+        project: { select: { name: true } },
+        propertyType: { select: { name: true } },
+        milestones: { orderBy: { orderNo: 'asc' } }
+      },
+      orderBy: [{ blok: 'asc' }, { nomorUnit: 'asc' }]
+    });
+    
+    // Jika ada parameter search, filter manual di JS atau tambah kondisi di whereClause. 
+    // Di sini cukup sederhana dulu.
+
+    const formattedUnits = units.map(u => {
+      const completed = u.milestones.filter(m => m.status === "COMPLETED").length;
+      const total = u.milestones.length;
+      const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+      
+      return {
+        id: u.id,
+        projectId: u.projectId,
+        code: `${u.blok}-${u.nomor || u.nomorUnit}`,
+        typeName: u.propertyType.name,
+        status: u.statusPembangunan, // "Pesan Bangun" / "Siap Huni"
+        progress: progress,
+        // Mock data fallback jika belum ada data asli
+        buyerName: "Customer Placeholder", 
+        targetDate: new Date().toISOString(),
+      };
+    });
+
+    res.json({ data: formattedUnits });
+  } catch (error) {
+    console.error("Error fetching field units:", error);
+    res.status(500).json({ error: "Terjadi kesalahan server" });
+  }
+};
+
+export const getUnitMilestones = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const unitId = req.params.unitId as string;
+    
+    const unit = await prisma.unit.findUnique({
+      where: { id: unitId },
+      include: { milestones: { orderBy: { orderNo: 'asc' } } }
+    });
+    
+    if (!unit) {
+      res.status(404).json({ error: "Unit tidak ditemukan" });
+      return;
+    }
+    
+    let milestones = unit.milestones;
+    
+    // Auto-generate jika belum punya milestone (SOP darurat jika PropertyType belum ada template)
+    if (milestones.length === 0) {
+      const isReadyStock = unit.statusPembangunan === "Siap Huni";
+      const defaultTemplates = ["Pondasi & Sloof", "Struktur & Dinding", "Atap & Plafon", "Finishing", "Serah Terima"];
+      
+      const newMilestonesData = defaultTemplates.map((name, index) => ({
+        unitId: unit.id,
+        name: name,
+        orderNo: index + 1,
+        status: isReadyStock ? "COMPLETED" : "PENDING",
+        actualDate: isReadyStock ? new Date() : null,
+      }));
+      
+      await prisma.milestone.createMany({
+        data: newMilestonesData
+      });
+      
+      milestones = await prisma.milestone.findMany({
+        where: { unitId },
+        orderBy: { orderNo: 'asc' }
+      });
+    }
+
+    const formattedMilestones = milestones.map((m: any) => ({
+      id: m.id,
+      title: m.name, // Frontend menggunakan "title"
+      status: m.status, // "PENDING" | "IN_PROGRESS" | "COMPLETED"
+      targetDate: m.targetDate ? m.targetDate.toISOString() : new Date().toISOString(),
+      completedDate: m.actualDate ? m.actualDate.toISOString() : undefined,
+      notes: m.note || undefined,
+      photoUrls: m.photoUrls || [],
+      checklistCompleted: m.status === "COMPLETED" ? 1 : 0, // Disederhanakan
+      checklistTotal: 1,
+    }));
+
+    res.json({ data: formattedMilestones });
+  } catch (error) {
+    console.error("Error fetching unit milestones:", error);
+    res.status(500).json({ error: "Terjadi kesalahan server" });
+  }
+};
+
+export const updateMilestone = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const milestoneId = req.params.milestoneId as string;
+    const { status, note, photoUrl, photoUrls } = req.body;
+    
+    const milestone = await prisma.milestone.findUnique({ where: { id: milestoneId } });
+    if (!milestone) {
+      res.status(404).json({ error: "Milestone tidak ditemukan" });
+      return;
+    }
+    
+    let updatedPhotoUrls = [...milestone.photoUrls];
+    if (photoUrl) updatedPhotoUrls.push(photoUrl);
+    if (photoUrls && Array.isArray(photoUrls)) updatedPhotoUrls = [...updatedPhotoUrls, ...photoUrls];
+    
+    const updatedMilestone = await prisma.milestone.update({
+      where: { id: milestoneId },
+      data: {
+        status: status || milestone.status,
+        note: note !== undefined ? note : milestone.note,
+        photoUrls: updatedPhotoUrls,
+        actualDate: status === "COMPLETED" && milestone.status !== "COMPLETED" ? new Date() : milestone.actualDate
+      }
+    });
+    
+    // Update persentase unit jika perlu (opsional: bisa diambil on the fly saja di controller lain)
+    
+    const formatted = {
+      id: updatedMilestone.id,
+      title: updatedMilestone.name,
+      status: updatedMilestone.status,
+      targetDate: updatedMilestone.targetDate ? updatedMilestone.targetDate.toISOString() : new Date().toISOString(),
+      completedDate: updatedMilestone.actualDate ? updatedMilestone.actualDate.toISOString() : undefined,
+      notes: updatedMilestone.note || undefined,
+      photoUrls: updatedMilestone.photoUrls || [],
+      checklistCompleted: updatedMilestone.status === "COMPLETED" ? 1 : 0,
+      checklistTotal: 1,
+    };
+    
+    res.json({ data: formatted });
+  } catch (error) {
+    console.error("Error updating milestone:", error);
+    res.status(500).json({ error: "Terjadi kesalahan server" });
+  }
+};

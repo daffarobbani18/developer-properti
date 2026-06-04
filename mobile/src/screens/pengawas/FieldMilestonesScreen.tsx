@@ -63,6 +63,13 @@ export function FieldMilestonesScreen(): React.JSX.Element {
     [milestones, selectedMilestoneId]
   );
 
+  const selectedUnit = useMemo(
+    () => units.find((u) => u.id === selectedUnitId) ?? null,
+    [units, selectedUnitId]
+  );
+
+  const isSiapHuni = selectedUnit?.status === "Siap Huni";
+
   const completedMilestonesCount = useMemo(
     () => milestones.filter((item) => item.status === "COMPLETED").length,
     [milestones]
@@ -460,82 +467,95 @@ export function FieldMilestonesScreen(): React.JSX.Element {
           <Card>
             <SectionTitle title="Form Update Milestone" caption={selectedMilestone?.name ?? "Pilih milestone"} />
 
-            <View style={styles.statusRow}>
-              {(["NOT_STARTED", "IN_PROGRESS", "COMPLETED"] as MilestoneStatus[]).map((status) => (
-                <Pressable
-                  key={status}
-                  onPress={() => setStatusDraft(status)}
-                  style={({ pressed }) => [
-                    styles.statusPill,
-                    statusDraft === status && styles.statusPillActive,
-                    pressed && styles.choicePillPressed,
-                  ]}
-                >
-                  <Text style={[styles.statusText, statusDraft === status && styles.statusTextActive]}>
-                    {formatMilestoneStatusLabel(status)}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-
-            <LabeledInput
-              label="Catatan Lapangan"
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-              placeholder="Tambahkan catatan progres atau kendala"
-              value={noteDraft}
-              onChangeText={setNoteDraft}
-            />
-
-            <LabeledInput
-              label="URL Foto"
-              placeholder="https://..."
-              value={photoUrlDraft}
-              onChangeText={setPhotoUrlDraft}
-              hint="Opsional: gunakan jika ingin lampirkan URL manual"
-            />
-
-            <View style={styles.photoActionRow}>
-              <SecondaryButton label="Ambil Foto" onPress={() => void takeMilestonePhoto()} />
-              <SecondaryButton
-                label="Pilih Galeri"
-                onPress={() => void pickMilestonePhotoFromGallery()}
-              />
-            </View>
-
-            <Text style={styles.helperText}>Lampiran foto opsional, maksimal 5 file per update.</Text>
-
-            <Text style={styles.photoMetaText}>
-              Lampiran foto terpilih: {selectedPhotoUris.length}/5
-            </Text>
-
-            {selectedPhotoUris.length > 0 ? (
-              <View style={styles.photoListWrap}>
-                {selectedPhotoUris.map((uri, index) => (
-                  <View key={`${uri}-${index}`} style={styles.photoItemRow}>
-                    <Image source={{ uri }} style={styles.photoPreviewThumb} resizeMode="cover" />
-                    <Text style={styles.photoItemText} numberOfLines={1}>
-                      {uri}
-                    </Text>
-                    <Pressable
-                      onPress={() => {
-                        setSelectedPhotoUris((prev) => prev.filter((_, idx) => idx !== index));
-                      }}
-                      style={({ pressed }) => [styles.removePhotoBtn, pressed && styles.choicePillPressed]}
-                    >
-                      <Text style={styles.removePhotoText}>Hapus</Text>
-                    </Pressable>
-                  </View>
-                ))}
+            {isSiapHuni ? (
+              <View style={{ paddingVertical: 16, alignItems: "center" }}>
+                <Text style={{ color: "#16a34a", fontSize: 16, fontWeight: "bold", marginBottom: 8 }}>
+                  ✅ Unit Siap Huni
+                </Text>
+                <Text style={{ textAlign: "center", color: "#475569" }}>
+                  Milestone untuk unit Siap Huni tidak dapat diubah (Read-Only). Semua tahapan sudah berstatus COMPLETED.
+                </Text>
               </View>
-            ) : null}
+            ) : (
+              <>
+                <View style={styles.statusRow}>
+                  {(["NOT_STARTED", "IN_PROGRESS", "COMPLETED"] as MilestoneStatus[]).map((status) => (
+                    <Pressable
+                      key={status}
+                      onPress={() => setStatusDraft(status)}
+                      style={({ pressed }) => [
+                        styles.statusPill,
+                        statusDraft === status && styles.statusPillActive,
+                        pressed && styles.choicePillPressed,
+                      ]}
+                    >
+                      <Text style={[styles.statusText, statusDraft === status && styles.statusTextActive]}>
+                        {formatMilestoneStatusLabel(status)}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
 
-            <PrimaryButton
-              label={isSubmitting ? "Menyimpan..." : "Simpan Update"}
-              onPress={() => void submitUpdate()}
-              disabled={!selectedMilestone || isSubmitting}
-            />
+                <LabeledInput
+                  label="Catatan Lapangan"
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                  placeholder="Tambahkan catatan progres atau kendala"
+                  value={noteDraft}
+                  onChangeText={setNoteDraft}
+                />
+
+                <LabeledInput
+                  label="URL Foto"
+                  placeholder="https://..."
+                  value={photoUrlDraft}
+                  onChangeText={setPhotoUrlDraft}
+                  hint="Opsional: gunakan jika ingin lampirkan URL manual"
+                />
+
+                <View style={styles.photoActionRow}>
+                  <SecondaryButton label="Ambil Foto" onPress={() => void takeMilestonePhoto()} />
+                  <SecondaryButton
+                    label="Pilih Galeri"
+                    onPress={() => void pickMilestonePhotoFromGallery()}
+                  />
+                </View>
+
+                <Text style={styles.helperText}>Lampiran foto opsional, maksimal 5 file per update.</Text>
+
+                <Text style={styles.photoMetaText}>
+                  Lampiran foto terpilih: {selectedPhotoUris.length}/5
+                </Text>
+
+                {selectedPhotoUris.length > 0 ? (
+                  <View style={styles.photoListWrap}>
+                    {selectedPhotoUris.map((uri, index) => (
+                      <View key={`${uri}-${index}`} style={styles.photoItemRow}>
+                        <Image source={{ uri }} style={styles.photoPreviewThumb} resizeMode="cover" />
+                        <Text style={styles.photoItemText} numberOfLines={1}>
+                          {uri}
+                        </Text>
+                        <Pressable
+                          onPress={() => {
+                            setSelectedPhotoUris((prev) => prev.filter((_, idx) => idx !== index));
+                          }}
+                          style={({ pressed }) => [styles.removePhotoBtn, pressed && styles.choicePillPressed]}
+                        >
+                          <Text style={styles.removePhotoText}>Hapus</Text>
+                        </Pressable>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
+
+                <PrimaryButton
+                  label={isSubmitting ? "Menyimpan..." : "Simpan Update"}
+                  onPress={() => void submitUpdate()}
+                  disabled={!selectedMilestone || isSubmitting}
+                />
+              </>
+            )}
           </Card>
         </>
       )}

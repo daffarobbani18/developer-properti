@@ -18,7 +18,7 @@ export const validate =
     } catch (error) {
       if (error instanceof ZodError) {
         // Format pesan error Zod menjadi lebih rapi
-        const zodErrors = error.errors || error.issues || [];
+        const zodErrors = error.issues || [];
         const errorMessages = zodErrors.map((issue: any) => ({
           field: issue.path.join('.'),
           message: issue.message,

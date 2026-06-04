@@ -17,6 +17,7 @@ export class InventoryService {
     price?: number; // legacy fallback
     imageUrl?: string;
     facilities?: string | null;
+    milestoneTemplates?: string[]; // array of template names
   }) {
     return await prisma.propertyType.create({
       data: {
@@ -33,6 +34,12 @@ export class InventoryService {
         price: data.basePrice,
         imageUrl: data.imageUrl,
         facilities: data.facilities,
+        milestoneTemplates: {
+          create: data.milestoneTemplates?.map((name, index) => ({
+            name,
+            orderNo: index + 1,
+          })) || [],
+        },
       },
     });
   }
@@ -45,6 +52,9 @@ export class InventoryService {
       include: {
         project: {
           select: { name: true },
+        },
+        milestoneTemplates: {
+          orderBy: { orderNo: 'asc' }
         },
       },
     });
@@ -63,6 +73,7 @@ export class InventoryService {
     basePrice?: number;
     imageUrl?: string;
     facilities?: string | null;
+    milestoneTemplates?: string[];
   }) {
     return await prisma.propertyType.update({
       where: { id },
@@ -76,6 +87,15 @@ export class InventoryService {
         ...(data.basePrice !== undefined && { basePrice: data.basePrice, price: data.basePrice }),
         ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl }),
         ...(data.facilities !== undefined && { facilities: data.facilities }),
+        ...(data.milestoneTemplates !== undefined && {
+          milestoneTemplates: {
+            deleteMany: {},
+            create: data.milestoneTemplates.map((name, index) => ({
+              name,
+              orderNo: index + 1,
+            })),
+          },
+        }),
       },
     });
   }
@@ -118,9 +138,10 @@ export class InventoryService {
       throw new Error(`Unit dengan Blok ${data.blok} dan Nomor ${data.nomor} sudah ada di Kawasan ${data.kawasan} pada proyek ini`);
     }
 
-    // Dapatkan data PropertyType untuk mengambil basePrice
+    // Dapatkan data PropertyType untuk mengambil basePrice & milestone templates
     const propertyType = await prisma.propertyType.findUnique({
       where: { id: data.propertyTypeId },
+      include: { milestoneTemplates: { orderBy: { orderNo: 'asc' } } }
     });
 
     if (!propertyType) {
@@ -129,6 +150,9 @@ export class InventoryService {
 
     // Kalkulasi total_price = basePrice + priceMarkup
     const totalPrice = propertyType.basePrice + data.priceMarkup;
+    
+    // Status awal milestone
+    const isReadyStock = data.statusPembangunan === "Siap Huni";
 
     // Buat data
     return await prisma.unit.create({
@@ -147,6 +171,14 @@ export class InventoryService {
         price: totalPrice,
         status: data.statusPenjualan || "Tersedia",
         luasTanahAktual: data.luasTanahAktual,
+        milestones: {
+          create: propertyType.milestoneTemplates.map((template) => ({
+            name: template.name,
+            orderNo: template.orderNo,
+            status: isReadyStock ? "COMPLETED" : "PENDING",
+            actualDate: isReadyStock ? new Date() : null,
+          })),
+        },
       },
     });
   }

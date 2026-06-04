@@ -48,7 +48,7 @@ export function formatMilestoneStatusLabel(
 }
 
 export function formatUnitStatusLabel(
-  status: "NOT_STARTED" | "IN_PROGRESS" | "DONE"
+  status: string
 ): string {
   if (status === "NOT_STARTED") {
     return "Belum Mulai";
@@ -56,7 +56,10 @@ export function formatUnitStatusLabel(
   if (status === "IN_PROGRESS") {
     return "Dalam Proses";
   }
-  return "Selesai";
+  if (status === "DONE") {
+    return "Selesai";
+  }
+  return status;
 }
 
 export function formatAttendanceStatusLabel(

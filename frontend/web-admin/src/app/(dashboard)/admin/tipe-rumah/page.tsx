@@ -37,6 +37,7 @@ export default function TipeRumahPage() {
     price: 0,
     facilities: "",
     imageUrl: "",
+    milestoneTemplates: [] as string[],
     id: undefined as string | undefined,
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -90,7 +91,8 @@ export default function TipeRumahPage() {
               bath: p.kamarMandi || p.bathrooms || 0,
               price: p.basePrice || p.price || 0,
               facilities: p.facilities || "",
-              imageUrl: p.imageUrl
+              imageUrl: p.imageUrl,
+              milestoneTemplates: p.milestoneTemplates?.map((m: any) => m.name) || []
             })));
           }
         }
@@ -143,7 +145,8 @@ export default function TipeRumahPage() {
         kamarMandi: typeForm.bath,
         basePrice: typeForm.price,
         facilities: typeForm.facilities,
-        imageUrl: finalImageUrl || null
+        imageUrl: finalImageUrl || null,
+        milestoneTemplates: typeForm.milestoneTemplates
       };
       
       const endpoint = typeForm.id 
@@ -182,6 +185,7 @@ export default function TipeRumahPage() {
       price: type.price,
       facilities: type.facilities || "",
       imageUrl: type.imageUrl || "",
+      milestoneTemplates: type.milestoneTemplates || [],
     });
     setSelectedFile(null);
     setIsTypeModalOpen(true);
@@ -225,7 +229,7 @@ export default function TipeRumahPage() {
   };
 
   const openNewModal = () => {
-    setTypeForm({ projectId: "", name: "", lt: 0, lb: 0, bed: 0, bath: 0, price: 0, facilities: "", imageUrl: "", id: undefined });
+    setTypeForm({ projectId: "", name: "", lt: 0, lb: 0, bed: 0, bath: 0, price: 0, facilities: "", imageUrl: "", milestoneTemplates: [], id: undefined });
     setSelectedFile(null);
     setIsTypeModalOpen(true);
   };
@@ -485,6 +489,56 @@ export default function TipeRumahPage() {
                       />
                     </label>
                   </div>
+                </div>
+              </div>
+              
+              <div className="border-t border-zinc-100 pt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-600">Template Milestone (Opsional)</label>
+                  <button 
+                    type="button"
+                    onClick={() => setTypeForm({ ...typeForm, milestoneTemplates: [...typeForm.milestoneTemplates, ""] })}
+                    className="text-xs font-bold text-amber-600 flex items-center gap-1 hover:text-amber-700 transition-colors"
+                  >
+                    <Plus weight="bold" /> Tambah Tahap
+                  </button>
+                </div>
+                <p className="text-xs text-zinc-500 mb-3">Milestone akan di-generate otomatis saat kavling dengan tipe ini didaftarkan.</p>
+                <div className="space-y-2">
+                  {typeForm.milestoneTemplates.map((m, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <div className="flex h-11 w-8 items-center justify-center rounded-lg bg-zinc-100 text-xs font-bold text-zinc-500">
+                        {idx + 1}
+                      </div>
+                      <input
+                        type="text"
+                        value={m}
+                        onChange={(e) => {
+                          const newTpls = [...typeForm.milestoneTemplates];
+                          newTpls[idx] = e.target.value;
+                          setTypeForm({ ...typeForm, milestoneTemplates: newTpls });
+                        }}
+                        placeholder="Contoh: Pondasi & Sloof"
+                        className="flex-1 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const newTpls = [...typeForm.milestoneTemplates];
+                          newTpls.splice(idx, 1);
+                          setTypeForm({ ...typeForm, milestoneTemplates: newTpls });
+                        }}
+                        className="rounded-lg bg-rose-50 p-2.5 text-rose-500 transition-colors hover:bg-rose-100 hover:text-rose-700"
+                      >
+                        <Trash weight="duotone" size={18} />
+                      </button>
+                    </div>
+                  ))}
+                  {typeForm.milestoneTemplates.length === 0 && (
+                    <div className="rounded-xl border border-dashed border-zinc-300 py-4 text-center text-sm text-zinc-500">
+                      Belum ada template milestone
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

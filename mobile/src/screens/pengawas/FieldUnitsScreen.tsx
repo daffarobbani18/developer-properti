@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { PengawasStackParamList } from "../../navigation/types";
 
 import {
   Badge,
@@ -31,6 +33,7 @@ function toneByStatus(status: Unit["status"]): "success" | "warning" | "neutral"
 
 export function FieldUnitsScreen(): React.JSX.Element {
    const { auth } = useAuth();
+   const navigation = useNavigation<NativeStackNavigationProp<PengawasStackParamList>>();
 
    const [projects, setProjects] = useState<ProjectSummary[]>([]);
    const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>(undefined);
@@ -192,19 +195,47 @@ export function FieldUnitsScreen(): React.JSX.Element {
          <EmptyState message="Tidak ada unit sesuai filter." />
        ) : (
         <View style={styles.listWrap}>
-          {units.map((unit) => (
-            <Card key={unit.id}>
-              <View style={styles.rowTop}>
-                <Text style={styles.unitCode}>{unit.code}</Text>
-                <Badge label={formatUnitStatusLabel(unit.status)} tone={toneByStatus(unit.status)} />
-              </View>
-              <Text style={styles.unitType}>{unit.typeName}</Text>
-              <Text style={styles.unitMeta}>Progres konstruksi: {unit.progress}%</Text>
-              <View style={styles.progressTrack}>
-                <View style={[styles.progressFill, { width: `${Math.max(4, unit.progress)}%` }]} />
-              </View>
-            </Card>
-          ))}
+          {units.map((unit) => {
+            const isSiapHuni = unit.status === "Siap Huni";
+            return (
+              <Card 
+                key={unit.id} 
+                style={isSiapHuni ? { backgroundColor: "#f0fdf4", borderColor: "#bbf7d0", borderWidth: 1 } : undefined}
+              >
+                <View style={styles.rowTop}>
+                  <Text style={styles.unitCode}>{unit.code}</Text>
+                  <Badge 
+                    label={isSiapHuni ? "Siap Huni ✅" : formatUnitStatusLabel(unit.status)} 
+                    tone={isSiapHuni ? "success" : toneByStatus(unit.status)} 
+                  />
+                </View>
+                <Text style={styles.unitType}>{unit.typeName}</Text>
+                <Text style={styles.unitMeta}>Progres konstruksi: {unit.progress}%</Text>
+                <View style={styles.progressTrack}>
+                  <View style={[styles.progressFill, { width: `${Math.max(4, unit.progress)}%` }, isSiapHuni && { backgroundColor: "#22c55e" }]} />
+                </View>
+                
+                <View style={{ marginTop: 16 }}>
+                  {isSiapHuni ? (
+                    <SecondaryButton 
+                      label="Lihat Riwayat Milestone" 
+                      onPress={() => navigation.navigate("FieldMilestones" as any)} 
+                    />
+                  ) : (
+                    <Pressable 
+                      onPress={() => navigation.navigate("FieldMilestones" as any)}
+                      style={({ pressed }) => [
+                        { backgroundColor: "#1e6f78", padding: 12, borderRadius: 8, alignItems: "center" },
+                        pressed && { opacity: 0.8 }
+                      ]}
+                    >
+                      <Text style={{ color: "white", fontWeight: "bold", fontSize: 14 }}>+ Update Milestone</Text>
+                    </Pressable>
+                  )}
+                </View>
+              </Card>
+            );
+          })}
         </View>
       )}
     </ScreenShell>

@@ -25,7 +25,7 @@ export type Unit = {
   projectId: string;
   code: string;
   typeName: string;
-  status: "NOT_STARTED" | "IN_PROGRESS" | "DONE";
+  status: string;
   progress: number;
 };
 

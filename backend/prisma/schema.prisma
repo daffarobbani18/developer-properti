@@ -74,6 +74,7 @@ model PropertyType {
   
   project         Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   units           Unit[]
+  milestoneTemplates MilestoneTemplate[]
   
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -104,6 +105,7 @@ model Unit {
   propertyType    PropertyType   @relation(fields: [propertyTypeId], references: [id], onDelete: Cascade)
   bookings        Booking[]
   constructionProgresses ConstructionProgress[]
+  milestones      Milestone[]
   
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -329,5 +331,34 @@ model KprDocument {
   
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
+}
+
+model MilestoneTemplate {
+  id               String       @id @default(uuid())
+  propertyTypeId   String
+  name             String
+  orderNo          Int
+
+  propertyType     PropertyType @relation(fields: [propertyTypeId], references: [id], onDelete: Cascade)
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
+
+model Milestone {
+  id          String    @id @default(uuid())
+  unitId      String
+  name        String
+  orderNo     Int
+  targetDate  DateTime? // Dibuat opsional karena mungkin belum diketahui saat auto-generate
+  actualDate  DateTime?
+  status      String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  note        String?
+  photoUrls   String[]  @default([])
+  
+  unit        Unit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 

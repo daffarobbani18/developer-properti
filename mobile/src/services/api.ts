@@ -196,23 +196,19 @@ export async function getFieldUnits(
 ): Promise<Unit[]> {
   const session = ensureAuth(auth);
 
-  try {
-    const query = new URLSearchParams();
-    if (params?.projectId) {
-      query.set("projectId", params.projectId);
-    }
-    if (params?.search) {
-      query.set("search", params.search);
-    }
-
-    const path = `/mobile/field/units${query.toString() ? `?${query.toString()}` : ""}`;
-    const response = await requestJson<Unit[] | { data: Unit[] }>(path, {
-      token: session.token,
-    });
-    return unwrapData(response);
-  } catch {
-    return getUnits(params?.projectId, params?.search);
+  const query = new URLSearchParams();
+  if (params?.projectId) {
+    query.set("projectId", params.projectId);
   }
+  if (params?.search) {
+    query.set("search", params.search);
+  }
+
+  const path = `/mobile/field/units${query.toString() ? `?${query.toString()}` : ""}`;
+  const response = await requestJson<Unit[] | { data: Unit[] }>(path, {
+    token: session.token,
+  });
+  return unwrapData(response);
 }
 
 export async function getUnitMilestones(
@@ -221,17 +217,13 @@ export async function getUnitMilestones(
 ): Promise<Milestone[]> {
   const session = ensureAuth(auth);
 
-  try {
-    const response = await requestJson<Milestone[] | { data: Milestone[] }>(
-      `/mobile/field/units/${unitId}/milestones`,
-      {
-        token: session.token,
-      }
-    );
-    return unwrapData(response);
-  } catch {
-    return getMilestones(unitId);
-  }
+  const response = await requestJson<Milestone[] | { data: Milestone[] }>(
+    `/mobile/field/units/${unitId}/milestones`,
+    {
+      token: session.token,
+    }
+  );
+  return unwrapData(response);
 }
 
 export async function submitMilestoneUpdate(
@@ -246,19 +238,15 @@ export async function submitMilestoneUpdate(
 ): Promise<Milestone> {
   const session = ensureAuth(auth);
 
-  try {
-    const response = await requestJson<Milestone | { data: Milestone }>(
-      `/mobile/field/milestones/${payload.milestoneId}`,
-      {
-        method: "PATCH",
-        token: session.token,
-        body: JSON.stringify(payload),
-      }
-    );
-    return unwrapData(response);
-  } catch {
-    return updateMilestone(payload);
-  }
+  const response = await requestJson<Milestone | { data: Milestone }>(
+    `/mobile/field/milestones/${payload.milestoneId}`,
+    {
+      method: "PATCH",
+      token: session.token,
+      body: JSON.stringify(payload),
+    }
+  );
+  return unwrapData(response);
 }
 
 export async function getFieldIssues(auth: AuthState | null): Promise<IssueItem[]> {

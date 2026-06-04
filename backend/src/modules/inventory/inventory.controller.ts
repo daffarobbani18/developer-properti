@@ -13,6 +13,7 @@ export class InventoryController {
         kamarMandi,
         basePrice,
         facilities,
+        milestoneTemplates,
       } = req.body;
 
       if (!projectId || !name || !basePrice) {
@@ -30,6 +31,7 @@ export class InventoryController {
         basePrice: Number(basePrice),
         imageUrl: req.body.imageUrl || null,
         facilities: facilities ? String(facilities) : null,
+        milestoneTemplates: Array.isArray(milestoneTemplates) ? milestoneTemplates.map(String) : undefined,
       });
 
       res.status(201).json({
@@ -55,6 +57,7 @@ export class InventoryController {
         basePrice,
         imageUrl,
         facilities,
+        milestoneTemplates,
       } = req.body;
 
       const propertyType = await InventoryService.updatePropertyType(id as string, {
@@ -67,6 +70,7 @@ export class InventoryController {
         basePrice: basePrice !== undefined ? Number(basePrice) : undefined,
         imageUrl: imageUrl !== undefined ? String(imageUrl) : undefined,
         facilities: facilities !== undefined ? (facilities ? String(facilities) : null) : undefined,
+        milestoneTemplates: milestoneTemplates !== undefined ? (Array.isArray(milestoneTemplates) ? milestoneTemplates.map(String) : undefined) : undefined,
       });
 
       res.status(200).json({
