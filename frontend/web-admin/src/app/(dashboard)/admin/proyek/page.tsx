@@ -42,7 +42,6 @@ export default function ProyekPage() {
     targetSelesai: "",
     status: "perencanaan",
     kontraktorName: "",
-    estimasiAnggaran: "",
     nomorIzin: "",
     description: "",
     imageUrl: "",
@@ -151,7 +150,6 @@ export default function ProyekPage() {
         targetSelesai: projectForm.targetSelesai ? new Date(projectForm.targetSelesai).toISOString() : null,
         status: projectForm.status,
         kontraktorName: projectForm.kontraktorName,
-        estimasiAnggaran: parseFloat(projectForm.estimasiAnggaran) || 0,
         nomorIzin: projectForm.nomorIzin,
         description: projectForm.description,
         imageUrl: finalImageUrl,
@@ -176,7 +174,7 @@ export default function ProyekPage() {
       
       setIsProjectModalOpen(false);
       setEditProjectId(null);
-      setProjectForm({ name: "", location: "", totalUnits: "", targetSelesai: "", status: "perencanaan", kontraktorName: "", estimasiAnggaran: "", nomorIzin: "", description: "", imageUrl: "" });
+      setProjectForm({ name: "", location: "", totalUnits: "", targetSelesai: "", status: "perencanaan", kontraktorName: "", nomorIzin: "", description: "", imageUrl: "" });
       setSelectedFile(null);
       
       await fetchProjects();
@@ -332,7 +330,6 @@ export default function ProyekPage() {
                   targetSelesai: p.targetSelesai ? new Date(p.targetSelesai).toISOString().split('T')[0] : "",
                   status: p.statusProyek,
                   kontraktorName: p.kontraktorName || "",
-                  estimasiAnggaran: String(p.estimasiAnggaran || ""),
                   nomorIzin: p.nomorIzin || "",
                   description: p.description || "",
                   imageUrl: p.imageUrl || "",
@@ -400,34 +397,15 @@ export default function ProyekPage() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Nama Kontraktor</label>
-                  <input
-                    type="text"
-                    value={projectForm.kontraktorName}
-                    onChange={(e) => setProjectForm({ ...projectForm, kontraktorName: e.target.value })}
-                    placeholder="PT Bangun Bersama"
-                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-                  />
-                </div>
-                <div>
-                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Estimasi Anggaran (RAB)</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-500">Rp</span>
-                    <input
-                      type="text"
-                      value={projectForm.estimasiAnggaran}
-                      onChange={(e) => {
-                        const rawValue = e.target.value.replace(/\D/g, "");
-                        const formattedValue = rawValue ? new Intl.NumberFormat("id-ID").format(Number(rawValue)) : "";
-                        setProjectForm({ ...projectForm, estimasiAnggaran: formattedValue });
-                      }}
-                      placeholder="0"
-                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3 pl-10 pr-4 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-                    />
-                  </div>
-                </div>
+              <div>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Nama Kontraktor</label>
+                <input
+                  type="text"
+                  value={projectForm.kontraktorName}
+                  onChange={(e) => setProjectForm({ ...projectForm, kontraktorName: e.target.value })}
+                  placeholder="PT Bangun Bersama"
+                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                />
               </div>
               <div className="grid grid-cols-2 gap-5">
                 <div>

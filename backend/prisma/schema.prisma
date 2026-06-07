@@ -40,7 +40,6 @@ model Project {
   
   // Field Baru (Fase 5 - Relational Inventory)
   kontraktorName  String?
-  estimasiAnggaran Float?
   nomorIzin       String?
   description     String?        // "Tentang Proyek" (ditampilkan di halaman detail proyek di portal publik)
   imageUrl        String?
