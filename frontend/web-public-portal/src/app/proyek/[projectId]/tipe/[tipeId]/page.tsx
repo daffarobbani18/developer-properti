@@ -108,7 +108,7 @@ export default function PropertyTypeDetailPage() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
             <div>
               <h1 className="text-4xl md:text-6xl font-serif font-bold text-zinc-900 mb-2">
-                Tipe {tipe.name}
+                {tipe.name}
               </h1>
               <p className="text-lg text-zinc-500 font-light max-w-2xl">
                 Hunian eksklusif di <span className="font-medium text-zinc-700">{project.name}</span>.
@@ -199,7 +199,7 @@ export default function PropertyTypeDetailPage() {
                   onClick={() => setIsModalOpen(true)}
                   className="w-full flex items-center justify-center gap-3 bg-amber-600 hover:bg-amber-500 text-white py-4 font-bold uppercase tracking-widest text-xs transition-colors rounded-xl"
                 >
-                  Minta Penawaran VIP <ArrowRight size={16} />
+                  Minta Penawaran<ArrowRight size={16} />
                 </button>
                 
                 <p className="text-xs text-zinc-500 text-center mt-6 leading-relaxed">

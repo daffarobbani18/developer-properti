@@ -44,6 +44,22 @@ export default function KavlingUnitPage() {
   };
 
   const [unitForm, setUnitForm] = useState(defaultForm);
+
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [bulkSubmitting, setBulkSubmitting] = useState(false);
+  const [bulkForm, setBulkForm] = useState({
+    projectId: "",
+    propertyTypeId: "",
+    kawasan: "Cluster Utama",
+    blok: "",
+    startNumber: 1,
+    endNumber: 50,
+    skipNumbers: "",
+    statusPembangunan: "Pesan Bangun",
+    statusPenjualan: "Tersedia",
+    priceMarkup: 0,
+  });
+
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -182,6 +198,46 @@ export default function KavlingUnitPage() {
     }
   };
 
+  const handleBulkSubmit = async () => {
+    try {
+      setBulkSubmitting(true);
+      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
+      });
+      const { token } = await loginRes.json();
+      
+      const payload = {
+        ...bulkForm,
+        startNumber: Number(bulkForm.startNumber),
+        endNumber: Number(bulkForm.endNumber),
+        priceMarkup: Number(bulkForm.priceMarkup) || 0,
+      };
+      
+      const res = await fetch("http://localhost:4000/api/inventory/units/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showToast(`Gagal: ${err.message || err.error || res.statusText}`, 'error');
+        return;
+      }
+      
+      setBulkModalOpen(false);
+      await fetchData();
+      showToast('Berhasil men-generate kavling secara massal', 'success');
+    } catch (e) {
+      console.error(e);
+      showToast('Gagal memproses bulk generate', 'error');
+    } finally {
+      setBulkSubmitting(false);
+    }
+  };
+
   const executeDelete = async () => {
     if (!deleteConfirmId) return;
     try {
@@ -298,6 +354,16 @@ export default function KavlingUnitPage() {
               ))}
               
               <div className="h-8 w-px bg-zinc-200 mx-2"></div>
+              
+              <button
+                onClick={() => {
+                  setBulkForm({ ...bulkForm, projectId: selectedProject, propertyTypeId: "" });
+                  setBulkModalOpen(true);
+                }}
+                className="flex whitespace-nowrap items-center gap-2 rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-zinc-900/20 transition-all hover:bg-zinc-800"
+              >
+                <Package weight="duotone" size={18} /> Generate Massal
+              </button>
               
               <button
                 onClick={openDrawerForAdd}
@@ -481,11 +547,15 @@ export default function KavlingUnitPage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Kawasan / Cluster</label>
+                <label className="mb-2 flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-zinc-600">Kawasan / Cluster</span>
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-400">Opsional</span>
+                </label>
                 <input
                   type="text"
                   value={unitForm.kawasan}
                   onChange={(e) => setUnitForm({ ...unitForm, kawasan: e.target.value })}
+                  placeholder="Contoh: Cluster Arcadia"
                   className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
@@ -654,6 +724,176 @@ export default function KavlingUnitPage() {
         </div>,
         document.body
       )}
+      {/* BULK GENERATE MODAL */}
+      {mounted && bulkModalOpen && createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-zinc-900/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
+              <div>
+                <h3 className="text-lg font-bold text-zinc-900">Generate Unit Massal</h3>
+                <p className="text-sm text-zinc-500">Buat banyak unit sekaligus dengan urutan nomor</p>
+              </div>
+              <button 
+                onClick={() => setBulkModalOpen(false)}
+                className="rounded-full bg-zinc-100 p-2 text-zinc-500 transition-colors hover:bg-zinc-200"
+              >
+                <X weight="bold" />
+              </button>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto px-6 py-6 hide-scrollbar space-y-5">
+              <div>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Pilih Tipe Rumah (Wajib)</label>
+                <select 
+                  value={bulkForm.propertyTypeId} 
+                  onChange={(e) => setBulkForm({ ...bulkForm, propertyTypeId: e.target.value })}
+                  className="w-full cursor-pointer appearance-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-medium transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value="" disabled>-- Pilih Tipe --</option>
+                  {filteredTypes.map((type) => (
+                    <option key={type.id} value={String(type.id)}>
+                      {type.name} - {formatRupiah(type.price || type.basePrice)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-2 flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-zinc-600">Kawasan</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-400">Opsional</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={bulkForm.kawasan}
+                    onChange={(e) => setBulkForm({ ...bulkForm, kawasan: e.target.value })}
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Blok</label>
+                  <input
+                    type="text"
+                    value={bulkForm.blok}
+                    onChange={(e) => setBulkForm({ ...bulkForm, blok: e.target.value })}
+                    placeholder="Contoh: A"
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Mulai dari Nomor</label>
+                  <input
+                    type="number"
+                    value={bulkForm.startNumber}
+                    onChange={(e) => setBulkForm({ ...bulkForm, startNumber: Number(e.target.value) })}
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Sampai Nomor</label>
+                  <input
+                    type="number"
+                    value={bulkForm.endNumber}
+                    onChange={(e) => setBulkForm({ ...bulkForm, endNumber: Number(e.target.value) })}
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-zinc-600">Lewati Nomor (Pengecualian)</span>
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-400">Opsional</span>
+                </label>
+                <input
+                  type="text"
+                  value={bulkForm.skipNumbers}
+                  onChange={(e) => setBulkForm({ ...bulkForm, skipNumbers: e.target.value })}
+                  placeholder="Contoh: 4, 13, 14"
+                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
+                <p className="mt-1.5 text-xs text-zinc-500">Pisahkan dengan koma. Nomor ini tidak akan dibuat.</p>
+              </div>
+
+              <div className="h-px bg-zinc-100"></div>
+
+              <div>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Status Penjualan</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {["Tersedia", "Booked", "Terjual"].map(status => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => setBulkForm({ ...bulkForm, statusPenjualan: status })}
+                      className={`rounded-lg py-2 text-xs font-bold border-2 transition-all ${
+                        bulkForm.statusPenjualan === status 
+                          ? status === "Tersedia" ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                            : status === "Booked" ? "border-amber-500 bg-amber-50 text-amber-700"
+                            : "border-rose-500 bg-rose-50 text-rose-700"
+                          : "border-transparent bg-zinc-100 text-zinc-500 hover:bg-zinc-200"
+                      }`}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Status Pembangunan</label>
+                <select 
+                  value={bulkForm.statusPembangunan} 
+                  onChange={(e) => setBulkForm({ ...bulkForm, statusPembangunan: e.target.value })}
+                  className="w-full cursor-pointer appearance-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-medium transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                >
+                  <option value="Pesan Bangun">Pesan Bangun (Indent)</option>
+                  <option value="Sedang Dibangun" disabled>Sedang Dibangun (WIP)</option>
+                  <option value="Siap Huni">Siap Huni (Ready Stock)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-zinc-600">Markup Harga per Unit</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-zinc-400">Rp</span>
+                  <input
+                    type="number"
+                    value={bulkForm.priceMarkup || ""}
+                    onChange={(e) => setBulkForm({ ...bulkForm, priceMarkup: Number(e.target.value) })}
+                    placeholder="0"
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3 pl-12 pr-4 text-sm font-semibold transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
+              </div>
+
+            </div>
+
+            <div className="flex flex-col sm:flex-row-reverse sm:justify-start gap-3 px-6 py-4 border-t border-zinc-100 bg-zinc-50/50">
+              <button 
+                onClick={handleBulkSubmit} 
+                disabled={!bulkForm.propertyTypeId || !bulkForm.blok || bulkSubmitting}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-zinc-900 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-zinc-900/30 transition-all hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {bulkSubmitting ? <CircleNotch weight="bold" className="animate-spin h-5 w-5" /> : "Mulai Generate"}
+              </button>
+              
+              <button
+                onClick={() => setBulkModalOpen(false)}
+                className="w-full sm:w-auto rounded-xl bg-white border border-zinc-200 px-6 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100 sm:mr-auto"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      , document.body)}
+
     </div>
   );
 }

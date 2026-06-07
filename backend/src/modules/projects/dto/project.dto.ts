@@ -16,7 +16,7 @@ export const createProjectDto = z.object({
   })
 });
 
-export const updateProjectSchema = z.object({
+export const updateProjectDto = z.object({
   body: z.object({
     name: z.string().min(3).optional(),
     location: z.string().min(5).optional(),

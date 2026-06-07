@@ -188,6 +188,86 @@ export class InventoryService {
   }
 
   /**
+   * Bulk Create Unit Kavling
+   */
+  static async createBulkKavlingUnits(data: {
+    projectId: string;
+    propertyTypeId: string;
+    kawasan: string;
+    blok: string;
+    startNumber: number;
+    endNumber: number;
+    skipNumbers?: string | null;
+    statusPembangunan: string;
+    statusPenjualan: string;
+    priceMarkup: number;
+  }) {
+    const propertyType = await prisma.propertyType.findUnique({
+      where: { id: data.propertyTypeId },
+      include: { milestoneTemplates: { orderBy: { orderNo: 'asc' } } }
+    });
+
+    if (!propertyType) {
+      throw new Error("Property Type tidak ditemukan");
+    }
+
+    const totalPrice = propertyType.basePrice + data.priceMarkup;
+    const isReadyStock = data.statusPembangunan === "Siap Huni";
+
+    const skips = data.skipNumbers
+      ? data.skipNumbers.split(",").map(s => s.trim())
+      : [];
+
+    const createPromises: any[] = [];
+    let count = 0;
+
+    for (let i = data.startNumber; i <= data.endNumber; i++) {
+      const nomorString = i < 10 ? `0${i}` : `${i}`;
+      if (skips.includes(nomorString) || skips.includes(String(i))) {
+        continue;
+      }
+
+      const exists = await prisma.unit.findFirst({
+        where: { projectId: data.projectId, blok: data.blok, nomor: nomorString }
+      });
+      
+      if (exists) {
+        throw new Error(`Unit Blok ${data.blok} Nomor ${nomorString} sudah ada. Batalkan bulk proses.`);
+      }
+
+      const unitCreate = prisma.unit.create({
+        data: {
+          projectId: data.projectId,
+          propertyTypeId: data.propertyTypeId,
+          kawasan: data.kawasan,
+          blok: data.blok,
+          nomor: nomorString,
+          statusPembangunan: data.statusPembangunan || "Pesan Bangun",
+          statusPenjualan: data.statusPenjualan || "Tersedia",
+          priceMarkup: data.priceMarkup,
+          totalPrice: totalPrice,
+          nomorUnit: `${data.blok}-${nomorString}`,
+          price: totalPrice,
+          status: data.statusPenjualan || "Tersedia",
+          milestones: {
+            create: propertyType.milestoneTemplates.map((template) => ({
+              name: template.name,
+              orderNo: template.orderNo,
+              status: isReadyStock ? "COMPLETED" : "PENDING",
+              actualDate: isReadyStock ? new Date() : null,
+            })),
+          },
+        }
+      });
+      createPromises.push(unitCreate);
+      count++;
+    }
+
+    await prisma.$transaction(createPromises);
+    return count;
+  }
+
+  /**
    * Mengambil semua unit kavling dengan dukungan filter
    */
   static async getAllKavlingUnits(filters?: { statusPenjualan?: string; kawasan?: string }) {

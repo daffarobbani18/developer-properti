@@ -127,20 +127,21 @@ export class InventoryController {
         priceMarkup,
       } = req.body;
 
-      if (!projectId || !propertyTypeId || !kawasan || !blok || !nomor) {
-        res.status(400).json({ error: "Data wajib (projectId, propertyTypeId, kawasan, blok, nomor) harus diisi" });
+      if (!projectId || !propertyTypeId || !blok || !nomor) {
+        res.status(400).json({ error: "Data wajib (projectId, propertyTypeId, blok, nomor) harus diisi" });
         return;
       }
 
       const unit = await InventoryService.createKavlingUnit({
-        projectId: String(projectId),
-        propertyTypeId: String(propertyTypeId),
-        kawasan: String(kawasan),
-        blok: String(blok),
-        nomor: String(nomor),
-        statusPembangunan: String(statusPembangunan || "Pesan Bangun"),
-        statusPenjualan: String(statusPenjualan || "Tersedia"),
-        priceMarkup: Number(priceMarkup || 0),
+        projectId,
+        propertyTypeId,
+        kawasan: kawasan || "",
+        blok,
+        nomor,
+        statusPembangunan: statusPembangunan || "Pesan Bangun",
+        statusPenjualan: statusPenjualan || "Tersedia",
+        priceMarkup: Number(priceMarkup) || 0,
+        nomorUnit: `${blok}-${nomor}`,
       });
 
       res.status(201).json({
@@ -152,6 +153,53 @@ export class InventoryController {
         res.status(400).json({ error: error.message });
       } else {
         console.error("createUnit error:", error);
+        res.status(500).json({ error: "Terjadi kesalahan pada server" });
+      }
+    }
+  }
+
+  static async bulkCreateUnits(req: Request, res: Response): Promise<void> {
+    try {
+      const {
+        projectId,
+        propertyTypeId,
+        kawasan,
+        blok,
+        startNumber,
+        endNumber,
+        skipNumbers,
+        statusPembangunan,
+        statusPenjualan,
+        priceMarkup,
+      } = req.body;
+
+      if (!projectId || !propertyTypeId || !blok || !startNumber || !endNumber) {
+        res.status(400).json({ error: "Data wajib (projectId, propertyTypeId, blok, startNumber, endNumber) harus diisi" });
+        return;
+      }
+
+      const count = await InventoryService.createBulkKavlingUnits({
+        projectId,
+        propertyTypeId,
+        kawasan: kawasan || "",
+        blok,
+        startNumber: Number(startNumber),
+        endNumber: Number(endNumber),
+        skipNumbers,
+        statusPembangunan: statusPembangunan || "Pesan Bangun",
+        statusPenjualan: statusPenjualan || "Tersedia",
+        priceMarkup: Number(priceMarkup) || 0,
+      });
+
+      res.status(201).json({
+        message: `Berhasil mendaftarkan ${count} Unit Kavling`,
+        count,
+      });
+    } catch (error: any) {
+      if (error.message.includes("sudah ada") || error.message.includes("tidak ditemukan")) {
+        res.status(400).json({ error: error.message });
+      } else {
+        console.error("bulkCreateUnits error:", error);
         res.status(500).json({ error: "Terjadi kesalahan pada server" });
       }
     }

@@ -2,7 +2,7 @@ import { Router } from "express";
 import { InventoryController } from "./inventory.controller.js";
 import { verifyToken, requireRole } from "../../core/middlewares/auth.middleware.js";
 import { validate } from "../../core/middlewares/validate.middleware.js";
-import { createPropertyTypeDto, createUnitDto } from "./dto/inventory.dto.js";
+import { createPropertyTypeDto, createUnitDto, bulkCreateUnitDto } from "./dto/inventory.dto.js";
 
 const router = Router();
 
@@ -146,6 +146,7 @@ router.delete("/types/:id", InventoryController.deleteType);
  *         description: Duplikasi blok dan nomor di kawasan yang sama, atau input tidak valid
  */
 router.post("/units", validate(createUnitDto), InventoryController.createUnit);
+router.post("/units/bulk", validate(bulkCreateUnitDto), InventoryController.bulkCreateUnits);
 
 /**
  * @swagger

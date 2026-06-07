@@ -16,12 +16,27 @@ export const createUnitDto = z.object({
   body: z.object({
     projectId: z.string().uuid("projectId harus berupa UUID"),
     propertyTypeId: z.string().uuid("propertyTypeId harus berupa UUID"),
-    kawasan: z.string().min(1, "Kawasan wajib diisi"),
+    kawasan: z.string().optional().nullable(),
     blok: z.string().min(1, "Blok wajib diisi"),
     nomor: z.string().min(1, "Nomor wajib diisi"),
     statusPembangunan: z.string().optional(),
     statusPenjualan: z.string().optional(),
     priceMarkup: z.number().nonnegative().optional(),
     luasTanahAktual: z.number().nonnegative().optional(),
+  }),
+});
+
+export const bulkCreateUnitDto = z.object({
+  body: z.object({
+    projectId: z.string().uuid("projectId harus berupa UUID"),
+    propertyTypeId: z.string().uuid("propertyTypeId harus berupa UUID"),
+    kawasan: z.string().optional().nullable(),
+    blok: z.string().min(1, "Blok wajib diisi"),
+    startNumber: z.number().int().min(1, "Nomor awal harus minimal 1"),
+    endNumber: z.number().int().min(1, "Nomor akhir harus minimal 1"),
+    skipNumbers: z.string().optional().nullable(),
+    statusPembangunan: z.string().optional(),
+    statusPenjualan: z.string().optional(),
+    priceMarkup: z.number().nonnegative().optional(),
   }),
 });
