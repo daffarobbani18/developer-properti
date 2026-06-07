@@ -533,7 +533,7 @@ export default function KavlingUnitPage() {
                   className="w-full cursor-pointer appearance-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-medium transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
                   <option value="Pesan Bangun">Pesan Bangun (Indent)</option>
-                  <option value="Sedang Dibangun">Sedang Dibangun (WIP)</option>
+                  <option value="Sedang Dibangun" disabled>Sedang Dibangun (WIP)</option>
                   <option value="Siap Huni">Siap Huni (Ready Stock)</option>
                 </select>
               </div>

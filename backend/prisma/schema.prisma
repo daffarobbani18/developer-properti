@@ -68,6 +68,7 @@ model PropertyType {
   kamarTidur      Int            @default(0)
   kamarMandi      Int            @default(0)
   basePrice       Float          @default(0)
+  estimasiRab     Decimal        @default(0)
   
   // Field Publik (tampil di Web Public Portal)
   facilities      String?        // Fasilitas & Keunggulan (ditampilkan di halaman detail tipe rumah di portal publik)

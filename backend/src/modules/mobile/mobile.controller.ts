@@ -291,13 +291,20 @@ export const getUnitMilestones = async (req: Request, res: Response): Promise<vo
 
     const formattedMilestones = milestones.map((m: any) => ({
       id: m.id,
-      title: m.name, // Frontend menggunakan "title"
+      name: m.name,
+      orderNo: m.orderNo,
       status: m.status, // "PENDING" | "IN_PROGRESS" | "COMPLETED"
       targetDate: m.targetDate ? m.targetDate.toISOString() : new Date().toISOString(),
-      completedDate: m.actualDate ? m.actualDate.toISOString() : undefined,
-      notes: m.note || undefined,
-      photoUrls: m.photoUrls || [],
-      checklistCompleted: m.status === "COMPLETED" ? 1 : 0, // Disederhanakan
+      actualDate: m.actualDate ? m.actualDate.toISOString() : undefined,
+      note: m.note || undefined,
+      photos: (m.photoUrls || []).map((url: string, idx: number) => ({
+        id: `photo-${m.id}-${idx}`,
+        url,
+        caption: `Foto progres`,
+        createdAt: m.actualDate ? m.actualDate.toISOString() : new Date().toISOString()
+      })),
+      checklist: [], // Disederhanakan
+      checklistCompleted: m.status === "COMPLETED" ? 1 : 0, 
       checklistTotal: 1,
     }));
 
@@ -337,12 +344,19 @@ export const updateMilestone = async (req: Request, res: Response): Promise<void
     
     const formatted = {
       id: updatedMilestone.id,
-      title: updatedMilestone.name,
+      name: updatedMilestone.name,
+      orderNo: updatedMilestone.orderNo,
       status: updatedMilestone.status,
       targetDate: updatedMilestone.targetDate ? updatedMilestone.targetDate.toISOString() : new Date().toISOString(),
-      completedDate: updatedMilestone.actualDate ? updatedMilestone.actualDate.toISOString() : undefined,
-      notes: updatedMilestone.note || undefined,
-      photoUrls: updatedMilestone.photoUrls || [],
+      actualDate: updatedMilestone.actualDate ? updatedMilestone.actualDate.toISOString() : undefined,
+      note: updatedMilestone.note || undefined,
+      photos: (updatedMilestone.photoUrls || []).map((url: string, idx: number) => ({
+        id: `photo-${updatedMilestone.id}-${idx}`,
+        url,
+        caption: `Foto progres`,
+        createdAt: updatedMilestone.actualDate ? updatedMilestone.actualDate.toISOString() : new Date().toISOString()
+      })),
+      checklist: [],
       checklistCompleted: updatedMilestone.status === "COMPLETED" ? 1 : 0,
       checklistTotal: 1,
     };

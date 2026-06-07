@@ -60,13 +60,13 @@ const FieldStack = createNativeStackNavigator<FieldStackParamList>();
 const CustomerStack = createNativeStackNavigator<CustomerStackParamList>();
 const ProjectManagerStack = createNativeStackNavigator<PengawasStackParamList>();
 
-type FieldRouteName = "Beranda" | "Milestone" | "Unit" | "Kendala" | "Notifikasi" | "UnitDetail" | "UpdateHistory" | "ProjectSelect" | "UnitSelect" | "MilestoneList" | "MilestoneUpdate" | "UnitDetailField" | "PhotoCapture" | "IssueForm" | "UpdateHistoryField" | "IssueHistory" | "Attendance" | "AttendanceHistory" | "ProjectDetail";
+type FieldRouteName = "Beranda" | "Milestone" | "Unit" | "Kendala" | "Notifikasi" | "UnitDetail" | "UpdateHistory" | "ProjectSelect" | "UnitSelect" | "MilestoneList" | "MilestoneUpdate" | "UnitDetailField" | "PhotoCapture" | "IssueForm" | "UpdateHistoryField" | "IssueHistory" | "Attendance" | "AttendanceHistory" | "ProjectDetail" | "FieldUnits" | "FieldMilestones";
 
 type CustomerRouteName = "Beranda" | "Progres" | "Tagihan" | "Dokumen" | "Bantuan" | "PhotoGallery" | "TicketDetail" | "FaqContact";
 
 type ProjectManagerRouteName = "Dashboard" | "Approval" | "Team" | "Laporan" | "Notifikasi" | "IssueHistory" | "AttendanceHistory" | "TeamAttendance" | "FieldUnits" | "FieldUnitDetail" | "FieldMilestones" | "MilestoneList" | "FieldIssues" | "FieldDailyReport" | "FieldAttendance" | "ProjectDetail";
 
-const FIELD_ROUTE_NAMES: FieldRouteName[] = ["Beranda", "Milestone", "Unit", "Kendala", "Notifikasi", "UnitDetail", "UpdateHistory", "ProjectSelect", "UnitSelect", "MilestoneList", "MilestoneUpdate", "UnitDetailField", "PhotoCapture", "IssueForm", "UpdateHistoryField", "IssueHistory", "Attendance", "AttendanceHistory", "ProjectDetail"];
+const FIELD_ROUTE_NAMES: FieldRouteName[] = ["Beranda", "Milestone", "Unit", "Kendala", "Notifikasi", "UnitDetail", "UpdateHistory", "ProjectSelect", "UnitSelect", "MilestoneList", "MilestoneUpdate", "UnitDetailField", "PhotoCapture", "IssueForm", "UpdateHistoryField", "IssueHistory", "Attendance", "AttendanceHistory", "ProjectDetail", "FieldUnits", "FieldMilestones"];
 
 const CUSTOMER_ROUTE_NAMES: CustomerRouteName[] = ["Beranda", "Progres", "Tagihan", "Dokumen", "Bantuan", "PhotoGallery", "TicketDetail", "FaqContact"];
 
@@ -222,6 +222,16 @@ function FieldTabsNavigator(): React.JSX.Element {
           name="ProjectDetail"
           component={ProjectDetailScreen}
           options={{ title: "Detail Proyek", headerShown: true, headerBackTitle: "Kembali" }}
+        />
+        <FieldStack.Screen
+          name="FieldUnits"
+          component={FieldUnitsScreen}
+          options={{ title: "Daftar Unit" }}
+        />
+        <FieldStack.Screen
+          name="FieldMilestones"
+          component={FieldMilestonesScreen}
+          options={{ title: "Update Milestone" }}
         />
       </FieldStack.Navigator>
     );

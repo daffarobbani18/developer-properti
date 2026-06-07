@@ -32,23 +32,23 @@ const mockUsers: MockUserSeed[] = [
   {
     id: "u-engineer-1",
     fullName: "Rizky Wahyudi",
-    email: "engineer@simdp.local",
+    email: "spv@erp.com",
     role: "SITE_ENGINEER",
-    password: "Password123!",
+    password: "password123",
   },
   {
     id: "u-pm-1",
     fullName: "Dimas Satria",
-    email: "pm@simdp.local",
+    email: "pm@erp.com",
     role: "PROJECT_MANAGER",
-    password: "Password123!",
+    password: "password123",
   },
   {
     id: "u-customer-1",
     fullName: "Alya Puspita",
-    email: "customer@simdp.local",
+    email: "customer@erp.com",
     role: "CUSTOMER",
-    password: "Password123!",
+    password: "password123",
   },
 ];
 

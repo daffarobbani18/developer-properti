@@ -35,6 +35,7 @@ export default function TipeRumahPage() {
     bed: 0,
     bath: 0,
     price: 0,
+    estimasiRab: 0,
     facilities: "",
     imageUrl: "",
     milestoneTemplates: [] as string[],
@@ -90,6 +91,7 @@ export default function TipeRumahPage() {
               bed: p.kamarTidur || p.bedrooms || 0,
               bath: p.kamarMandi || p.bathrooms || 0,
               price: p.basePrice || p.price || 0,
+              estimasiRab: p.estimasiRab || 0,
               facilities: p.facilities || "",
               imageUrl: p.imageUrl,
               milestoneTemplates: p.milestoneTemplates?.map((m: any) => m.name) || []
@@ -142,11 +144,12 @@ export default function TipeRumahPage() {
         luasTanah: typeForm.lt,
         luasBangunan: typeForm.lb,
         kamarTidur: typeForm.bed,
-        kamarMandi: typeForm.bath,
-        basePrice: typeForm.price,
+        kamarMandi: Number(typeForm.bath),
+        basePrice: Number(typeForm.price),
+        estimasiRab: Number(typeForm.estimasiRab),
         facilities: typeForm.facilities,
-        imageUrl: finalImageUrl || null,
-        milestoneTemplates: typeForm.milestoneTemplates
+        milestoneTemplates: typeForm.milestoneTemplates.filter(t => t.trim() !== ""),
+        imageUrl: finalImageUrl || typeForm.imageUrl
       };
       
       const endpoint = typeForm.id 
@@ -183,6 +186,7 @@ export default function TipeRumahPage() {
       bed: type.bed,
       bath: type.bath,
       price: type.price,
+      estimasiRab: type.estimasiRab || 0,
       facilities: type.facilities || "",
       imageUrl: type.imageUrl || "",
       milestoneTemplates: type.milestoneTemplates || [],
@@ -229,7 +233,7 @@ export default function TipeRumahPage() {
   };
 
   const openNewModal = () => {
-    setTypeForm({ projectId: "", name: "", lt: 0, lb: 0, bed: 0, bath: 0, price: 0, facilities: "", imageUrl: "", milestoneTemplates: [], id: undefined });
+    setTypeForm({ projectId: "", name: "", lt: 0, lb: 0, bed: 0, bath: 0, price: 0, estimasiRab: 0, facilities: "", imageUrl: "", milestoneTemplates: [], id: undefined });
     setSelectedFile(null);
     setIsTypeModalOpen(true);
   };
@@ -432,22 +436,42 @@ export default function TipeRumahPage() {
                   />
                 </div>
               </div>
-              <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Harga Dasar (Base Price)</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-500">Rp</span>
-                  <input
-                    type="text"
-                    value={typeForm.price ? typeForm.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : ""}
-                    onChange={(e) => {
-                      const rawValue = e.target.value.replace(/\./g, "");
-                      if (!isNaN(Number(rawValue))) {
-                        setTypeForm({ ...typeForm, price: Number(rawValue) });
-                      }
-                    }}
-                    placeholder="0"
-                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3 pl-10 pr-4 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-                  />
+              <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Harga Dasar (Base Price)</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-500">Rp</span>
+                    <input
+                      type="text"
+                      value={typeForm.price ? typeForm.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : ""}
+                      onChange={(e) => {
+                        const rawValue = e.target.value.replace(/\./g, "");
+                        if (!isNaN(Number(rawValue))) {
+                          setTypeForm({ ...typeForm, price: Number(rawValue) });
+                        }
+                      }}
+                      placeholder="0"
+                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3 pl-10 pr-4 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Estimasi RAB Pembangunan</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-500">Rp</span>
+                    <input
+                      type="text"
+                      value={typeForm.estimasiRab ? typeForm.estimasiRab.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : ""}
+                      onChange={(e) => {
+                        const rawValue = e.target.value.replace(/\./g, "");
+                        if (!isNaN(Number(rawValue))) {
+                          setTypeForm({ ...typeForm, estimasiRab: Number(rawValue) });
+                        }
+                      }}
+                      placeholder="0"
+                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3 pl-10 pr-4 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                    />
+                  </div>
                 </div>
               </div>
               

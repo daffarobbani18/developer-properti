@@ -22,6 +22,8 @@ export type FieldStackParamList = {
   Attendance: undefined;
   AttendanceHistory: undefined;
   ProjectDetail: { projectId: string; projectName: string };
+  FieldUnits: { projectId?: string } | undefined;
+  FieldMilestones: { projectId?: string; unitId?: string } | undefined;
 };
 
 export type CustomerStackParamList = {
@@ -46,9 +48,9 @@ export type PengawasStackParamList = {
   TeamManagement: undefined;
   FieldNotifications: undefined;
   ProjectReports: undefined;
-  FieldUnits: undefined;
+  FieldUnits: { projectId?: string } | undefined;
   FieldUnitDetail: { unitId: string; unitName: string };
-  FieldMilestones: undefined;
+  FieldMilestones: { projectId?: string; unitId?: string } | undefined;
   MilestoneList: { unitId: string; unitName: string };
   FieldIssues: undefined;
   FieldDailyReport: undefined;

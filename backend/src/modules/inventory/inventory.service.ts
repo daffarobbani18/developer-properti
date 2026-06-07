@@ -12,6 +12,7 @@ export class InventoryService {
     kamarTidur: number;
     kamarMandi: number;
     basePrice: number;
+    estimasiRab: number;
     bedrooms?: number; // legacy fallback
     bathrooms?: number; // legacy fallback
     price?: number; // legacy fallback
@@ -28,6 +29,7 @@ export class InventoryService {
         kamarTidur: data.kamarTidur,
         kamarMandi: data.kamarMandi,
         basePrice: data.basePrice,
+        estimasiRab: data.estimasiRab,
         // Isi field lama dengan nilai yang sama agar tidak error pada aplikasi lama
         bedrooms: data.kamarTidur,
         bathrooms: data.kamarMandi,
@@ -71,6 +73,7 @@ export class InventoryService {
     kamarTidur?: number;
     kamarMandi?: number;
     basePrice?: number;
+    estimasiRab?: number;
     imageUrl?: string;
     facilities?: string | null;
     milestoneTemplates?: string[];
@@ -85,6 +88,7 @@ export class InventoryService {
         ...(data.kamarTidur !== undefined && { kamarTidur: data.kamarTidur, bedrooms: data.kamarTidur }),
         ...(data.kamarMandi !== undefined && { kamarMandi: data.kamarMandi, bathrooms: data.kamarMandi }),
         ...(data.basePrice !== undefined && { basePrice: data.basePrice, price: data.basePrice }),
+        ...(data.estimasiRab !== undefined && { estimasiRab: data.estimasiRab }),
         ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl }),
         ...(data.facilities !== undefined && { facilities: data.facilities }),
         ...(data.milestoneTemplates !== undefined && {

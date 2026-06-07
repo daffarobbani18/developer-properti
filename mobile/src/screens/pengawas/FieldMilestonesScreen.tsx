@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useRoute, RouteProp } from "@react-navigation/native";
 import { useNetInfo } from "@react-native-community/netinfo";
+import type { PengawasStackParamList } from "../../navigation/types";
 
 import {
   Badge,
@@ -37,10 +38,14 @@ export function FieldMilestonesScreen(): React.JSX.Element {
   const netInfo = useNetInfo();
   const { queueCount, enqueueMilestone, flushQueue, refreshQueueCount } = useOfflineQueue(auth);
 
+  const route = useRoute<RouteProp<PengawasStackParamList, "FieldMilestones">>();
+  const initialProjectId = route.params?.projectId ?? null;
+  const initialUnitId = route.params?.unitId ?? null;
+
   const [projects, setProjects] = useState<Array<{ id: string; name: string }>>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(initialProjectId);
   const [units, setUnits] = useState<Unit[]>([]);
-  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(initialUnitId);
 
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);

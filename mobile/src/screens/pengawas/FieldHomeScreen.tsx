@@ -171,9 +171,8 @@ rightAction={<TextButton label="Logout" onPress={() => void signOut()} />}
             <Pressable
               key={project.id}
               onPress={() =>
-                (navigation as any).navigate("ProjectDetail", {
+                (navigation as any).navigate("FieldUnits", {
                   projectId: project.id,
-                  projectName: project.name,
                 })
               }
               style={({ pressed }) => [pressed && { opacity: 0.85 }]}
