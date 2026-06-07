@@ -283,7 +283,7 @@ export class InventoryService {
       where: whereClause,
       include: {
         propertyType: {
-          select: { name: true, basePrice: true },
+          select: { name: true, basePrice: true, estimasiRab: true },
         },
         project: {
           select: { name: true },

@@ -74,4 +74,61 @@ export class ConstructionController {
       }
     }
   }
+
+  static async createSpk(req: Request, res: Response): Promise<void> {
+    try {
+      const { spkNo, date, contractorName, totalPrice, unitIds } = req.body;
+
+      const spk = await ConstructionService.createSpk({
+        spkNo,
+        date: new Date(date),
+        contractorName,
+        totalPrice: Number(totalPrice),
+        unitIds,
+      });
+
+      res.status(201).json({
+        message: "SPK Borongan berhasil dibuat",
+        data: spk,
+      });
+    } catch (error: any) {
+      if (error.message.includes("sudah ada") || error.message.includes("berstatus") || error.message.includes("memiliki SPK")) {
+        res.status(400).json({ error: error.message });
+      } else {
+        console.error("createSpk error:", error);
+        res.status(500).json({ error: "Terjadi kesalahan pada server saat membuat SPK" });
+      }
+    }
+  }
+
+  static async getSpkList(req: Request, res: Response): Promise<void> {
+    try {
+      const spks = await ConstructionService.getSpkList();
+      res.status(200).json({
+        message: "Berhasil mengambil daftar SPK Borongan",
+        data: spks,
+      });
+    } catch (error: any) {
+      console.error("getSpkList error:", error);
+      res.status(500).json({ error: "Terjadi kesalahan pada server" });
+    }
+  }
+
+  static async getSpkDetail(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const spk = await ConstructionService.getSpkDetail(String(id));
+      res.status(200).json({
+        message: "Berhasil mengambil detail SPK",
+        data: spk,
+      });
+    } catch (error: any) {
+      if (error.message === "SPK tidak ditemukan") {
+        res.status(404).json({ error: error.message });
+      } else {
+        console.error("getSpkDetail error:", error);
+        res.status(500).json({ error: "Terjadi kesalahan pada server" });
+      }
+    }
+  }
 }

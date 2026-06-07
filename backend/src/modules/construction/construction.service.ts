@@ -87,4 +87,107 @@ export class ConstructionService {
       history: unit.constructionProgresses,
     };
   }
+
+  /**
+   * Membuat SPK Borongan baru
+   */
+  static async createSpk(data: {
+    spkNo: string;
+    date: Date;
+    contractorName: string;
+    totalPrice: number;
+    unitIds: string[];
+  }) {
+    // Validasi No SPK unik
+    const existing = await prisma.spk.findUnique({
+      where: { spkNo: data.spkNo },
+    });
+    if (existing) {
+      throw new Error(`SPK dengan nomor ${data.spkNo} sudah ada`);
+    }
+
+    return await prisma.$transaction(async (tx: any) => {
+      // 1. Validasi unit
+      const units = await tx.unit.findMany({
+        where: { id: { in: data.unitIds } },
+      });
+
+      if (units.length !== data.unitIds.length) {
+        throw new Error("Satu atau lebih unit tidak ditemukan");
+      }
+
+      for (const unit of units) {
+        if (unit.spkId) {
+          throw new Error(`Unit ${unit.blok} ${unit.nomor} sudah memiliki SPK`);
+        }
+        if (unit.statusPembangunan !== "Pesan Bangun" && unit.statusPenjualan !== "Booked") {
+          throw new Error(`Unit ${unit.blok} ${unit.nomor} tidak berstatus Pesan Bangun atau Booked`);
+        }
+      }
+
+      // 2. Buat SPK
+      const spk = await tx.spk.create({
+        data: {
+          spkNo: data.spkNo,
+          date: data.date,
+          contractorName: data.contractorName,
+          totalPrice: data.totalPrice,
+        },
+      });
+
+      // 3. Update Unit
+      await tx.unit.updateMany({
+        where: { id: { in: data.unitIds } },
+        data: {
+          spkId: spk.id,
+          statusPembangunan: "Sedang Dibangun",
+        },
+      });
+
+      return spk;
+    });
+  }
+
+  /**
+   * Mendapatkan daftar SPK Borongan
+   */
+  static async getSpkList() {
+    return await prisma.spk.findMany({
+      orderBy: { date: "desc" },
+      include: {
+        units: {
+          select: {
+            id: true,
+            blok: true,
+            nomor: true,
+            kawasan: true,
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * Mendapatkan detail SPK
+   */
+  static async getSpkDetail(id: string) {
+    const spk = await prisma.spk.findUnique({
+      where: { id },
+      include: {
+        units: {
+          include: {
+            propertyType: {
+              select: { name: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!spk) {
+      throw new Error("SPK tidak ditemukan");
+    }
+
+    return spk;
+  }
 }

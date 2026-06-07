@@ -73,6 +73,12 @@ const menuItems: MenuGroup[] = [
         roles: ["inventory", "admin"],
       },
       {
+        label: "SPK Borongan",
+        href: "/admin/spk",
+        icon: HardHat,
+        roles: ["inventory", "admin", "supervisor"],
+      },
+      {
         label: "Site Plan",
         href: "/admin/site-plan",
         icon: MapTrifold,

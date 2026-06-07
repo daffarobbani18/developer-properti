@@ -5,7 +5,7 @@ import multer from "multer";
 import { ConstructionController } from "./construction.controller.js";
 import { verifyToken, requireRole } from "../../core/middlewares/auth.middleware.js";
 import { validate } from "../../core/middlewares/validate.middleware.js";
-import { recordProgressDto } from "./dto/construction.dto.js";
+import { recordProgressDto, createSpkDto } from "./dto/construction.dto.js";
 
 const router = Router();
 
@@ -100,5 +100,13 @@ router.post("/units/:unitId/progress", upload.single("photo"), validate(recordPr
  *         description: Unit tidak ditemukan
  */
 router.get("/units/:unitId/progress", ConstructionController.getUnitProgressHistory);
+
+// ==========================================
+// RUTE SURAT PERINTAH KERJA (SPK) BORONGAN
+// ==========================================
+
+router.post("/spk", validate(createSpkDto), ConstructionController.createSpk);
+router.get("/spk", ConstructionController.getSpkList);
+router.get("/spk/:id", ConstructionController.getSpkDetail);
 
 export default router;
