@@ -18,8 +18,15 @@ export class InventoryService {
     price?: number; // legacy fallback
     imageUrl?: string;
     facilities?: string | null;
-    milestoneTemplates?: string[]; // array of template names
+    milestoneTemplates: { name: string; bobotPersentase: number }[];
   }) {
+    if (!data.milestoneTemplates || data.milestoneTemplates.length === 0) {
+      throw new Error("Milestone template wajib diisi minimal 1 tahapan.");
+    }
+    const totalPersentase = data.milestoneTemplates.reduce((sum, t) => sum + (Number(t.bobotPersentase) || 0), 0);
+    if (totalPersentase !== 100) {
+      throw new Error("Total bobot persentase milestone harus tepat 100.");
+    }
     return await prisma.propertyType.create({
       data: {
         projectId: data.projectId,
@@ -37,10 +44,11 @@ export class InventoryService {
         imageUrl: data.imageUrl,
         facilities: data.facilities,
         milestoneTemplates: {
-          create: data.milestoneTemplates?.map((name, index) => ({
-            name,
+          create: data.milestoneTemplates.map((template, index) => ({
+            name: template.name,
+            bobotPersentase: Number(template.bobotPersentase) || 0,
             orderNo: index + 1,
-          })) || [],
+          })),
         },
       },
     });
@@ -76,8 +84,15 @@ export class InventoryService {
     estimasiRab?: number;
     imageUrl?: string;
     facilities?: string | null;
-    milestoneTemplates?: string[];
+    milestoneTemplates: { name: string; bobotPersentase: number }[];
   }) {
+    if (!data.milestoneTemplates || data.milestoneTemplates.length === 0) {
+      throw new Error("Milestone template wajib diisi minimal 1 tahapan.");
+    }
+    const totalPersentase = data.milestoneTemplates.reduce((sum, t) => sum + (Number(t.bobotPersentase) || 0), 0);
+    if (totalPersentase !== 100) {
+      throw new Error("Total bobot persentase milestone harus tepat 100.");
+    }
     return await prisma.propertyType.update({
       where: { id },
       data: {
@@ -94,8 +109,9 @@ export class InventoryService {
         ...(data.milestoneTemplates !== undefined && {
           milestoneTemplates: {
             deleteMany: {},
-            create: data.milestoneTemplates.map((name, index) => ({
-              name,
+            create: data.milestoneTemplates.map((template, index) => ({
+              name: template.name,
+              bobotPersentase: Number(template.bobotPersentase) || 0,
               orderNo: index + 1,
             })),
           },

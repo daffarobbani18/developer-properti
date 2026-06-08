@@ -33,7 +33,7 @@ export class InventoryController {
         estimasiRab: Number(estimasiRab || 0),
         imageUrl: req.body.imageUrl || null,
         facilities: facilities ? String(facilities) : null,
-        milestoneTemplates: Array.isArray(milestoneTemplates) ? milestoneTemplates.map(String) : undefined,
+        milestoneTemplates: Array.isArray(milestoneTemplates) ? milestoneTemplates : [],
       });
 
       res.status(201).json({
@@ -74,7 +74,7 @@ export class InventoryController {
         estimasiRab: estimasiRab !== undefined ? Number(estimasiRab) : undefined,
         imageUrl: imageUrl !== undefined ? String(imageUrl) : undefined,
         facilities: facilities !== undefined ? (facilities ? String(facilities) : null) : undefined,
-        milestoneTemplates: milestoneTemplates !== undefined ? (Array.isArray(milestoneTemplates) ? milestoneTemplates.map(String) : undefined) : undefined,
+        milestoneTemplates: milestoneTemplates !== undefined ? (Array.isArray(milestoneTemplates) ? milestoneTemplates : undefined) : undefined,
       });
 
       res.status(200).json({

@@ -353,6 +353,7 @@ model MilestoneTemplate {
   propertyTypeId   String
   name             String
   orderNo          Int
+  bobotPersentase  Int          @default(0)
 
   propertyType     PropertyType @relation(fields: [propertyTypeId], references: [id], onDelete: Cascade)
 

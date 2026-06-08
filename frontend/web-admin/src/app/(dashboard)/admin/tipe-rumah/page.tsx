@@ -38,7 +38,7 @@ export default function TipeRumahPage() {
     estimasiRab: 0,
     facilities: "",
     imageUrl: "",
-    milestoneTemplates: [] as string[],
+    milestoneTemplates: [] as { name: string; bobotPersentase: number }[],
     id: undefined as string | undefined,
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -94,7 +94,7 @@ export default function TipeRumahPage() {
               estimasiRab: p.estimasiRab || 0,
               facilities: p.facilities || "",
               imageUrl: p.imageUrl,
-              milestoneTemplates: p.milestoneTemplates?.map((m: any) => m.name) || []
+              milestoneTemplates: p.milestoneTemplates?.map((m: any) => ({ name: m.name, bobotPersentase: m.bobotPersentase || 0 })) || []
             })));
           }
         }
@@ -148,7 +148,7 @@ export default function TipeRumahPage() {
         basePrice: Number(typeForm.price),
         estimasiRab: Number(typeForm.estimasiRab),
         facilities: typeForm.facilities,
-        milestoneTemplates: typeForm.milestoneTemplates.filter(t => t.trim() !== ""),
+        milestoneTemplates: typeForm.milestoneTemplates.filter(t => t.name.trim() !== ""),
         imageUrl: finalImageUrl || typeForm.imageUrl
       };
       
@@ -233,7 +233,7 @@ export default function TipeRumahPage() {
   };
 
   const openNewModal = () => {
-    setTypeForm({ projectId: "", name: "", lt: 0, lb: 0, bed: 0, bath: 0, price: 0, estimasiRab: 0, facilities: "", imageUrl: "", milestoneTemplates: [], id: undefined });
+    setTypeForm({ projectId: "", name: "", lt: 0, lb: 0, bed: 0, bath: 0, price: 0, estimasiRab: 0, facilities: "", imageUrl: "", milestoneTemplates: [{ name: "", bobotPersentase: 0 }], id: undefined });
     setSelectedFile(null);
     setIsTypeModalOpen(true);
   };
@@ -518,10 +518,10 @@ export default function TipeRumahPage() {
               
               <div className="border-t border-zinc-100 pt-4">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-600">Template Milestone (Opsional)</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-600">Template Milestone (Wajib)</label>
                   <button 
                     type="button"
-                    onClick={() => setTypeForm({ ...typeForm, milestoneTemplates: [...typeForm.milestoneTemplates, ""] })}
+                    onClick={() => setTypeForm({ ...typeForm, milestoneTemplates: [...typeForm.milestoneTemplates, { name: "", bobotPersentase: 0 }] })}
                     className="text-xs font-bold text-amber-600 flex items-center gap-1 hover:text-amber-700 transition-colors"
                   >
                     <Plus weight="bold" /> Tambah Tahap
@@ -536,15 +536,29 @@ export default function TipeRumahPage() {
                       </div>
                       <input
                         type="text"
-                        value={m}
+                        value={m.name}
                         onChange={(e) => {
                           const newTpls = [...typeForm.milestoneTemplates];
-                          newTpls[idx] = e.target.value;
+                          newTpls[idx] = { ...newTpls[idx], name: e.target.value };
                           setTypeForm({ ...typeForm, milestoneTemplates: newTpls });
                         }}
                         placeholder="Contoh: Pondasi & Sloof"
-                        className="flex-1 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                        className="flex-[2] rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                       />
+                      <div className="relative flex-1">
+                        <input
+                          type="number"
+                          value={m.bobotPersentase || ""}
+                          onChange={(e) => {
+                            const newTpls = [...typeForm.milestoneTemplates];
+                            newTpls[idx] = { ...newTpls[idx], bobotPersentase: Number(e.target.value) };
+                            setTypeForm({ ...typeForm, milestoneTemplates: newTpls });
+                          }}
+                          placeholder="Bobot %"
+                          className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 pr-8"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">%</span>
+                      </div>
                       <button 
                         type="button"
                         onClick={() => {
@@ -563,6 +577,16 @@ export default function TipeRumahPage() {
                       Belum ada template milestone
                     </div>
                   )}
+                  {typeForm.milestoneTemplates.length > 0 && (() => {
+                    const totalPersen = typeForm.milestoneTemplates.reduce((sum, t) => sum + (Number(t.bobotPersentase) || 0), 0);
+                    const isTotalValid = totalPersen === 100;
+                    return (
+                      <div className={`mt-2 rounded-xl p-3 text-sm font-semibold text-center border ${isTotalValid ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700'}`}>
+                        Total Persentase: {totalPersen} / 100
+                        {!isTotalValid && <span className="block text-xs mt-1">Total bobot harus persis 100%</span>}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
@@ -575,7 +599,7 @@ export default function TipeRumahPage() {
               </button>
               <button 
                 onClick={handleTypeSubmit} 
-                disabled={!typeForm.projectId || !typeForm.name}
+                disabled={!typeForm.projectId || !typeForm.name || typeForm.milestoneTemplates.length === 0 || typeForm.milestoneTemplates.reduce((sum, t) => sum + (Number(t.bobotPersentase) || 0), 0) !== 100}
                 className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-amber-600/20 transition-all hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {typeForm.id ? "Simpan Perubahan" : "Simpan Tipe Baru"}
