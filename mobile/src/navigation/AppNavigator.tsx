@@ -76,7 +76,7 @@ function getCommonTabOptions(): BottomTabNavigationOptions {
    return {
      headerShown: false,
      tabBarHideOnKeyboard: true,
-     tabBarActiveTintColor: "#117a85",
+     tabBarActiveTintColor: "#0f172a",
      tabBarInactiveTintColor: "#94a3b8",
      tabBarLabelStyle: styles.tabLabel,
      tabBarItemStyle: styles.tabItem,
@@ -97,7 +97,7 @@ function tabOptions(activeIcon: TabIconName, inactiveIcon: TabIconName): BottomT
 function BootSplash(): React.JSX.Element {
   return (
     <View style={styles.bootWrap}>
-      <ActivityIndicator size="large" color="#1e6f78" />
+      <ActivityIndicator size="large" color="#f59e0b" />
       <Text style={styles.bootText}>Memuat sesi aplikasi...</Text>
     </View>
   );
@@ -476,6 +476,11 @@ export function AppNavigator({
       borderRadius: 8,
     },
     iconWrapActive: {
-      backgroundColor: "#e0f2fe",
+      backgroundColor: "#fcd34d",
+      shadowColor: "#f59e0b",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.4,
+      shadowRadius: 4,
+      elevation: 2,
     },
   });

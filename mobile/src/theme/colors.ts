@@ -1,17 +1,18 @@
-﻿/**
+/**
  * Unified Design Tokens - Color System
  * [UI-FIX-V2] Remediation based on design-spec + audit — SIMDP Mobile v1.1
  */
 export const colors = {
-  primary: '#1a6d78',
-  primary600: '#117a85',
-  primaryLight: '#2abcc9',
+  primary: '#f59e0b', // Amber 500
+  primary600: '#d97706', // Amber 600
+  primaryLight: '#fcd34d', // Amber 300
+  primaryDark: '#0f172a', // Slate 900 (Black)
   overdue: { bg: '#FEF2F2', text: '#991B1B', border: '#FECACA', icon: '#DC2626' },
   semanticColors: {
     critical: { bg: "#fff0ee", text: "#8e3128", border: "#ffe2dd", outline: "#c0392b" },
     high: { bg: "#fff7e5", text: "#805f24", border: "#fff3d3", outline: "#e67e22" },
     medium: { bg: "#edf9f1", text: "#2f6a44", border: "#e6f5eb", outline: "#27ae60" },
-    low: { bg: "#eef8fa", text: "#1f5661", border: "#e0f0f2", outline: "#1a6d78" },
+    low: { bg: "#fffbeb", text: "#92400e", border: "#fef3c7", outline: "#f59e0b" },
   },
   neutral: {
     50: '#f8fafc',

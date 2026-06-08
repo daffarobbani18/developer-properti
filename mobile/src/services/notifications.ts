@@ -1,9 +1,21 @@
-import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 
 import { AuthState } from "../types";
 import { registerPushToken } from "./api";
+
+// Helper to safely import Notifications without triggering the Expo Go error
+function getNotificationsModule() {
+  const appOwnership = (Constants as any).appOwnership as string | null;
+  if (appOwnership === 'expo') {
+    return null;
+  }
+  try {
+    return require("expo-notifications");
+  } catch (e) {
+    return null;
+  }
+}
 
 type PushRegistrationResult = {
   token: string | null;
@@ -73,14 +85,17 @@ function configureNotificationBehavior(): void {
     return;
   }
 
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowBanner: true,
-      shouldShowList: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-    }),
-  });
+  const Notifications = getNotificationsModule();
+  if (Notifications) {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+      }),
+    });
+  }
 
   isConfigured = true;
 }
@@ -101,6 +116,9 @@ async function ensureAndroidChannel(): Promise<void> {
   if (Platform.OS !== "android") {
     return;
   }
+
+  const Notifications = getNotificationsModule();
+  if (!Notifications) return;
 
   await Notifications.setNotificationChannelAsync("default", {
     name: "Default",
@@ -214,6 +232,15 @@ export async function registerDeviceForPush(
     };
   }
 
+  const Notifications = getNotificationsModule();
+  if (!Notifications) {
+    return {
+      token: null,
+      enabled: false,
+      message: "Push notification tidak didukung di Expo Go.",
+    };
+  }
+
   const permissionState = await Notifications.getPermissionsAsync();
   let finalStatus = permissionState.status;
 
@@ -264,8 +291,16 @@ export async function bootstrapPushNotifications(
   onResponse?: (payload: PushResponsePayload) => void
 ): Promise<PushBootstrap> {
   const registration = await registerDeviceForPush(auth);
+  
+  const Notifications = getNotificationsModule();
+  if (!Notifications) {
+    return {
+      registration,
+      cleanup: () => {},
+    };
+  }
 
-  const foregroundSubscription = Notifications.addNotificationReceivedListener((notification) => {
+  const foregroundSubscription = Notifications.addNotificationReceivedListener((notification: any) => {
     const title = notification.request.content.title ?? "Notifikasi Baru";
     const body = notification.request.content.body ?? "Anda menerima pembaruan terbaru.";
 
@@ -274,7 +309,7 @@ export async function bootstrapPushNotifications(
     }
   });
 
-  const responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
+  const responseSubscription = Notifications.addNotificationResponseReceivedListener((response: any) => {
     const rawPayload = response.notification.request.content.data;
     const payload =
       rawPayload && typeof rawPayload === "object"

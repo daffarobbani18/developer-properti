@@ -6,6 +6,7 @@ export const getFieldProjects = async (req: Request, res: Response): Promise<voi
     const projects = await prisma.project.findMany({
       include: {
         units: {
+          where: { spkId: { not: null } },
           include: {
             constructionProgresses: {
               orderBy: { recordedAt: "desc" },
@@ -72,6 +73,7 @@ export const getProjectDetail = async (req: Request, res: Response): Promise<voi
           orderBy: { createdAt: "asc" },
         },
         units: {
+          where: { spkId: { not: null } },
           include: {
             propertyType: true,
             constructionProgresses: {
@@ -173,7 +175,7 @@ export const getProjectDetail = async (req: Request, res: Response): Promise<voi
       targetSelesai: project.targetSelesai,
       kontraktorName: project.kontraktorName,
       nilaiKontrak: project.nilaiKontrak,
-      estimasiAnggaran: project.estimasiAnggaran,
+      estimasiAnggaran: null,
       nomorIzin: project.nomorIzin,
       description: project.description,
       imageUrl: project.imageUrl,
@@ -207,17 +209,20 @@ export const getFieldUnits = async (req: Request, res: Response): Promise<void> 
       whereClause.projectId = projectId;
     }
     
-    // Asumsikan pengawas lapangan hanya melihat unit yang sedang/sudah dibangun
-    whereClause.statusPenjualan = { not: "Tersedia" }; // Atau bisa disesuaikan dengan rule bisnis
-    // Untuk saat ini mari kita ambil semua unit saja
-    delete whereClause.statusPenjualan; 
+    // Pengawas lapangan hanya melihat unit yang sudah terbit SPK nya
+    whereClause.spkId = { not: null };
 
     const units = await prisma.unit.findMany({
       where: whereClause,
       include: {
         project: { select: { name: true } },
         propertyType: { select: { name: true } },
-        milestones: { orderBy: { orderNo: 'asc' } }
+        milestones: { orderBy: { orderNo: 'asc' } },
+        bookings: {
+          take: 1,
+          orderBy: { createdAt: "desc" },
+          include: { lead: { select: { name: true } } }
+        }
       },
       orderBy: [{ blok: 'asc' }, { nomorUnit: 'asc' }]
     });
@@ -237,9 +242,10 @@ export const getFieldUnits = async (req: Request, res: Response): Promise<void> 
         typeName: u.propertyType.name,
         status: u.statusPembangunan, // "Pesan Bangun" / "Siap Huni"
         progress: progress,
-        // Mock data fallback jika belum ada data asli
-        buyerName: "Customer Placeholder", 
-        targetDate: new Date().toISOString(),
+        buyerName: u.bookings.length > 0 ? u.bookings[0].lead.name : null, 
+        targetDate: u.milestones.length > 0 && u.milestones[u.milestones.length - 1].targetDate 
+          ? u.milestones[u.milestones.length - 1].targetDate!.toISOString() 
+          : new Date().toISOString(),
       };
     });
 
@@ -264,30 +270,7 @@ export const getUnitMilestones = async (req: Request, res: Response): Promise<vo
       return;
     }
     
-    let milestones = unit.milestones;
-    
-    // Auto-generate jika belum punya milestone (SOP darurat jika PropertyType belum ada template)
-    if (milestones.length === 0) {
-      const isReadyStock = unit.statusPembangunan === "Siap Huni";
-      const defaultTemplates = ["Pondasi & Sloof", "Struktur & Dinding", "Atap & Plafon", "Finishing", "Serah Terima"];
-      
-      const newMilestonesData = defaultTemplates.map((name, index) => ({
-        unitId: unit.id,
-        name: name,
-        orderNo: index + 1,
-        status: isReadyStock ? "COMPLETED" : "PENDING",
-        actualDate: isReadyStock ? new Date() : null,
-      }));
-      
-      await prisma.milestone.createMany({
-        data: newMilestonesData
-      });
-      
-      milestones = await prisma.milestone.findMany({
-        where: { unitId },
-        orderBy: { orderNo: 'asc' }
-      });
-    }
+    const milestones = unit.milestones;
 
     const formattedMilestones = milestones.map((m: any) => ({
       id: m.id,

@@ -11,7 +11,6 @@ import {
   setStoredAuth,
 } from "../services/storage";
 import { AuthState } from "../types";
-import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 
@@ -19,6 +18,13 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
   const appOwnership = (Constants as any).appOwnership as string | null;
   if (appOwnership === 'expo') {
     console.log('[Notifications] Skipping push token registration in Expo Go (not supported since SDK 53)');
+    return null;
+  }
+
+  let Notifications: any;
+  try {
+    Notifications = require("expo-notifications");
+  } catch (e) {
     return null;
   }
 

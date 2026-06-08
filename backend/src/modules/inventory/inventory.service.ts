@@ -175,14 +175,16 @@ export class InventoryService {
         price: totalPrice,
         status: data.statusPenjualan || "Tersedia",
         luasTanahAktual: data.luasTanahAktual,
-        milestones: {
-          create: propertyType.milestoneTemplates.map((template) => ({
-            name: template.name,
-            orderNo: template.orderNo,
-            status: isReadyStock ? "COMPLETED" : "PENDING",
-            actualDate: isReadyStock ? new Date() : null,
-          })),
-        },
+        ...(isReadyStock && propertyType.milestoneTemplates && {
+          milestones: {
+            create: propertyType.milestoneTemplates.map((template) => ({
+              name: template.name,
+              orderNo: template.orderNo,
+              status: "COMPLETED",
+              actualDate: new Date(),
+            })),
+          },
+        }),
       },
     });
   }
@@ -248,15 +250,16 @@ export class InventoryService {
           totalPrice: totalPrice,
           nomorUnit: `${data.blok}-${nomorString}`,
           price: totalPrice,
-          status: data.statusPenjualan || "Tersedia",
-          milestones: {
-            create: propertyType.milestoneTemplates.map((template) => ({
-              name: template.name,
-              orderNo: template.orderNo,
-              status: isReadyStock ? "COMPLETED" : "PENDING",
-              actualDate: isReadyStock ? new Date() : null,
-            })),
-          },
+          ...(isReadyStock && propertyType.milestoneTemplates && {
+            milestones: {
+              create: propertyType.milestoneTemplates.map((template) => ({
+                name: template.name,
+                orderNo: template.orderNo,
+                status: "COMPLETED",
+                actualDate: new Date(),
+              })),
+            },
+          }),
         }
       });
       createPromises.push(unitCreate);

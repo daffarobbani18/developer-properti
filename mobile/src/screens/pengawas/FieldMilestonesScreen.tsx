@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View, ScrollView, Dimensions } from "react-native";
 import { useFocusEffect, useRoute, RouteProp } from "@react-navigation/native";
 import { useNetInfo } from "@react-native-community/netinfo";
+import { Ionicons } from "@expo/vector-icons";
 import type { PengawasStackParamList } from "../../navigation/types";
 
 import {
@@ -14,6 +15,7 @@ import {
   SecondaryButton,
   SectionTitle,
   StatusBanner,
+  SlideInView,
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { useOfflineQueue } from "../../hooks/useOfflineQueue";
@@ -31,6 +33,7 @@ import {
   inferBannerTone,
 } from "../../utils/format";
 
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 type MilestoneStatus = Milestone["status"];
 
 export function FieldMilestonesScreen(): React.JSX.Element {
@@ -342,398 +345,608 @@ export function FieldMilestonesScreen(): React.JSX.Element {
   return (
     <ScreenShell
       title="Milestone & Foto"
-      subtitle="Update progres unit dengan mode online/offline"
+      subtitle="Update progres konstruksi di lapangan"
     >
-      <Card>
-        <SectionTitle title="Mode Operasi" caption="Queue offline berguna saat jaringan tidak stabil" />
-        <View style={styles.modeRow}>
-          <PrimaryButton
-            label={effectiveOfflineMode ? "Mode Offline Aktif" : "Aktifkan Mode Offline"}
+      <SlideInView direction="up" delay={50} duration={400}>
+        <View style={styles.topActionRow}>
+          <Pressable 
+            style={[styles.offlineToggleBtn, effectiveOfflineMode && styles.offlineToggleBtnActive]}
             onPress={() => setIsOfflineMode((prev) => !prev)}
             disabled={isNetworkOffline}
-          />
-          <SecondaryButton
-            label={`Sinkron Queue (${queueCount})`}
-            onPress={() => void syncQueueNow()}
-            disabled={queueCount === 0 || isSubmitting || isNetworkOffline}
-          />
-        </View>
-        <Badge
-          label={isNetworkOffline ? "Offline" : "Online"}
-          tone={isNetworkOffline ? "warning" : "success"}
-        />
-        {isAutoSyncing ? <Badge label="Sinkron otomatis berjalan" tone="warning" /> : null}
-      </Card>
+          >
+            <Ionicons name={effectiveOfflineMode ? "cloud-offline" : "cloud"} size={16} color={effectiveOfflineMode ? "#f59e0b" : "#64748b"} />
+            <Text style={[styles.offlineToggleText, effectiveOfflineMode && styles.offlineToggleTextActive]}>
+              {effectiveOfflineMode ? "Mode Offline" : "Mode Online"}
+            </Text>
+          </Pressable>
 
-      <Card>
-        <SectionTitle title="Ringkasan Milestone" caption="Pantau status update unit saat ini" />
-        <View style={styles.metricGrid}>
-          <View style={styles.metricPill}>
-            <Text style={styles.metricLabel}>Total Milestone</Text>
-            <Text style={styles.metricValue}>{milestones.length}</Text>
-          </View>
-          <View style={styles.metricPill}>
-            <Text style={styles.metricLabel}>Selesai</Text>
-            <Text style={styles.metricValue}>{completedMilestonesCount}</Text>
-          </View>
-          <View style={styles.metricPill}>
-            <Text style={styles.metricLabel}>Queue Offline</Text>
-            <Text style={styles.metricValue}>{queueCount}</Text>
-          </View>
-        </View>
-        <SecondaryButton label="Muat Ulang Milestone" onPress={() => void loadMilestones()} />
-      </Card>
-
-      <Card>
-        <SectionTitle title="Pilih Proyek" />
-        <View style={styles.choiceWrap}>
-          {projects.map((project) => (
-            <Pressable
-              key={project.id}
-              onPress={() => setSelectedProjectId(project.id)}
-              style={({ pressed }) => [
-                styles.choicePill,
-                selectedProjectId === project.id && styles.choicePillActive,
-                pressed && styles.choicePillPressed,
-              ]}
+          {queueCount > 0 && (
+            <Pressable 
+              style={styles.syncBtn}
+              onPress={() => void syncQueueNow()}
+              disabled={isSubmitting || isNetworkOffline}
             >
-              <Text
-                style={[
-                  styles.choiceText,
-                  selectedProjectId === project.id && styles.choiceTextActive,
-                ]}
-              >
-                {project.name}
-              </Text>
+              <Ionicons name="sync" size={14} color="#ffffff" />
+              <Text style={styles.syncBtnText}>Sinkron ({queueCount})</Text>
             </Pressable>
-          ))}
+          )}
         </View>
-      </Card>
 
-      <Card>
-        <SectionTitle title="Pilih Unit" />
-        <View style={styles.choiceWrap}>
-          {units.map((unit) => (
-            <Pressable
-              key={unit.id}
-              onPress={() => setSelectedUnitId(unit.id)}
-              style={({ pressed }) => [
-                styles.choicePill,
-                selectedUnitId === unit.id && styles.choicePillActive,
-                pressed && styles.choicePillPressed,
-              ]}
-            >
-              <Text style={[styles.choiceText, selectedUnitId === unit.id && styles.choiceTextActive]}>
-                {unit.code} • {unit.typeName}
-              </Text>
-            </Pressable>
-          ))}
+        {isAutoSyncing ? <StatusBanner message="Sinkron otomatis berjalan..." tone="warning" /> : null}
+      </SlideInView>
+
+      {!initialUnitId && (
+        <SlideInView direction="up" delay={100} duration={400}>
+          <View style={styles.minimalFilterContainer}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.projectScroll} contentContainerStyle={styles.projectScrollContent}>
+              {projects.map((project) => (
+                <Pressable
+                  key={project.id}
+                  onPress={() => setSelectedProjectId(project.id)}
+                  style={({ pressed }) => [
+                    styles.minimalPill,
+                    selectedProjectId === project.id && styles.minimalPillActive,
+                    pressed && styles.pressedState,
+                  ]}
+                >
+                  <Text style={[styles.minimalPillText, selectedProjectId === project.id && styles.minimalPillTextActive]}>
+                    {project.name}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+            
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.projectScroll} contentContainerStyle={styles.projectScrollContent}>
+              {units.map((unit) => (
+                <Pressable
+                  key={unit.id}
+                  onPress={() => setSelectedUnitId(unit.id)}
+                  style={({ pressed }) => [
+                    styles.minimalPill,
+                    selectedUnitId === unit.id && styles.minimalPillActive,
+                    pressed && styles.pressedState,
+                  ]}
+                >
+                  <Text style={[styles.minimalPillText, selectedUnitId === unit.id && styles.minimalPillTextActive]}>
+                    {unit.code}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        </SlideInView>
+      )}
+
+      {selectedUnit && (
+        <SlideInView direction="up" delay={150} duration={400}>
+          <View style={styles.unitHeaderCard}>
+            <View style={styles.unitHeaderIconWrap}>
+              <Ionicons name="home" size={24} color="#f59e0b" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.unitCodeText}>{selectedUnit.code}</Text>
+              <Text style={styles.unitTypeText}>{selectedUnit.typeName}</Text>
+            </View>
+            <View style={{ alignItems: "flex-end" }}>
+              <Badge 
+                label={isSiapHuni ? "Siap Huni" : "Proses"} 
+                tone={isSiapHuni ? "success" : "warning"} 
+              />
+              <Pressable onPress={() => void loadMilestones()} style={{ marginTop: 6 }}>
+                <Ionicons name="refresh-circle" size={24} color="#cbd5e1" />
+              </Pressable>
+            </View>
+          </View>
+        </SlideInView>
+      )}
+
+      <SlideInView direction="up" delay={200} duration={400}>
+        <View style={styles.statsGrid}>
+          <View style={styles.metricCard}>
+            <View style={[styles.iconBox, { backgroundColor: "#0f172a", shadowColor: "#0f172a", shadowOpacity: 0.5, shadowRadius: 6, elevation: 4 }]}>
+              <Ionicons name="list" size={18} color="#ffffff" />
+            </View>
+            <View>
+              <Text style={styles.metricLabel}>Total Tahapan</Text>
+              <Text style={styles.metricValue}>{milestones.length}</Text>
+            </View>
+          </View>
+          
+          <View style={styles.metricCard}>
+            <View style={[styles.iconBox, { backgroundColor: "#10b981", shadowColor: "#10b981", shadowOpacity: 0.5, shadowRadius: 6, elevation: 4 }]}>
+              <Ionicons name="checkmark-done" size={18} color="#ffffff" />
+            </View>
+            <View>
+              <Text style={styles.metricLabel}>Diselesaikan</Text>
+              <Text style={styles.metricValue}>{completedMilestonesCount}</Text>
+            </View>
+          </View>
         </View>
-      </Card>
+      </SlideInView>
 
       {isLoading ? (
-        <Card>
-          <Text style={styles.loadingText}>Memuat data milestone...</Text>
-        </Card>
+        <Card><Text style={{ color: "#64748b", padding: 12 }}>Memuat data milestone...</Text></Card>
       ) : milestones.length === 0 ? (
         <EmptyState message="Belum ada milestone untuk unit yang dipilih." />
       ) : (
         <>
-          <Card>
-            <SectionTitle title="Daftar Milestone" caption="Pilih item untuk diubah status dan lampirannya" />
-            <View style={styles.milestoneListWrap}>
-              {milestones.map((item) => (
-                <Pressable
-                  key={item.id}
-                  onPress={() => {
-                    setSelectedMilestoneId(item.id);
-                    setStatusDraft(item.status);
-                    setNoteDraft(item.note ?? "");
-                    setPhotoUrlDraft("");
-                    setSelectedPhotoUris([]);
-                  }}
-                  style={({ pressed }) => [
-                    styles.milestoneCard,
-                    selectedMilestoneId === item.id && styles.milestoneCardActive,
-                    pressed && styles.choicePillPressed,
-                  ]}
-                >
-                  <Text style={styles.milestoneTitle}>
-                    {item.orderNo}. {item.name}
-                  </Text>
-                  <Text style={styles.milestoneMeta}>Target: {formatDate(item.targetDate)}</Text>
-                  <Text style={styles.milestoneMeta}>Status: {formatMilestoneStatusLabel(item.status)}</Text>
-                  <Text style={styles.milestoneMeta}>Foto: {item.photos.length} file</Text>
-                </Pressable>
-              ))}
-            </View>
-          </Card>
-
-          <Card>
-            <SectionTitle title="Form Update Milestone" caption={selectedMilestone?.name ?? "Pilih milestone"} />
-
-            {isSiapHuni ? (
-              <View style={{ paddingVertical: 16, alignItems: "center" }}>
-                <Text style={{ color: "#16a34a", fontSize: 16, fontWeight: "bold", marginBottom: 8 }}>
-                  ✅ Unit Siap Huni
-                </Text>
-                <Text style={{ textAlign: "center", color: "#475569" }}>
-                  Milestone untuk unit Siap Huni tidak dapat diubah (Read-Only). Semua tahapan sudah berstatus COMPLETED.
-                </Text>
-              </View>
-            ) : (
-              <>
-                <View style={styles.statusRow}>
-                  {(["NOT_STARTED", "IN_PROGRESS", "COMPLETED"] as MilestoneStatus[]).map((status) => (
-                    <Pressable
-                      key={status}
-                      onPress={() => setStatusDraft(status)}
-                      style={({ pressed }) => [
-                        styles.statusPill,
-                        statusDraft === status && styles.statusPillActive,
-                        pressed && styles.choicePillPressed,
-                      ]}
-                    >
-                      <Text style={[styles.statusText, statusDraft === status && styles.statusTextActive]}>
-                        {formatMilestoneStatusLabel(status)}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-
-                <LabeledInput
-                  label="Catatan Lapangan"
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                  placeholder="Tambahkan catatan progres atau kendala"
-                  value={noteDraft}
-                  onChangeText={setNoteDraft}
-                />
-
-                <LabeledInput
-                  label="URL Foto"
-                  placeholder="https://..."
-                  value={photoUrlDraft}
-                  onChangeText={setPhotoUrlDraft}
-                  hint="Opsional: gunakan jika ingin lampirkan URL manual"
-                />
-
-                <View style={styles.photoActionRow}>
-                  <SecondaryButton label="Ambil Foto" onPress={() => void takeMilestonePhoto()} />
-                  <SecondaryButton
-                    label="Pilih Galeri"
-                    onPress={() => void pickMilestonePhotoFromGallery()}
-                  />
-                </View>
-
-                <Text style={styles.helperText}>Lampiran foto opsional, maksimal 5 file per update.</Text>
-
-                <Text style={styles.photoMetaText}>
-                  Lampiran foto terpilih: {selectedPhotoUris.length}/5
-                </Text>
-
-                {selectedPhotoUris.length > 0 ? (
-                  <View style={styles.photoListWrap}>
-                    {selectedPhotoUris.map((uri, index) => (
-                      <View key={`${uri}-${index}`} style={styles.photoItemRow}>
-                        <Image source={{ uri }} style={styles.photoPreviewThumb} resizeMode="cover" />
-                        <Text style={styles.photoItemText} numberOfLines={1}>
-                          {uri}
-                        </Text>
-                        <Pressable
-                          onPress={() => {
-                            setSelectedPhotoUris((prev) => prev.filter((_, idx) => idx !== index));
-                          }}
-                          style={({ pressed }) => [styles.removePhotoBtn, pressed && styles.choicePillPressed]}
-                        >
-                          <Text style={styles.removePhotoText}>Hapus</Text>
-                        </Pressable>
+          <SlideInView direction="up" delay={250} duration={400}>
+            <SectionTitle title="Daftar Milestone" caption="Pilih tahapan untuk mengupdate progres" />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.milestoneScroll} contentContainerStyle={styles.milestoneScrollContent}>
+              {milestones.map((item) => {
+                const isSelected = selectedMilestoneId === item.id;
+                const isCompleted = item.status === "COMPLETED";
+                
+                return (
+                  <Pressable
+                    key={item.id}
+                    onPress={() => {
+                      setSelectedMilestoneId(item.id);
+                      setStatusDraft(item.status);
+                      setNoteDraft(item.note ?? "");
+                      setPhotoUrlDraft("");
+                      setSelectedPhotoUris([]);
+                    }}
+                    style={({ pressed }) => [
+                      styles.milestoneMiniCard,
+                      isSelected && styles.milestoneMiniCardActive,
+                      pressed && styles.pressedState,
+                    ]}
+                  >
+                    <View style={styles.milestoneMiniHeader}>
+                      <View style={[
+                        styles.milestoneIconWrap, 
+                        isSelected ? { backgroundColor: "#f59e0b" } : isCompleted ? { backgroundColor: "#10b981" } : { backgroundColor: "#f1f5f9" }
+                      ]}>
+                        <Ionicons 
+                          name={isCompleted ? "checkmark" : "construct"} 
+                          size={14} 
+                          color={isSelected || isCompleted ? "#ffffff" : "#94a3b8"} 
+                        />
                       </View>
-                    ))}
-                  </View>
-                ) : null}
+                      <Text style={[styles.milestoneOrder, isSelected && { color: "#0f172a" }]}>
+                        #{item.orderNo}
+                      </Text>
+                    </View>
+                    <Text style={[styles.milestoneTitle, isSelected && { color: "#0f172a" }]} numberOfLines={2}>
+                      {item.name}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </SlideInView>
 
-                <PrimaryButton
-                  label={isSubmitting ? "Menyimpan..." : "Simpan Update"}
-                  onPress={() => void submitUpdate()}
-                  disabled={!selectedMilestone || isSubmitting}
-                />
-              </>
-            )}
-          </Card>
+          <SlideInView direction="up" delay={300} duration={400}>
+            <Card style={styles.formCard}>
+              <View style={styles.formHeader}>
+                <Ionicons name="create" size={20} color="#0f172a" />
+                <Text style={styles.formTitle}>{selectedMilestone?.name ?? "Pilih milestone"}</Text>
+              </View>
+
+              {isSiapHuni ? (
+                <View style={styles.readonlyBanner}>
+                  <Ionicons name="checkmark-circle" size={24} color="#10b981" />
+                  <Text style={styles.readonlyText}>
+                    Unit Siap Huni. Semua tahapan telah selesai dan tidak dapat diubah (Read-Only).
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  <Text style={styles.inputLabel}>Status Pengerjaan</Text>
+                  <View style={styles.statusRow}>
+                    {(["NOT_STARTED", "IN_PROGRESS", "COMPLETED"] as MilestoneStatus[]).map((status) => {
+                      const isActive = statusDraft === status;
+                      return (
+                        <Pressable
+                          key={status}
+                          onPress={() => setStatusDraft(status)}
+                          style={({ pressed }) => [
+                            styles.statusPill,
+                            isActive && styles.statusPillActive,
+                            pressed && styles.pressedState,
+                          ]}
+                        >
+                          <Text style={[styles.statusText, isActive && styles.statusTextActive]}>
+                            {formatMilestoneStatusLabel(status)}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+
+                  <View style={{ marginTop: 12 }}>
+                    <LabeledInput
+                      label="Catatan Lapangan"
+                      multiline
+                      numberOfLines={3}
+                      textAlignVertical="top"
+                      placeholder="Ketikan catatan progres..."
+                      value={noteDraft}
+                      onChangeText={setNoteDraft}
+                    />
+                  </View>
+
+                  <View style={styles.photoSection}>
+                    <Text style={styles.inputLabel}>Lampiran Foto ({selectedPhotoUris.length}/5)</Text>
+                    <View style={styles.photoActionRow}>
+                      <Pressable style={styles.photoActionBtn} onPress={() => void takeMilestonePhoto()}>
+                        <Ionicons name="camera" size={20} color="#0f172a" />
+                        <Text style={styles.photoActionText}>Kamera</Text>
+                      </Pressable>
+                      <Pressable style={styles.photoActionBtn} onPress={() => void pickMilestonePhotoFromGallery()}>
+                        <Ionicons name="images" size={20} color="#0f172a" />
+                        <Text style={styles.photoActionText}>Galeri</Text>
+                      </Pressable>
+                    </View>
+
+                    {selectedPhotoUris.length > 0 && (
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoListWrap}>
+                        {selectedPhotoUris.map((uri, index) => (
+                          <View key={`${uri}-${index}`} style={styles.photoPreviewCard}>
+                            <Image source={{ uri }} style={styles.photoPreviewImg} resizeMode="cover" />
+                            <Pressable
+                              onPress={() => setSelectedPhotoUris((prev) => prev.filter((_, idx) => idx !== index))}
+                              style={styles.photoRemoveBtn}
+                            >
+                              <Ionicons name="close" size={14} color="#ffffff" />
+                            </Pressable>
+                          </View>
+                        ))}
+                      </ScrollView>
+                    )}
+                  </View>
+
+                  <View style={{ marginTop: 24 }}>
+                    <PrimaryButton
+                      label={isSubmitting ? "Menyimpan..." : "Simpan Update"}
+                      onPress={() => void submitUpdate()}
+                      disabled={!selectedMilestone || isSubmitting}
+                      style={{ backgroundColor: "#0f172a" }}
+                    />
+                  </View>
+                </>
+              )}
+            </Card>
+          </SlideInView>
         </>
       )}
 
       {banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
+      
+      {/* Spacer for scroll view bottom */}
+      <View style={{ height: 40 }} />
     </ScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
-  modeRow: {
-    gap: 8,
-  },
-  metricGrid: {
+  topActionRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  offlineToggleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f1f5f9",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  offlineToggleBtnActive: {
+    backgroundColor: "#fef3c7",
+    borderColor: "#fde68a",
+  },
+  offlineToggleText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#64748b",
+  },
+  offlineToggleTextActive: {
+    color: "#b45309",
+  },
+  syncBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#0f172a",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
+    shadowColor: "#0f172a",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  syncBtnText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  minimalFilterContainer: {
+    marginBottom: 16,
     gap: 8,
   },
-  metricPill: {
-    flexGrow: 1,
-    minWidth: 112,
-    borderRadius: 10,
+  projectScroll: {
+    marginHorizontal: -16,
+  },
+  projectScrollContent: {
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  minimalPill: {
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#cae0e4",
-    backgroundColor: "#f4fbfc",
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    gap: 2,
+    borderColor: "#e2e8f0",
+  },
+  minimalPillActive: {
+    backgroundColor: "#0f172a",
+    borderColor: "#0f172a",
+  },
+  minimalPillText: {
+    color: "#64748b",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  minimalPillTextActive: {
+    color: "#ffffff",
+  },
+  pressedState: {
+    opacity: 0.8,
+    transform: [{ scale: 0.98 }],
+  },
+  unitHeaderCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderWidth: 1,
+    borderColor: "#f1f5f9",
+    shadowColor: "#94a3b8",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  unitHeaderIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: "#fef3c7",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  unitCodeText: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0f172a",
+    marginBottom: 2,
+  },
+  unitTypeText: {
+    fontSize: 13,
+    color: "#64748b",
+    fontWeight: "500",
+  },
+  statsGrid: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 16,
+  },
+  metricCard: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderWidth: 1,
+    borderColor: "#f8fafc",
+    shadowColor: "#94a3b8",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  iconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
   },
   metricLabel: {
-    color: "#4a6f78",
+    color: "#64748b",
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
   },
   metricValue: {
-    color: "#184b55",
+    color: "#0f172a",
     fontSize: 18,
     fontWeight: "800",
+    marginTop: 2,
   },
-  choiceWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
+  milestoneScroll: {
+    marginHorizontal: -16,
+    marginBottom: 16,
   },
-  choicePill: {
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "#99bcc1",
-    backgroundColor: "#f7fbfc",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+  milestoneScrollContent: {
+    paddingHorizontal: 16,
+    gap: 10,
   },
-  choicePillActive: {
-    borderColor: "#1e6f78",
-    backgroundColor: "#dff3f5",
-  },
-  choicePillPressed: {
-    opacity: 0.82,
-  },
-  choiceText: {
-    color: "#335f68",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  choiceTextActive: {
-    color: "#124a54",
-    fontWeight: "800",
-  },
-  loadingText: {
-    color: "#4b6972",
-  },
-  milestoneListWrap: {
-    gap: 8,
-  },
-  milestoneCard: {
-    borderWidth: 1,
-    borderColor: "#c5dadd",
+  milestoneMiniCard: {
+    width: 140,
+    backgroundColor: "#ffffff",
     borderRadius: 12,
-    padding: 10,
-    backgroundColor: "#fefefe",
-    gap: 2,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
   },
-  milestoneCardActive: {
-    borderColor: "#1e6f78",
-    backgroundColor: "#eaf8f9",
+  milestoneMiniCardActive: {
+    borderColor: "#f59e0b",
+    backgroundColor: "#fffbeb",
+    shadowColor: "#f59e0b",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  milestoneMiniHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  milestoneIconWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  milestoneOrder: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#94a3b8",
   },
   milestoneTitle: {
-    color: "#133f49",
-    fontWeight: "800",
-    fontSize: 14,
-  },
-  milestoneMeta: {
-    color: "#4d6d75",
-    fontSize: 12,
-  },
-  statusRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  statusPill: {
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "#95b8be",
-    backgroundColor: "#f6fbfb",
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-  },
-  statusPillActive: {
-    borderColor: "#1e6f78",
-    backgroundColor: "#dff3f5",
-  },
-  statusText: {
-    color: "#3a646d",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  statusTextActive: {
-    color: "#0f4852",
-  },
-  helperText: {
-    color: "#486f78",
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 13,
     fontWeight: "600",
+    color: "#475569",
+    lineHeight: 18,
   },
-  photoActionRow: {
-    gap: 8,
-  },
-  photoMetaText: {
-    color: "#355f68",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  photoListWrap: {
-    gap: 6,
-  },
-  photoItemRow: {
+  formCard: {
+    padding: 20,
     borderWidth: 1,
-    borderColor: "#c6dbde",
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    backgroundColor: "#f7fcfd",
+    borderColor: "#f1f5f9",
+  },
+  formHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    marginBottom: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
   },
-  photoItemText: {
+  formTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#0f172a",
     flex: 1,
-    color: "#3a646d",
-    fontSize: 12,
   },
-  photoPreviewThumb: {
-    width: 40,
-    height: 40,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "#c6dbde",
-    marginRight: 8,
-  },
-  removePhotoBtn: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#d79b93",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: "#fff1ef",
-  },
-  removePhotoText: {
-    color: "#9d3428",
-    fontSize: 11,
+  inputLabel: {
+    fontSize: 13,
     fontWeight: "700",
+    color: "#475569",
+    marginBottom: 8,
+  },
+  statusRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  statusPill: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  statusPillActive: {
+    backgroundColor: "#0f172a",
+    borderColor: "#0f172a",
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#64748b",
+  },
+  statusTextActive: {
+    color: "#ffffff",
+  },
+  photoSection: {
+    marginTop: 16,
+  },
+  photoActionRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 12,
+  },
+  photoActionBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 12,
+    backgroundColor: "#f1f5f9",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  photoActionText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#0f172a",
+  },
+  photoListWrap: {
+    gap: 12,
+    paddingVertical: 4,
+  },
+  photoPreviewCard: {
+    position: "relative",
+  },
+  photoPreviewImg: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  photoRemoveBtn: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    backgroundColor: "#ef4444",
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#ffffff",
+  },
+  readonlyBanner: {
+    backgroundColor: "#ecfdf5",
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#a7f3d0",
+    alignItems: "center",
+    gap: 8,
+  },
+  readonlyText: {
+    color: "#065f46",
+    fontSize: 13,
+    fontWeight: "500",
+    textAlign: "center",
+    lineHeight: 20,
   },
 });

@@ -110,6 +110,11 @@ export class ConstructionService {
       // 1. Validasi unit
       const units = await tx.unit.findMany({
         where: { id: { in: data.unitIds } },
+        include: {
+          propertyType: {
+            include: { milestoneTemplates: true }
+          }
+        }
       });
 
       if (units.length !== data.unitIds.length) {
@@ -143,6 +148,27 @@ export class ConstructionService {
           statusPembangunan: "Sedang Dibangun",
         },
       });
+
+      // 4. Generate Milestones for each unit
+      const milestonesData: any[] = [];
+      for (const unit of units) {
+        if (unit.propertyType?.milestoneTemplates) {
+          for (const template of unit.propertyType.milestoneTemplates) {
+            milestonesData.push({
+              unitId: unit.id,
+              name: template.name,
+              orderNo: template.orderNo,
+              status: "PENDING",
+            });
+          }
+        }
+      }
+
+      if (milestonesData.length > 0) {
+        await tx.milestone.createMany({
+          data: milestonesData,
+        });
+      }
 
       return spk;
     });
