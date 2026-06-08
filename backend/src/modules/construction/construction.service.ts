@@ -159,6 +159,7 @@ export class ConstructionService {
               name: template.name,
               orderNo: template.orderNo,
               status: "PENDING",
+              bobotPersentase: template.bobotPersentase,
             });
           }
         }

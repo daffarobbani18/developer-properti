@@ -46,6 +46,14 @@ export type MilestoneChecklistItem = {
   completedAt?: string;
 };
 
+export type MilestoneLogItem = {
+  id: string;
+  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+  note?: string;
+  photoUrls: string[];
+  createdAt: string;
+};
+
 export type Milestone = {
   id: string;
   unitId: string;
@@ -59,6 +67,7 @@ export type Milestone = {
   checklist: MilestoneChecklistItem[];
   checklistCompleted: number;
   checklistTotal: number;
+  logs?: MilestoneLogItem[];
 };
 
 export type IssueItem = {

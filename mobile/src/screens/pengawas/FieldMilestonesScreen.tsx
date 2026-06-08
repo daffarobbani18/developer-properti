@@ -602,13 +602,65 @@ export function FieldMilestonesScreen(): React.JSX.Element {
                       label={isSubmitting ? "Menyimpan..." : "Simpan Update"}
                       onPress={() => void submitUpdate()}
                       disabled={!selectedMilestone || isSubmitting}
-                      style={{ backgroundColor: "#0f172a" }}
                     />
                   </View>
                 </>
               )}
             </Card>
           </SlideInView>
+
+          {/* Riwayat Laporan Section */}
+          {selectedMilestone && selectedMilestone.logs && selectedMilestone.logs.length > 0 && (
+            <SlideInView direction="up" delay={400} duration={400}>
+              <View style={{ marginTop: 24, marginBottom: 12, paddingHorizontal: 4 }}>
+                <Text style={{ fontSize: 16, fontWeight: "800", color: "#0f172a" }}>Riwayat Laporan</Text>
+                <Text style={{ fontSize: 13, color: "#64748b", marginTop: 2 }}>Log historis dari pembaruan milestone ini</Text>
+              </View>
+              <View style={{ gap: 12 }}>
+                {selectedMilestone.logs.map((log) => (
+                  <Card key={log.id} style={{ padding: 16, borderWidth: 1, borderColor: "#e2e8f0", backgroundColor: "#ffffff" }}>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                        <View style={{ 
+                          width: 10, height: 10, borderRadius: 5, 
+                          backgroundColor: log.status === "COMPLETED" ? "#10b981" : log.status === "IN_PROGRESS" ? "#f59e0b" : "#94a3b8",
+                          shadowColor: log.status === "COMPLETED" ? "#10b981" : log.status === "IN_PROGRESS" ? "#f59e0b" : "#94a3b8",
+                          shadowOffset: { width: 0, height: 0 },
+                          shadowOpacity: 0.5,
+                          shadowRadius: 4,
+                          elevation: 2,
+                        }} />
+                        <Text style={{ fontSize: 13, fontWeight: "700", color: "#0f172a" }}>
+                          {formatMilestoneStatusLabel(log.status)}
+                        </Text>
+                      </View>
+                      <Text style={{ fontSize: 11, color: "#64748b", fontWeight: "600" }}>
+                        {formatDate(log.createdAt)}
+                      </Text>
+                    </View>
+                    
+                    {log.note ? (
+                      <Text style={{ fontSize: 13, color: "#475569", lineHeight: 20, marginBottom: (log.photoUrls && log.photoUrls.length > 0) ? 12 : 0 }}>
+                        {log.note}
+                      </Text>
+                    ) : (
+                      <Text style={{ fontSize: 13, color: "#cbd5e1", fontStyle: "italic", marginBottom: (log.photoUrls && log.photoUrls.length > 0) ? 12 : 0 }}>
+                        Tidak ada catatan.
+                      </Text>
+                    )}
+
+                    {log.photoUrls && log.photoUrls.length > 0 && (
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                        {log.photoUrls.map((url, i) => (
+                          <Image key={i} source={{ uri: url }} style={{ width: 64, height: 64, borderRadius: 8, backgroundColor: "#f1f5f9", borderWidth: 1, borderColor: "#e2e8f0" }} />
+                        ))}
+                      </ScrollView>
+                    )}
+                  </Card>
+                ))}
+              </View>
+            </SlideInView>
+          )}
         </>
       )}
 

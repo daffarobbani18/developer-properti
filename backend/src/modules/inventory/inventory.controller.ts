@@ -74,7 +74,7 @@ export class InventoryController {
         estimasiRab: estimasiRab !== undefined ? Number(estimasiRab) : undefined,
         imageUrl: imageUrl !== undefined ? String(imageUrl) : undefined,
         facilities: facilities !== undefined ? (facilities ? String(facilities) : null) : undefined,
-        milestoneTemplates: milestoneTemplates !== undefined ? (Array.isArray(milestoneTemplates) ? milestoneTemplates : undefined) : undefined,
+        milestoneTemplates: milestoneTemplates !== undefined && Array.isArray(milestoneTemplates) ? (milestoneTemplates as { name: string; bobotPersentase: number }[]) : [],
       });
 
       res.status(200).json({

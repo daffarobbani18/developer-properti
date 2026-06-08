@@ -262,7 +262,12 @@ export const getUnitMilestones = async (req: Request, res: Response): Promise<vo
     
     const unit = await prisma.unit.findUnique({
       where: { id: unitId },
-      include: { milestones: { orderBy: { orderNo: 'asc' } } }
+      include: { 
+        milestones: { 
+          orderBy: { orderNo: 'asc' },
+          include: { logs: { orderBy: { createdAt: 'desc' } } }
+        } 
+      }
     });
     
     if (!unit) {
@@ -285,6 +290,13 @@ export const getUnitMilestones = async (req: Request, res: Response): Promise<vo
         url,
         caption: `Foto progres`,
         createdAt: m.actualDate ? m.actualDate.toISOString() : new Date().toISOString()
+      })),
+      logs: (m.logs || []).map((log: any) => ({
+        id: log.id,
+        status: log.status,
+        note: log.note,
+        photoUrls: log.photoUrls,
+        createdAt: log.createdAt.toISOString()
       })),
       checklist: [], // Disederhanakan
       checklistCompleted: m.status === "COMPLETED" ? 1 : 0, 
@@ -313,17 +325,44 @@ export const updateMilestone = async (req: Request, res: Response): Promise<void
     if (photoUrl) updatedPhotoUrls.push(photoUrl);
     if (photoUrls && Array.isArray(photoUrls)) updatedPhotoUrls = [...updatedPhotoUrls, ...photoUrls];
     
+    const isTransitioningToCompleted = status === "COMPLETED" && milestone.status !== "COMPLETED";
+
     const updatedMilestone = await prisma.milestone.update({
       where: { id: milestoneId },
       data: {
         status: status || milestone.status,
         note: note !== undefined ? note : milestone.note,
         photoUrls: updatedPhotoUrls,
-        actualDate: status === "COMPLETED" && milestone.status !== "COMPLETED" ? new Date() : milestone.actualDate
+        actualDate: isTransitioningToCompleted ? new Date() : milestone.actualDate
+      }
+    });
+
+    let incomingPhotos: string[] = [];
+    if (photoUrl) incomingPhotos.push(photoUrl);
+    if (photoUrls && Array.isArray(photoUrls)) incomingPhotos = [...incomingPhotos, ...photoUrls];
+
+    const log = await prisma.milestoneLog.create({
+      data: {
+        milestoneId,
+        status: status || milestone.status,
+        note: note || null,
+        photoUrls: incomingPhotos,
       }
     });
     
-    // Update persentase unit jika perlu (opsional: bisa diambil on the fly saja di controller lain)
+    // Update persentase unit otomatis
+    if (isTransitioningToCompleted) {
+      const allUnitMilestones = await prisma.milestone.findMany({
+        where: { unitId: milestone.unitId }
+      });
+      const completedMilestones = allUnitMilestones.filter(m => m.status === "COMPLETED");
+      const totalProgress = completedMilestones.reduce((acc, m) => acc + (m.bobotPersentase || 0), 0);
+      
+      await prisma.unit.update({
+        where: { id: milestone.unitId },
+        data: { progress: Math.min(totalProgress, 100) }
+      });
+    }
     
     const formatted = {
       id: updatedMilestone.id,
@@ -339,6 +378,13 @@ export const updateMilestone = async (req: Request, res: Response): Promise<void
         caption: `Foto progres`,
         createdAt: updatedMilestone.actualDate ? updatedMilestone.actualDate.toISOString() : new Date().toISOString()
       })),
+      logs: [{
+        id: log.id,
+        status: log.status,
+        note: log.note,
+        photoUrls: log.photoUrls,
+        createdAt: log.createdAt.toISOString()
+      }],
       checklist: [],
       checklistCompleted: updatedMilestone.status === "COMPLETED" ? 1 : 0,
       checklistTotal: 1,

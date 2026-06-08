@@ -109,6 +109,8 @@ model Unit {
   constructionProgresses ConstructionProgress[]
   milestones      Milestone[]
   
+  progress        Int            @default(0) // Field Baru: Total Progres Bangunan (0 - 100)
+
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 }
@@ -366,15 +368,30 @@ model Milestone {
   unitId      String
   name        String
   orderNo     Int
-  targetDate  DateTime? // Dibuat opsional karena mungkin belum diketahui saat auto-generate
-  actualDate  DateTime?
-  status      String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  targetDate      DateTime? // Dibuat opsional karena mungkin belum diketahui saat auto-generate
+  actualDate      DateTime?
+  status          String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  note            String?
+  photoUrls       String[]  @default([])
+  bobotPersentase Int       @default(0) // Disalin dari MilestoneTemplate saat generate
+  
+  unit            Unit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  logs            MilestoneLog[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model MilestoneLog {
+  id          String    @id @default(uuid())
+  milestoneId String
+  status      String    
   note        String?
   photoUrls   String[]  @default([])
+  reportedBy  String?   
   
-  unit        Unit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  milestone   Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
   
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
 }
 
