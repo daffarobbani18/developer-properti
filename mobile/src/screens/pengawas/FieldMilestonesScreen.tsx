@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View, ScrollView, Dimensions } from "react-native";
+import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { Image, Pressable, StyleSheet, Text, View, ScrollView, Dimensions, Animated } from "react-native";
 import { useFocusEffect, useRoute, RouteProp } from "@react-navigation/native";
 import { useNetInfo } from "@react-native-community/netinfo";
 import { Ionicons } from "@expo/vector-icons";
@@ -62,6 +62,27 @@ export function FieldMilestonesScreen(): React.JSX.Element {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAutoSyncing, setIsAutoSyncing] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<{title: string, message: string, type: 'success'|'error'} | null>(null);
+  const toastAnim = useRef(new Animated.Value(0)).current;
+
+  const showToast = useCallback((title: string, message: string, type: 'success'|'error' = 'success') => {
+    setToastMessage({ title, message, type });
+    toastAnim.setValue(0);
+    Animated.spring(toastAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 6,
+      tension: 40,
+    }).start();
+
+    setTimeout(() => {
+      Animated.timing(toastAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => setToastMessage(null));
+    }, 3500);
+  }, [toastAnim]);
 
   const isNetworkOffline = netInfo.isConnected === false;
   const effectiveOfflineMode = isNetworkOffline || isOfflineMode;
@@ -262,7 +283,6 @@ export function FieldMilestonesScreen(): React.JSX.Element {
       milestoneId: selectedMilestone.id,
       status: statusDraft,
       note: noteDraft,
-      photoUrl: photoUrlDraft || selectedPhotoUris[0],
       photoUrls: selectedPhotoUris,
     };
 
@@ -297,16 +317,16 @@ export function FieldMilestonesScreen(): React.JSX.Element {
               : item
           )
         );
-        setBanner("Perubahan disimpan ke queue offline.");
+        showToast("Tersimpan Offline", "Perubahan disimpan ke queue offline.", "success");
       } else {
         await submitMilestoneUpdate(auth, payload);
-        setBanner("Milestone berhasil diperbarui.");
+        showToast("Berhasil", "Milestone berhasil diperbarui.", "success");
       }
 
       await loadMilestones();
       setSelectedPhotoUris([]);
     } catch (error) {
-      setBanner(error instanceof Error ? error.message : "Gagal menyimpan perubahan milestone");
+      showToast("Gagal", error instanceof Error ? error.message : "Gagal menyimpan perubahan milestone", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -668,6 +688,47 @@ export function FieldMilestonesScreen(): React.JSX.Element {
       
       {/* Spacer for scroll view bottom */}
       <View style={{ height: 40 }} />
+
+      {/* Animated Toast Notification */}
+      {toastMessage && (
+        <Animated.View
+          style={{
+            position: "absolute",
+            top: 24,
+            right: 16,
+            left: 16,
+            backgroundColor: toastMessage.type === "success" ? "#10b981" : "#ef4444",
+            padding: 14,
+            borderRadius: 12,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 12,
+            opacity: toastAnim,
+            transform: [
+              {
+                translateY: toastAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-30, 0]
+                })
+              }
+            ],
+            shadowColor: toastMessage.type === "success" ? "#047857" : "#b91c1c",
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: 0.3,
+            shadowRadius: 16,
+            elevation: 8,
+            zIndex: 9999
+          }}
+        >
+          <View style={{ backgroundColor: "rgba(255,255,255,0.25)", borderRadius: 20, padding: 4 }}>
+            <Ionicons name={toastMessage.type === "success" ? "checkmark-circle" : "alert-circle"} size={22} color="#ffffff" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: "#ffffff", fontWeight: "800", fontSize: 14 }}>{toastMessage.title}</Text>
+            <Text style={{ color: "#ffffff", fontWeight: "500", fontSize: 13, opacity: 0.9 }}>{toastMessage.message}</Text>
+          </View>
+        </Animated.View>
+      )}
     </ScreenShell>
   );
 }

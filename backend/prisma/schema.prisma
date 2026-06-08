@@ -354,8 +354,9 @@ model MilestoneTemplate {
   id               String       @id @default(uuid())
   propertyTypeId   String
   name             String
+  category         String
   orderNo          Int
-  bobotPersentase  Int          @default(0)
+  bobotPersentase  Float        @default(0)
 
   propertyType     PropertyType @relation(fields: [propertyTypeId], references: [id], onDelete: Cascade)
 
@@ -367,13 +368,14 @@ model Milestone {
   id          String    @id @default(uuid())
   unitId      String
   name        String
+  category    String
   orderNo     Int
   targetDate      DateTime? // Dibuat opsional karena mungkin belum diketahui saat auto-generate
   actualDate      DateTime?
   status          String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
   note            String?
   photoUrls       String[]  @default([])
-  bobotPersentase Int       @default(0) // Disalin dari MilestoneTemplate saat generate
+  bobotPersentase Float     @default(0) // Disalin dari MilestoneTemplate saat generate
   
   unit            Unit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
   logs            MilestoneLog[]

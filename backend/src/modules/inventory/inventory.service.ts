@@ -18,13 +18,13 @@ export class InventoryService {
     price?: number; // legacy fallback
     imageUrl?: string;
     facilities?: string | null;
-    milestoneTemplates: { name: string; bobotPersentase: number }[];
+    milestoneTemplates: { category: string; name: string; bobotPersentase: number }[];
   }) {
     if (!data.milestoneTemplates || data.milestoneTemplates.length === 0) {
       throw new Error("Milestone template wajib diisi minimal 1 tahapan.");
     }
     const totalPersentase = data.milestoneTemplates.reduce((sum, t) => sum + (Number(t.bobotPersentase) || 0), 0);
-    if (totalPersentase !== 100) {
+    if (Math.abs(totalPersentase - 100) > 0.001) {
       throw new Error("Total bobot persentase milestone harus tepat 100.");
     }
     return await prisma.propertyType.create({
@@ -45,6 +45,7 @@ export class InventoryService {
         facilities: data.facilities,
         milestoneTemplates: {
           create: data.milestoneTemplates.map((template, index) => ({
+            category: template.category,
             name: template.name,
             bobotPersentase: Number(template.bobotPersentase) || 0,
             orderNo: index + 1,
@@ -84,13 +85,13 @@ export class InventoryService {
     estimasiRab?: number;
     imageUrl?: string;
     facilities?: string | null;
-    milestoneTemplates: { name: string; bobotPersentase: number }[];
+    milestoneTemplates: { category: string; name: string; bobotPersentase: number }[];
   }) {
     if (!data.milestoneTemplates || data.milestoneTemplates.length === 0) {
       throw new Error("Milestone template wajib diisi minimal 1 tahapan.");
     }
     const totalPersentase = data.milestoneTemplates.reduce((sum, t) => sum + (Number(t.bobotPersentase) || 0), 0);
-    if (totalPersentase !== 100) {
+    if (Math.abs(totalPersentase - 100) > 0.001) {
       throw new Error("Total bobot persentase milestone harus tepat 100.");
     }
     return await prisma.propertyType.update({
@@ -110,6 +111,7 @@ export class InventoryService {
           milestoneTemplates: {
             deleteMany: {},
             create: data.milestoneTemplates.map((template, index) => ({
+              category: template.category,
               name: template.name,
               bobotPersentase: Number(template.bobotPersentase) || 0,
               orderNo: index + 1,

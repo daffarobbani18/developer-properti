@@ -157,6 +157,7 @@ export class ConstructionService {
             milestonesData.push({
               unitId: unit.id,
               name: template.name,
+              category: template.category,
               orderNo: template.orderNo,
               status: "PENDING",
               bobotPersentase: template.bobotPersentase,
