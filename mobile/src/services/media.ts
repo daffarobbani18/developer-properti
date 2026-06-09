@@ -105,13 +105,23 @@ export async function uploadPhoto(
   }
 
   try {
+    const formData = new FormData();
+    const filename = uri.split('/').pop() || 'photo.jpg';
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : 'image/jpeg';
+    
+    formData.append("image", {
+      uri,
+      name: filename,
+      type,
+    } as any);
+
     const response = await fetch(`${process.env.EXPO_PUBLIC_API_BASE_URL}/upload`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${auth.token}`,
-        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ uri }),
+      body: formData,
     });
 
     if (!response.ok) {
