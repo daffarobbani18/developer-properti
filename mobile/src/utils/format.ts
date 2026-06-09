@@ -36,13 +36,19 @@ export function formatDateTime(value: string): string {
 }
 
 export function formatMilestoneStatusLabel(
-  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED"
+  status: "NOT_STARTED" | "IN_PROGRESS" | "WAITING_APPROVAL" | "REJECTED" | "COMPLETED" | "PENDING"
 ): string {
-  if (status === "NOT_STARTED") {
+  if (status === "NOT_STARTED" || status === "PENDING") {
     return "Belum Mulai";
   }
   if (status === "IN_PROGRESS") {
     return "Sedang Dikerjakan";
+  }
+  if (status === "WAITING_APPROVAL") {
+    return "Menunggu Verifikasi";
+  }
+  if (status === "REJECTED") {
+    return "Ditolak (Revisi)";
   }
   return "Selesai";
 }

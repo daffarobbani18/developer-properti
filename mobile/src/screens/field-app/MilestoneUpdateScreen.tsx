@@ -26,7 +26,7 @@ export function MilestoneUpdateScreen({ route }: MilestoneUpdateScreenProps): Re
 
   const [note, setNote] = useState("");
   const [selectedPhotoUris, setSelectedPhotoUris] = useState<string[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState<'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED'>(
+  const [selectedStatus, setSelectedStatus] = useState<'NOT_STARTED' | 'IN_PROGRESS' | 'WAITING_APPROVAL' | 'REJECTED' | 'COMPLETED' | 'PENDING'>(
     milestone?.status ?? 'IN_PROGRESS'
   );
   const [isUploading, setIsUploading] = useState(false);
@@ -103,10 +103,13 @@ export function MilestoneUpdateScreen({ route }: MilestoneUpdateScreenProps): Re
         <Text style={styles.label}>Status Pekerjaan</Text>
         <View style={styles.pillRow}>
           {(['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'] as const).map((status) => {
-            const labels = {
+            const labels: Record<string, string> = {
               NOT_STARTED: 'Belum Mulai',
               IN_PROGRESS: 'Sedang Berjalan',
               COMPLETED: 'Selesai',
+              WAITING_APPROVAL: 'Menunggu',
+              REJECTED: 'Ditolak',
+              PENDING: 'Pending',
             };
             const isSelected = selectedStatus === status;
             return (

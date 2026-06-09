@@ -109,4 +109,11 @@ router.post("/spk", validate(createSpkDto), ConstructionController.createSpk);
 router.get("/spk", ConstructionController.getSpkList);
 router.get("/spk/:id", ConstructionController.getSpkDetail);
 
+// ==========================================
+// RUTE VERIFIKASI MILESTONE LAPANGAN
+// ==========================================
+
+router.get("/milestone-approvals", ConstructionController.getPendingMilestoneApprovals);
+router.patch("/milestone-approvals/:id/verify", ConstructionController.verifyMilestone);
+
 export default router;

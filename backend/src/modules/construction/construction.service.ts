@@ -218,4 +218,87 @@ export class ConstructionService {
 
     return spk;
   }
+
+  /**
+   * Mendapatkan daftar milestone yang menunggu verifikasi
+   */
+  static async getPendingMilestoneApprovals() {
+    return await prisma.milestone.findMany({
+      where: { status: "WAITING_APPROVAL" },
+      orderBy: { updatedAt: "desc" },
+      include: {
+        unit: {
+          select: {
+            id: true,
+            blok: true,
+            nomor: true,
+            kawasan: true,
+          }
+        },
+        logs: {
+          orderBy: { createdAt: "desc" },
+          take: 1
+        }
+      }
+    });
+  }
+
+  /**
+   * Memverifikasi (Approve / Reject) milestone
+   */
+  static async verifyMilestone(id: string, action: "APPROVE" | "REJECT", note?: string) {
+    const milestone = await prisma.milestone.findUnique({
+      where: { id },
+      include: { unit: true }
+    });
+
+    if (!milestone) {
+      throw new Error("Milestone tidak ditemukan");
+    }
+
+    if (milestone.status !== "WAITING_APPROVAL") {
+      throw new Error("Status milestone bukan WAITING_APPROVAL");
+    }
+
+    return await prisma.$transaction(async (tx: any) => {
+      const finalStatus = action === "APPROVE" ? "COMPLETED" : "REJECTED";
+
+      // 1. Update Milestone
+      const updatedMilestone = await tx.milestone.update({
+        where: { id },
+        data: {
+          status: finalStatus,
+          actualDate: action === "APPROVE" ? new Date() : milestone.actualDate
+        }
+      });
+
+      // 2. Tambah log verifikasi
+      await tx.milestoneLog.create({
+        data: {
+          milestoneId: id,
+          status: finalStatus,
+          note: note || (action === "APPROVE" ? "Disetujui oleh Manajer Proyek" : "Ditolak oleh Manajer Proyek")
+        }
+      });
+
+      // 3. Jika disetujui, update persentase progress unit
+      if (action === "APPROVE") {
+        const allUnitMilestones = await tx.milestone.findMany({
+          where: { unitId: milestone.unitId }
+        });
+        const completedMilestones = allUnitMilestones.filter((m: any) => m.status === "COMPLETED");
+        const totalProgress = completedMilestones.reduce((acc: number, m: any) => acc + (m.bobotPersentase || 0), 0);
+        
+        await tx.unit.update({
+          where: { id: milestone.unitId },
+          data: { 
+            progress: Math.min(totalProgress, 100),
+            statusPembangunan: totalProgress >= 100 ? "Siap Huni" : "Sedang Dibangun"
+          }
+        });
+      }
+
+      return updatedMilestone;
+    });
+  }
 }

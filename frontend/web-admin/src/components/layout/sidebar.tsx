@@ -79,6 +79,12 @@ const menuItems: MenuGroup[] = [
         roles: ["inventory", "admin", "supervisor"],
       },
       {
+        label: "Verifikasi Progres",
+        href: "/admin/verifikasi-progres",
+        icon: ListChecks,
+        roles: ["inventory", "admin", "supervisor"],
+      },
+      {
         label: "Site Plan",
         href: "/admin/site-plan",
         icon: MapTrifold,

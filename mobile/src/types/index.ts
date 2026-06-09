@@ -48,7 +48,7 @@ export type MilestoneChecklistItem = {
 
 export type MilestoneLogItem = {
   id: string;
-  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+  status: "NOT_STARTED" | "IN_PROGRESS" | "WAITING_APPROVAL" | "REJECTED" | "COMPLETED" | "PENDING";
   note?: string;
   photoUrls: string[];
   createdAt: string;
@@ -63,7 +63,7 @@ export type Milestone = {
   orderNo: number;
   targetDate: string;
   actualDate?: string;
-  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+  status: "NOT_STARTED" | "IN_PROGRESS" | "WAITING_APPROVAL" | "REJECTED" | "COMPLETED" | "PENDING";
   note?: string;
   photos: MilestonePhoto[];
   checklist: MilestoneChecklistItem[];

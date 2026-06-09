@@ -327,15 +327,18 @@ export const updateMilestone = async (req: Request, res: Response): Promise<void
     if (photoUrl) updatedPhotoUrls.push(photoUrl);
     if (photoUrls && Array.isArray(photoUrls)) updatedPhotoUrls = [...updatedPhotoUrls, ...photoUrls];
     
-    const isTransitioningToCompleted = status === "COMPLETED" && milestone.status !== "COMPLETED";
+    let finalStatus = status;
+    if (status === "COMPLETED") {
+      finalStatus = "WAITING_APPROVAL";
+    }
 
     const updatedMilestone = await prisma.milestone.update({
       where: { id: milestoneId },
       data: {
-        status: status || milestone.status,
+        status: finalStatus || milestone.status,
         note: note !== undefined ? note : milestone.note,
         photoUrls: updatedPhotoUrls,
-        actualDate: isTransitioningToCompleted ? new Date() : milestone.actualDate
+        // Kita tidak update actualDate ke now() sebelum di-approve
       }
     });
 
@@ -346,25 +349,12 @@ export const updateMilestone = async (req: Request, res: Response): Promise<void
     const log = await prisma.milestoneLog.create({
       data: {
         milestoneId,
-        status: status || milestone.status,
+        status: finalStatus || milestone.status,
         note: note || null,
         photoUrls: incomingPhotos,
       }
     });
-    
-    // Update persentase unit otomatis
-    if (isTransitioningToCompleted) {
-      const allUnitMilestones = await prisma.milestone.findMany({
-        where: { unitId: milestone.unitId }
-      });
-      const completedMilestones = allUnitMilestones.filter(m => m.status === "COMPLETED");
-      const totalProgress = completedMilestones.reduce((acc, m) => acc + (m.bobotPersentase || 0), 0);
-      
-      await prisma.unit.update({
-        where: { id: milestone.unitId },
-        data: { progress: Math.min(totalProgress, 100) }
-      });
-    }
+
     
     const formatted = {
       id: updatedMilestone.id,

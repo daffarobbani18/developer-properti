@@ -131,4 +131,42 @@ export class ConstructionController {
       }
     }
   }
+  static async getPendingMilestoneApprovals(req: Request, res: Response): Promise<void> {
+    try {
+      const approvals = await ConstructionService.getPendingMilestoneApprovals();
+      res.status(200).json({
+        message: "Berhasil mengambil daftar persetujuan milestone",
+        data: approvals,
+      });
+    } catch (error: any) {
+      console.error("getPendingMilestoneApprovals error:", error);
+      res.status(500).json({ error: "Terjadi kesalahan pada server" });
+    }
+  }
+
+  static async verifyMilestone(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { action, note } = req.body;
+
+      if (!action || !["APPROVE", "REJECT"].includes(action)) {
+        res.status(400).json({ error: "Aksi tidak valid (harus APPROVE atau REJECT)" });
+        return;
+      }
+
+      const updated = await ConstructionService.verifyMilestone(String(id), action, note);
+      res.status(200).json({
+        message: `Berhasil melakukan ${action} pada milestone`,
+        data: updated,
+      });
+    } catch (error: any) {
+      if (error.message.includes("tidak ditemukan") || error.message.includes("bukan WAITING_APPROVAL")) {
+        res.status(400).json({ error: error.message });
+      } else {
+        console.error("verifyMilestone error:", error);
+        res.status(500).json({ error: "Terjadi kesalahan pada server" });
+      }
+    }
+  }
 }
+

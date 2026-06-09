@@ -529,6 +529,8 @@ export function FieldMilestonesScreen(): React.JSX.Element {
                         {group.items.map((item, itemIdx) => {
                           const isCompleted = item.status === "COMPLETED";
                           const isProgress = item.status === "IN_PROGRESS";
+                          const isWaiting = item.status === "WAITING_APPROVAL";
+                          const isRejected = item.status === "REJECTED";
                           return (
                             <Pressable
                               key={item.id}
@@ -543,8 +545,8 @@ export function FieldMilestonesScreen(): React.JSX.Element {
                               }}
                             >
                               <View style={styles.treeItemConnector} />
-                              <View style={[styles.treeItemIcon, isCompleted ? { backgroundColor: "#10b981" } : isProgress ? { backgroundColor: "#f59e0b" } : { backgroundColor: "#f1f5f9" }]}>
-                                <Ionicons name={isCompleted ? "checkmark" : isProgress ? "construct" : "hammer-outline"} size={12} color={isCompleted || isProgress ? "#fff" : "#94a3b8"} />
+                              <View style={[styles.treeItemIcon, isCompleted ? { backgroundColor: "#10b981" } : isProgress ? { backgroundColor: "#f59e0b" } : isWaiting ? { backgroundColor: "#3b82f6" } : isRejected ? { backgroundColor: "#ef4444" } : { backgroundColor: "#f1f5f9" }]}>
+                                <Ionicons name={isCompleted ? "checkmark" : isProgress ? "construct" : isWaiting ? "time" : isRejected ? "warning" : "hammer-outline"} size={12} color={isCompleted || isProgress || isWaiting || isRejected ? "#fff" : "#94a3b8"} />
                               </View>
                               <View style={styles.treeItemBody}>
                                 <Text style={styles.treeItemName} numberOfLines={2}>{item.name}</Text>
@@ -584,8 +586,23 @@ export function FieldMilestonesScreen(): React.JSX.Element {
                           Unit Siap Huni. Semua tahapan telah selesai dan tidak dapat diubah (Read-Only).
                         </Text>
                       </View>
+                    ) : selectedMilestone?.status === "WAITING_APPROVAL" ? (
+                      <View style={[styles.readonlyBanner, { backgroundColor: "#eff6ff", borderColor: "#bfdbfe" }]}>
+                        <Ionicons name="time" size={24} color="#3b82f6" />
+                        <Text style={[styles.readonlyText, { color: "#1e3a8a" }]}>
+                          Laporan sedang menunggu verifikasi dari Manajer Proyek.
+                        </Text>
+                      </View>
                     ) : (
                       <>
+                        {selectedMilestone?.status === "REJECTED" && (
+                          <View style={[styles.readonlyBanner, { backgroundColor: "#fef2f2", borderColor: "#fecaca", marginBottom: 16 }]}>
+                            <Ionicons name="warning" size={24} color="#ef4444" />
+                            <Text style={[styles.readonlyText, { color: "#991b1b" }]}>
+                              Laporan ditolak! Silakan perbaiki progres di lapangan dan kirim ulang laporan.
+                            </Text>
+                          </View>
+                        )}
                         <Text style={styles.inputLabel}>Status Pengerjaan</Text>
                         <View style={styles.statusRow}>
                           {(["NOT_STARTED", "IN_PROGRESS", "COMPLETED"] as MilestoneStatus[]).map((status) => {
@@ -681,8 +698,8 @@ export function FieldMilestonesScreen(): React.JSX.Element {
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                         <View style={{ 
                           width: 10, height: 10, borderRadius: 5, 
-                          backgroundColor: log.status === "COMPLETED" ? "#10b981" : log.status === "IN_PROGRESS" ? "#f59e0b" : "#94a3b8",
-                          shadowColor: log.status === "COMPLETED" ? "#10b981" : log.status === "IN_PROGRESS" ? "#f59e0b" : "#94a3b8",
+                          backgroundColor: log.status === "COMPLETED" ? "#10b981" : log.status === "WAITING_APPROVAL" ? "#3b82f6" : log.status === "REJECTED" ? "#ef4444" : log.status === "IN_PROGRESS" ? "#f59e0b" : "#94a3b8",
+                          shadowColor: log.status === "COMPLETED" ? "#10b981" : log.status === "WAITING_APPROVAL" ? "#3b82f6" : log.status === "REJECTED" ? "#ef4444" : log.status === "IN_PROGRESS" ? "#f59e0b" : "#94a3b8",
                           shadowOffset: { width: 0, height: 0 },
                           shadowOpacity: 0.5,
                           shadowRadius: 4,
