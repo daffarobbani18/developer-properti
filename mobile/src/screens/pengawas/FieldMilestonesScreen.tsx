@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
-import { Image, Pressable, StyleSheet, Text, View, ScrollView, Dimensions, Animated } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View, ScrollView, Dimensions, Animated, Modal } from "react-native";
 import { useFocusEffect, useRoute, RouteProp } from "@react-navigation/native";
 import { useNetInfo } from "@react-native-community/netinfo";
 import { Ionicons } from "@expo/vector-icons";
@@ -61,6 +61,8 @@ export function FieldMilestonesScreen(): React.JSX.Element {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAutoSyncing, setIsAutoSyncing] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
   const [banner, setBanner] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<{title: string, message: string, type: 'success'|'error'} | null>(null);
   const toastAnim = useRef(new Animated.Value(0)).current;
@@ -103,6 +105,16 @@ export function FieldMilestonesScreen(): React.JSX.Element {
     () => milestones.filter((item) => item.status === "COMPLETED").length,
     [milestones]
   );
+
+  const groupedMilestones = useMemo(() => {
+    const groups: Record<string, Milestone[]> = {};
+    milestones.forEach((m) => {
+      const cat = m.category || "Tanpa Kategori";
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(m);
+    });
+    return Object.entries(groups).map(([category, items]) => ({ category, items }));
+  }, [milestones]);
 
   const loadProjects = useCallback(async () => {
     if (!auth) {
@@ -491,143 +503,169 @@ export function FieldMilestonesScreen(): React.JSX.Element {
       ) : (
         <>
           <SlideInView direction="up" delay={250} duration={400}>
-            <SectionTitle title="Daftar Milestone" caption="Pilih tahapan untuk mengupdate progres" />
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.milestoneScroll} contentContainerStyle={styles.milestoneScrollContent}>
-              {milestones.map((item) => {
-                const isSelected = selectedMilestoneId === item.id;
-                const isCompleted = item.status === "COMPLETED";
-                
+            <SectionTitle title="Daftar Milestone BQ" caption="Pilih tahapan untuk mengupdate progres" />
+            <View style={styles.treeContainer}>
+              {groupedMilestones.map((group, groupIdx) => {
+                const isCollapsed = collapsedCategories[group.category] || false;
+                const completedInGroup = group.items.filter(i => i.status === "COMPLETED").length;
                 return (
-                  <Pressable
-                    key={item.id}
-                    onPress={() => {
-                      setSelectedMilestoneId(item.id);
-                      setStatusDraft(item.status);
-                      setNoteDraft(item.note ?? "");
-                      setPhotoUrlDraft("");
-                      setSelectedPhotoUris([]);
-                    }}
-                    style={({ pressed }) => [
-                      styles.milestoneMiniCard,
-                      isSelected && styles.milestoneMiniCardActive,
-                      pressed && styles.pressedState,
-                    ]}
-                  >
-                    <View style={styles.milestoneMiniHeader}>
-                      <View style={[
-                        styles.milestoneIconWrap, 
-                        isSelected ? { backgroundColor: "#f59e0b" } : isCompleted ? { backgroundColor: "#10b981" } : { backgroundColor: "#f1f5f9" }
-                      ]}>
-                        <Ionicons 
-                          name={isCompleted ? "checkmark" : "construct"} 
-                          size={14} 
-                          color={isSelected || isCompleted ? "#ffffff" : "#94a3b8"} 
-                        />
+                  <View key={groupIdx} style={styles.treeGroup}>
+                    <Pressable 
+                      style={styles.treeGroupHeader}
+                      onPress={() => setCollapsedCategories(prev => ({ ...prev, [group.category]: !prev[group.category] }))}
+                    >
+                      <View style={styles.treeGroupHeaderLeft}>
+                        <Ionicons name={isCollapsed ? "chevron-forward" : "chevron-down"} size={18} color="#64748b" />
+                        <Ionicons name="layers" size={20} color="#f59e0b" style={{ marginLeft: 4, marginRight: 8 }} />
+                        <Text style={styles.treeGroupTitle}>{group.category}</Text>
                       </View>
-                      <Text style={[styles.milestoneOrder, isSelected && { color: "#0f172a" }]}>
-                        #{item.orderNo}
-                      </Text>
-                    </View>
-                    <Text style={[styles.milestoneTitle, isSelected && { color: "#0f172a" }]} numberOfLines={2}>
-                      {item.name}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-          </SlideInView>
-
-          <SlideInView direction="up" delay={300} duration={400}>
-            <Card style={styles.formCard}>
-              <View style={styles.formHeader}>
-                <Ionicons name="create" size={20} color="#0f172a" />
-                <Text style={styles.formTitle}>{selectedMilestone?.name ?? "Pilih milestone"}</Text>
-              </View>
-
-              {isSiapHuni ? (
-                <View style={styles.readonlyBanner}>
-                  <Ionicons name="checkmark-circle" size={24} color="#10b981" />
-                  <Text style={styles.readonlyText}>
-                    Unit Siap Huni. Semua tahapan telah selesai dan tidak dapat diubah (Read-Only).
-                  </Text>
-                </View>
-              ) : (
-                <>
-                  <Text style={styles.inputLabel}>Status Pengerjaan</Text>
-                  <View style={styles.statusRow}>
-                    {(["NOT_STARTED", "IN_PROGRESS", "COMPLETED"] as MilestoneStatus[]).map((status) => {
-                      const isActive = statusDraft === status;
-                      return (
-                        <Pressable
-                          key={status}
-                          onPress={() => setStatusDraft(status)}
-                          style={({ pressed }) => [
-                            styles.statusPill,
-                            isActive && styles.statusPillActive,
-                            pressed && styles.pressedState,
-                          ]}
-                        >
-                          <Text style={[styles.statusText, isActive && styles.statusTextActive]}>
-                            {formatMilestoneStatusLabel(status)}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-
-                  <View style={{ marginTop: 12 }}>
-                    <LabeledInput
-                      label="Catatan Lapangan"
-                      multiline
-                      numberOfLines={3}
-                      textAlignVertical="top"
-                      placeholder="Ketikan catatan progres..."
-                      value={noteDraft}
-                      onChangeText={setNoteDraft}
-                    />
-                  </View>
-
-                  <View style={styles.photoSection}>
-                    <Text style={styles.inputLabel}>Lampiran Foto ({selectedPhotoUris.length}/5)</Text>
-                    <View style={styles.photoActionRow}>
-                      <Pressable style={styles.photoActionBtn} onPress={() => void takeMilestonePhoto()}>
-                        <Ionicons name="camera" size={20} color="#0f172a" />
-                        <Text style={styles.photoActionText}>Kamera</Text>
-                      </Pressable>
-                      <Pressable style={styles.photoActionBtn} onPress={() => void pickMilestonePhotoFromGallery()}>
-                        <Ionicons name="images" size={20} color="#0f172a" />
-                        <Text style={styles.photoActionText}>Galeri</Text>
-                      </Pressable>
-                    </View>
-
-                    {selectedPhotoUris.length > 0 && (
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoListWrap}>
-                        {selectedPhotoUris.map((uri, index) => (
-                          <View key={`${uri}-${index}`} style={styles.photoPreviewCard}>
-                            <Image source={{ uri }} style={styles.photoPreviewImg} resizeMode="cover" />
+                      <View style={styles.treeGroupBadge}>
+                        <Text style={styles.treeGroupBadgeText}>{completedInGroup}/{group.items.length}</Text>
+                      </View>
+                    </Pressable>
+                    
+                    {!isCollapsed && (
+                      <View style={styles.treeGroupContent}>
+                        {group.items.map((item, itemIdx) => {
+                          const isCompleted = item.status === "COMPLETED";
+                          const isProgress = item.status === "IN_PROGRESS";
+                          return (
                             <Pressable
-                              onPress={() => setSelectedPhotoUris((prev) => prev.filter((_, idx) => idx !== index))}
-                              style={styles.photoRemoveBtn}
+                              key={item.id}
+                              style={({pressed}) => [styles.treeItem, pressed && styles.pressedState]}
+                              onPress={() => {
+                                setSelectedMilestoneId(item.id);
+                                setStatusDraft(item.status);
+                                setNoteDraft(item.note ?? "");
+                                setPhotoUrlDraft("");
+                                setSelectedPhotoUris([]);
+                                setIsModalVisible(true);
+                              }}
                             >
-                              <Ionicons name="close" size={14} color="#ffffff" />
+                              <View style={styles.treeItemConnector} />
+                              <View style={[styles.treeItemIcon, isCompleted ? { backgroundColor: "#10b981" } : isProgress ? { backgroundColor: "#f59e0b" } : { backgroundColor: "#f1f5f9" }]}>
+                                <Ionicons name={isCompleted ? "checkmark" : isProgress ? "construct" : "hammer-outline"} size={12} color={isCompleted || isProgress ? "#fff" : "#94a3b8"} />
+                              </View>
+                              <View style={styles.treeItemBody}>
+                                <Text style={styles.treeItemName} numberOfLines={2}>{item.name}</Text>
+                                <Text style={styles.treeItemWeight}>Bobot: {item.bobotPersentase || 0}%</Text>
+                              </View>
                             </Pressable>
-                          </View>
-                        ))}
-                      </ScrollView>
+                          );
+                        })}
+                      </View>
                     )}
                   </View>
-
-                  <View style={{ marginTop: 24 }}>
-                    <PrimaryButton
-                      label={isSubmitting ? "Menyimpan..." : "Simpan Update"}
-                      onPress={() => void submitUpdate()}
-                      disabled={!selectedMilestone || isSubmitting}
-                    />
-                  </View>
-                </>
-              )}
-            </Card>
+                );
+              })}
+            </View>
           </SlideInView>
+
+          <Modal visible={isModalVisible} transparent animationType="slide" onRequestClose={() => setIsModalVisible(false)}>
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Update Progres</Text>
+                  <Pressable onPress={() => setIsModalVisible(false)} style={styles.modalCloseBtn}>
+                    <Ionicons name="close" size={24} color="#64748b" />
+                  </Pressable>
+                </View>
+                <ScrollView contentContainerStyle={styles.modalScroll}>
+                  <Card style={styles.formCard}>
+                    <View style={styles.formHeader}>
+                      <Ionicons name="create" size={20} color="#0f172a" />
+                      <Text style={styles.formTitle}>{selectedMilestone?.name ?? "Pilih milestone"}</Text>
+                    </View>
+
+                    {isSiapHuni ? (
+                      <View style={styles.readonlyBanner}>
+                        <Ionicons name="checkmark-circle" size={24} color="#10b981" />
+                        <Text style={styles.readonlyText}>
+                          Unit Siap Huni. Semua tahapan telah selesai dan tidak dapat diubah (Read-Only).
+                        </Text>
+                      </View>
+                    ) : (
+                      <>
+                        <Text style={styles.inputLabel}>Status Pengerjaan</Text>
+                        <View style={styles.statusRow}>
+                          {(["NOT_STARTED", "IN_PROGRESS", "COMPLETED"] as MilestoneStatus[]).map((status) => {
+                            const isActive = statusDraft === status;
+                            return (
+                              <Pressable
+                                key={status}
+                                onPress={() => setStatusDraft(status)}
+                                style={({ pressed }) => [
+                                  styles.statusPill,
+                                  isActive && styles.statusPillActive,
+                                  pressed && styles.pressedState,
+                                ]}
+                              >
+                                <Text style={[styles.statusText, isActive && styles.statusTextActive]}>
+                                  {formatMilestoneStatusLabel(status)}
+                                </Text>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
+
+                        <View style={{ marginTop: 12 }}>
+                          <LabeledInput
+                            label="Catatan Lapangan"
+                            multiline
+                            numberOfLines={3}
+                            textAlignVertical="top"
+                            placeholder="Ketikan catatan progres..."
+                            value={noteDraft}
+                            onChangeText={setNoteDraft}
+                          />
+                        </View>
+
+                        <View style={styles.photoSection}>
+                          <Text style={styles.inputLabel}>Lampiran Foto ({selectedPhotoUris.length}/5)</Text>
+                          <View style={styles.photoActionRow}>
+                            <Pressable style={styles.photoActionBtn} onPress={() => void takeMilestonePhoto()}>
+                              <Ionicons name="camera" size={20} color="#0f172a" />
+                              <Text style={styles.photoActionText}>Kamera</Text>
+                            </Pressable>
+                            <Pressable style={styles.photoActionBtn} onPress={() => void pickMilestonePhotoFromGallery()}>
+                              <Ionicons name="images" size={20} color="#0f172a" />
+                              <Text style={styles.photoActionText}>Galeri</Text>
+                            </Pressable>
+                          </View>
+
+                          {selectedPhotoUris.length > 0 && (
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoListWrap}>
+                              {selectedPhotoUris.map((uri, index) => (
+                                <View key={`${uri}-${index}`} style={styles.photoPreviewCard}>
+                                  <Image source={{ uri }} style={styles.photoPreviewImg} resizeMode="cover" />
+                                  <Pressable
+                                    onPress={() => setSelectedPhotoUris((prev) => prev.filter((_, idx) => idx !== index))}
+                                    style={styles.photoRemoveBtn}
+                                  >
+                                    <Ionicons name="close" size={14} color="#ffffff" />
+                                  </Pressable>
+                                </View>
+                              ))}
+                            </ScrollView>
+                          )}
+                        </View>
+
+                        <View style={{ marginTop: 24 }}>
+                          <PrimaryButton
+                            label={isSubmitting ? "Menyimpan..." : "Simpan Update"}
+                            onPress={() => {
+                              submitUpdate().then(() => setIsModalVisible(false));
+                            }}
+                            disabled={!selectedMilestone || isSubmitting}
+                          />
+                        </View>
+                      </>
+                    )}
+                  </Card>
+                </ScrollView>
+              </View>
+            </View>
+          </Modal>
 
           {/* Riwayat Laporan Section */}
           {selectedMilestone && selectedMilestone.logs && selectedMilestone.logs.length > 0 && (
@@ -893,54 +931,123 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginTop: 2,
   },
-  milestoneScroll: {
-    marginHorizontal: -16,
-    marginBottom: 16,
-  },
-  milestoneScrollContent: {
-    paddingHorizontal: 16,
-    gap: 10,
-  },
-  milestoneMiniCard: {
-    width: 140,
+  treeContainer: {
     backgroundColor: "#ffffff",
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: "#e2e8f0",
+    overflow: "hidden",
+    marginBottom: 16,
   },
-  milestoneMiniCardActive: {
-    borderColor: "#f59e0b",
-    backgroundColor: "#fffbeb",
-    shadowColor: "#f59e0b",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+  treeGroup: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
   },
-  milestoneMiniHeader: {
+  treeGroupHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    justifyContent: "space-between",
+    backgroundColor: "#f8fafc",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
   },
-  milestoneIconWrap: {
+  treeGroupHeaderLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  treeGroupTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#334155",
+    flex: 1,
+  },
+  treeGroupBadge: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  treeGroupBadgeText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#64748b",
+  },
+  treeGroupContent: {
+    paddingVertical: 8,
+    paddingRight: 16,
+    paddingLeft: 46, // indent
+  },
+  treeItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    position: "relative",
+  },
+  treeItemConnector: {
+    position: "absolute",
+    left: -18,
+    top: -10,
+    bottom: 20,
+    width: 2,
+    backgroundColor: "#e2e8f0",
+  },
+  treeItemIcon: {
     width: 24,
     height: 24,
     borderRadius: 6,
     alignItems: "center",
     justifyContent: "center",
+    marginRight: 12,
   },
-  milestoneOrder: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#94a3b8",
+  treeItemBody: {
+    flex: 1,
   },
-  milestoneTitle: {
+  treeItemName: {
     fontSize: 13,
     fontWeight: "600",
     color: "#475569",
-    lineHeight: 18,
+    marginBottom: 2,
+  },
+  treeItemWeight: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#94a3b8",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#f8fafc",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    height: "85%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+    backgroundColor: "#ffffff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0f172a",
+  },
+  modalCloseBtn: {
+    padding: 4,
+  },
+  modalScroll: {
+    padding: 16,
   },
   formCard: {
     padding: 20,

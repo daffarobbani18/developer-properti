@@ -280,6 +280,8 @@ export const getUnitMilestones = async (req: Request, res: Response): Promise<vo
     const formattedMilestones = milestones.map((m: any) => ({
       id: m.id,
       name: m.name,
+      category: m.category,
+      bobotPersentase: m.bobotPersentase,
       orderNo: m.orderNo,
       status: m.status, // "PENDING" | "IN_PROGRESS" | "COMPLETED"
       targetDate: m.targetDate ? m.targetDate.toISOString() : new Date().toISOString(),
@@ -367,6 +369,8 @@ export const updateMilestone = async (req: Request, res: Response): Promise<void
     const formatted = {
       id: updatedMilestone.id,
       name: updatedMilestone.name,
+      category: updatedMilestone.category,
+      bobotPersentase: updatedMilestone.bobotPersentase,
       orderNo: updatedMilestone.orderNo,
       status: updatedMilestone.status,
       targetDate: updatedMilestone.targetDate ? updatedMilestone.targetDate.toISOString() : new Date().toISOString(),

@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import CreatableSelect from 'react-select/creatable';
 import { createPortal } from "react-dom";
 import {
-  PencilSimple, CornersOut, Bed, Bathtub, Package, House, Plus, X, Trash, UploadSimple, Eye, WarningCircle, List, CaretDown, CheckCircle
+  PencilSimple, CornersOut, Bed, Bathtub, Package, House, Plus, X, Trash, UploadSimple, Eye, WarningCircle, List, CaretDown, CaretRight, CheckCircle, Stack, Hammer
 } from "@phosphor-icons/react";
 
 const formatRupiah = (number: number) =>
@@ -39,11 +39,13 @@ export default function TipeRumahPage() {
     estimasiRab: 0,
     facilities: "",
     imageUrl: "",
-    milestoneTemplates: [] as { category: string; name: string; bobotPersentase: number }[],
+    milestoneGroups: [] as { category: string; isCollapsed: boolean; items: { name: string; bobotPersentase: number }[] }[],
     id: undefined as string | undefined,
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [formStep, setFormStep] = useState<1 | 2>(1);
+  const [detailStep, setDetailStep] = useState<1 | 2>(1);
+  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
 
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
@@ -150,7 +152,9 @@ export default function TipeRumahPage() {
         basePrice: Number(typeForm.price),
         estimasiRab: Number(typeForm.estimasiRab),
         facilities: typeForm.facilities,
-        milestoneTemplates: typeForm.milestoneTemplates.filter(t => t.name.trim() !== ""),
+        milestoneTemplates: typeForm.milestoneGroups.flatMap(g => 
+          g.items.map(i => ({ category: g.category, name: i.name, bobotPersentase: i.bobotPersentase }))
+        ).filter(t => t.name.trim() !== ""),
         imageUrl: finalImageUrl || typeForm.imageUrl
       };
       
@@ -191,7 +195,15 @@ export default function TipeRumahPage() {
       estimasiRab: type.estimasiRab || 0,
       facilities: type.facilities || "",
       imageUrl: type.imageUrl || "",
-      milestoneTemplates: type.milestoneTemplates || [],
+      milestoneGroups: (() => {
+        const groupsMap = new Map<string, any[]>();
+        type.milestoneTemplates?.forEach((m: any) => {
+          const cat = m.category || "Tanpa Kategori";
+          if (!groupsMap.has(cat)) groupsMap.set(cat, []);
+          groupsMap.get(cat)!.push({ name: m.name, bobotPersentase: m.bobotPersentase });
+        });
+        return Array.from(groupsMap.entries()).map(([cat, items]) => ({ category: cat, isCollapsed: false, items }));
+      })(),
     });
     setSelectedFile(null);
     setIsTypeModalOpen(true);
@@ -235,7 +247,7 @@ export default function TipeRumahPage() {
   };
 
   const openNewModal = () => {
-    setTypeForm({ projectId: "", name: "", lt: 0, lb: 0, bed: 0, bath: 0, price: 0, estimasiRab: 0, facilities: "", imageUrl: "", milestoneTemplates: [{ category: "", name: "", bobotPersentase: 0 }], id: undefined });
+    setTypeForm({ projectId: "", name: "", lt: 0, lb: 0, bed: 0, bath: 0, price: 0, estimasiRab: 0, facilities: "", imageUrl: "", milestoneGroups: [{ category: "I. PEKERJAAN PONDASI", isCollapsed: false, items: [] }], id: undefined });
     setSelectedFile(null);
     setFormStep(1);
     setIsTypeModalOpen(true);
@@ -339,7 +351,7 @@ export default function TipeRumahPage() {
               <div className="flex items-center justify-between border-t border-zinc-100 pt-4">
                 <p className="text-lg font-bold text-zinc-900">{formatRupiah(type.price)}</p>
                 <div className="flex gap-2">
-                  <button onClick={() => setDetailType(type)} className="rounded p-2 text-zinc-400 transition-colors hover:bg-blue-50 hover:text-blue-600" title="Lihat Detail">
+                  <button onClick={() => { setDetailType(type); setDetailStep(1); }} className="rounded p-2 text-zinc-400 transition-colors hover:bg-blue-50 hover:text-blue-600" title="Lihat Detail">
                     <Eye weight="duotone" size={18} />
                   </button>
                   <button onClick={() => { handleEditClick(type); setFormStep(1); }} className="rounded p-2 text-zinc-400 transition-colors hover:bg-amber-50 hover:text-amber-600" title="Edit">
@@ -373,7 +385,7 @@ export default function TipeRumahPage() {
                 <X weight="duotone" size={20} />
               </button>
             </div>
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden flex flex-col">
               {formStep === 1 && (
                 <div className="space-y-5 p-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
               <div>
@@ -526,7 +538,7 @@ export default function TipeRumahPage() {
               )}
 
               {formStep === 2 && (
-                <div className="flex flex-col bg-zinc-50/50 h-full overflow-hidden">
+                <div className="flex flex-col bg-zinc-50/50 flex-1 overflow-hidden">
                 <div className="flex-none flex items-center justify-between border-b border-zinc-200 bg-white p-5">
                   <div>
                     <label className="block text-sm font-bold uppercase tracking-wider text-zinc-800">Template Milestone (Wajib)</label>
@@ -534,126 +546,127 @@ export default function TipeRumahPage() {
                   </div>
                   <button 
                     type="button"
-                    onClick={() => setTypeForm({ ...typeForm, milestoneTemplates: [...typeForm.milestoneTemplates, { category: "", name: "", bobotPersentase: 0 }] })}
+                    onClick={() => setTypeForm({ ...typeForm, milestoneGroups: [...typeForm.milestoneGroups, { category: "Kategori Baru", isCollapsed: false, items: [] }] })}
                     className="text-sm font-bold text-white bg-amber-600 rounded-lg px-4 py-2 flex items-center gap-2 hover:bg-amber-700 transition-colors shadow-sm"
                   >
-                    <Plus weight="bold" /> Tambah Tahap
+                    <Plus weight="bold" /> Tambah Kategori
                   </button>
                 </div>
-                <div className="flex-1 overflow-y-auto p-5 space-y-3">
-                  {typeForm.milestoneTemplates.length > 0 && (
+                <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                  {typeForm.milestoneGroups.length > 0 && (
                     <div className="flex items-center gap-2 px-1 pb-2 border-b border-zinc-200 text-xs font-bold text-zinc-500 uppercase">
-                      <div className="w-8 text-center shrink-0">No</div>
-                      <div className="flex-[1.5] min-w-[200px]">Kategori Pekerjaan</div>
-                      <div className="flex-[2]">Nama Aktivitas</div>
-                      <div className="w-28 shrink-0 text-center">Bobot</div>
-                      <div className="w-10 shrink-0 text-center"></div>
+                      <div className="flex-[3]">Uraian Pekerjaan</div>
+                      <div className="w-28 shrink-0 text-center">Bobot (%)</div>
+                      <div className="w-10 shrink-0 text-center">Aksi</div>
                     </div>
                   )}
-                  {(() => {
-                    const uniqueCategories = Array.from(new Set(typeForm.milestoneTemplates.map(m => m.category).filter(c => c)));
-                    const categoryOptions = uniqueCategories.map(c => ({ value: c, label: c }));
-                    
-                    const grouped = typeForm.milestoneTemplates.map((m, idx) => ({ ...m, originalIndex: idx })).reduce((acc, curr) => {
-                      const cat = curr.category || "Tanpa Kategori";
-                      if (!acc[cat]) acc[cat] = [];
-                      acc[cat].push(curr);
-                      return acc;
-                    }, {} as Record<string, any[]>);
 
-                    return Object.entries(grouped).map(([category, items]) => (
-                      <div key={category} className="mb-4 bg-white border border-zinc-200 rounded-xl shadow-sm">
-                        <div className="bg-zinc-100 px-4 py-2.5 font-bold text-zinc-700 text-sm border-b border-zinc-200 uppercase tracking-wider flex items-center justify-between">
-                          <span>{category}</span>
-                          <span className="text-xs font-semibold bg-white px-2 py-1 rounded text-zinc-500 border border-zinc-200">{items.length} Item</span>
-                        </div>
-                        <div className="p-3 space-y-2">
-                          {items.map((m) => {
-                            const idx = m.originalIndex;
-                            return (
-                              <div key={idx} className="flex items-center gap-2">
-                        <div className="flex h-11 w-8 items-center justify-center rounded-lg bg-zinc-100 text-xs font-bold text-zinc-500 shrink-0">
-                          {idx + 1}
-                        </div>
-                        <div className="flex-[1.5] min-w-[200px]">
-                          <CreatableSelect
-                            isClearable
-                            placeholder="Pilih / Ketik Kategori..."
-                            options={categoryOptions}
-                            value={m.category ? { value: m.category, label: m.category } : null}
-                            onChange={(newValue: any) => {
-                              const newTpls = [...typeForm.milestoneTemplates];
-                              newTpls[idx] = { ...newTpls[idx], category: newValue ? newValue.value : "" };
-                              setTypeForm({ ...typeForm, milestoneTemplates: newTpls });
-                            }}
-                            styles={{
-                              control: (base) => ({
-                                ...base,
-                                borderRadius: '0.75rem',
-                                borderColor: '#e4e4e7',
-                                padding: '1px',
-                                minHeight: '44px',
-                                boxShadow: 'none',
-                                '&:hover': { borderColor: '#f59e0b' }
-                              }),
-                              input: (base) => ({ ...base, "input:focus": { boxShadow: "none" } })
-                            }}
-                          />
-                        </div>
-                        <input
-                          type="text"
-                          value={m.name}
-                          onChange={(e) => {
-                            const newTpls = [...typeForm.milestoneTemplates];
-                            newTpls[idx] = { ...newTpls[idx], name: e.target.value };
-                            setTypeForm({ ...typeForm, milestoneTemplates: newTpls });
-                          }}
-                          placeholder="Nama Pekerjaan (Contoh: Galian)"
-                          className="flex-[2] rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-                        />
-                        <div className="relative w-28 shrink-0">
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={m.bobotPersentase || ""}
-                            onChange={(e) => {
-                              const newTpls = [...typeForm.milestoneTemplates];
-                              newTpls[idx] = { ...newTpls[idx], bobotPersentase: Number(e.target.value) };
-                              setTypeForm({ ...typeForm, milestoneTemplates: newTpls });
-                            }}
-                            placeholder="Bobot %"
-                            className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30 pr-7"
-                          />
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">%</span>
-                        </div>
+                  {typeForm.milestoneGroups.map((group, groupIdx) => (
+                    <div key={groupIdx} className="mb-4">
+                      <div className="flex items-center gap-3 bg-zinc-50 border border-zinc-200 rounded-lg p-3 hover:bg-zinc-100 transition-colors mb-2">
                         <button 
-                          type="button"
                           onClick={() => {
-                            const newTpls = [...typeForm.milestoneTemplates];
-                            newTpls.splice(idx, 1);
-                            setTypeForm({ ...typeForm, milestoneTemplates: newTpls });
+                            const newGroups = [...typeForm.milestoneGroups];
+                            newGroups[groupIdx].isCollapsed = !newGroups[groupIdx].isCollapsed;
+                            setTypeForm({ ...typeForm, milestoneGroups: newGroups });
                           }}
-                          className="shrink-0 rounded-lg bg-rose-50 p-2.5 text-rose-500 transition-colors hover:bg-rose-100 hover:text-rose-700"
+                          className="text-zinc-400 hover:text-zinc-600 p-1"
+                        >
+                          {group.isCollapsed ? <CaretRight weight="bold" size={16} /> : <CaretDown weight="bold" size={16} />}
+                        </button>
+                        <Stack weight="duotone" size={24} className="text-amber-500" />
+                        <input 
+                          type="text" 
+                          value={group.category}
+                          onChange={(e) => {
+                            const newGroups = [...typeForm.milestoneGroups];
+                            newGroups[groupIdx].category = e.target.value;
+                            setTypeForm({ ...typeForm, milestoneGroups: newGroups });
+                          }}
+                          className="flex-1 bg-transparent font-bold text-zinc-800 text-sm focus:outline-none focus:border-b border-amber-500 px-1"
+                          placeholder="Nama Kategori (Misal: I. PEKERJAAN PONDASI)"
+                        />
+                        <button 
+                          onClick={() => {
+                            const newGroups = [...typeForm.milestoneGroups];
+                            newGroups[groupIdx].items.push({ name: "", bobotPersentase: 0 });
+                            if(newGroups[groupIdx].isCollapsed) newGroups[groupIdx].isCollapsed = false;
+                            setTypeForm({ ...typeForm, milestoneGroups: newGroups });
+                          }}
+                          className="flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-md transition-colors"
+                        >
+                          <Plus weight="bold" /> Sub-Pekerjaan
+                        </button>
+                        <button 
+                          onClick={() => {
+                            const newGroups = [...typeForm.milestoneGroups];
+                            newGroups.splice(groupIdx, 1);
+                            setTypeForm({ ...typeForm, milestoneGroups: newGroups });
+                          }}
+                          className="text-zinc-400 hover:text-rose-500 p-1.5 rounded-md hover:bg-rose-50 transition-colors"
                         >
                           <Trash weight="duotone" size={18} />
-                                </button>
-                              </div>
-                            );
-                          })}
-                        </div>
+                        </button>
                       </div>
-                    ));
-                  })()}
-                  {typeForm.milestoneTemplates.length === 0 && (
+
+                      {!group.isCollapsed && (
+                        <div className="pl-9 space-y-2 relative before:absolute before:left-6 before:top-0 before:bottom-4 before:w-[2px] before:bg-zinc-200">
+                          {group.items.map((item, itemIdx) => (
+                            <div key={itemIdx} className="flex items-center gap-3 relative before:absolute before:-left-3 before:top-1/2 before:-translate-y-1/2 before:w-3 before:h-[2px] before:bg-zinc-200">
+                              <Hammer weight="duotone" size={20} className="text-zinc-400 shrink-0" />
+                              <input 
+                                type="text"
+                                value={item.name}
+                                onChange={(e) => {
+                                  const newGroups = [...typeForm.milestoneGroups];
+                                  newGroups[groupIdx].items[itemIdx].name = e.target.value;
+                                  setTypeForm({ ...typeForm, milestoneGroups: newGroups });
+                                }}
+                                className="flex-[3] bg-white border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                                placeholder="Nama Aktivitas"
+                              />
+                              <div className="relative w-28 shrink-0">
+                                <input 
+                                  type="number"
+                                  step="0.01"
+                                  value={item.bobotPersentase || ""}
+                                  onChange={(e) => {
+                                    const newGroups = [...typeForm.milestoneGroups];
+                                    newGroups[groupIdx].items[itemIdx].bobotPersentase = Number(e.target.value);
+                                    setTypeForm({ ...typeForm, milestoneGroups: newGroups });
+                                  }}
+                                  className="w-full bg-white border border-zinc-200 rounded-lg pl-3 pr-7 py-2 text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                                  placeholder="0.00"
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">%</span>
+                              </div>
+                              <button 
+                                onClick={() => {
+                                  const newGroups = [...typeForm.milestoneGroups];
+                                  newGroups[groupIdx].items.splice(itemIdx, 1);
+                                  setTypeForm({ ...typeForm, milestoneGroups: newGroups });
+                                }}
+                                className="text-zinc-400 hover:text-rose-500 w-10 text-center shrink-0"
+                              >
+                                <Trash weight="duotone" size={18} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {typeForm.milestoneGroups.length === 0 && (
                     <div className="rounded-xl border border-dashed border-zinc-300 py-8 flex flex-col items-center justify-center text-center text-sm text-zinc-500">
                       <List weight="duotone" size={32} className="text-zinc-300 mb-2" />
-                      Belum ada baris Bill of Quantities
+                      Belum ada Kategori Pekerjaan
                     </div>
                   )}
                 </div>
                 <div className="flex-none border-t border-zinc-200 bg-white p-4">
                   {(() => {
-                    const totalPersen = typeForm.milestoneTemplates.reduce((sum, t) => sum + (Number(t.bobotPersentase) || 0), 0);
+                    const totalPersen = typeForm.milestoneGroups.reduce((sum, g) => sum + g.items.reduce((s, i) => s + (Number(i.bobotPersentase) || 0), 0), 0);
                     const isTotalValid = Math.abs(totalPersen - 100) < 0.001;
                     return (
                       <div className={`rounded-xl p-3 text-sm font-semibold text-center border flex flex-col items-center justify-center ${isTotalValid ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700'}`}>
@@ -694,7 +707,7 @@ export default function TipeRumahPage() {
                   </button>
                   <button 
                     onClick={handleTypeSubmit} 
-                    disabled={!typeForm.projectId || !typeForm.name || typeForm.milestoneTemplates.length === 0 || Math.abs(typeForm.milestoneTemplates.reduce((sum, t) => sum + (Number(t.bobotPersentase) || 0), 0) - 100) > 0.001}
+                    disabled={!typeForm.projectId || !typeForm.name || typeForm.milestoneGroups.reduce((s,g) => s + g.items.length, 0) === 0 || Math.abs(typeForm.milestoneGroups.reduce((sum, g) => sum + g.items.reduce((s, i) => s + (Number(i.bobotPersentase) || 0), 0), 0) - 100) > 0.001}
                     className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-amber-600/20 transition-all hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {typeForm.id ? "Simpan Perubahan" : "Simpan Tipe Baru"}
@@ -732,53 +745,129 @@ export default function TipeRumahPage() {
       {/* Modal Detail Tipe Rumah */}
       {detailType && mounted && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg flex flex-col animate-in zoom-in-95 rounded-2xl bg-white shadow-2xl duration-200 overflow-hidden">
-            {detailType.imageUrl ? (
-              <div className="h-64 w-full bg-zinc-100">
-                <img 
-                  src={detailType.imageUrl} 
-                  alt={detailType.name} 
-                  onClick={() => setViewerImage(detailType.imageUrl)}
-                  className="h-full w-full object-cover cursor-pointer hover:opacity-90 transition-opacity" 
-                />
-              </div>
-            ) : (
-              <div className="flex h-48 w-full items-center justify-center bg-zinc-100 text-zinc-300">
-                <House weight="duotone" size={64} />
-              </div>
-            )}
+          <div className="w-full max-w-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 rounded-2xl bg-white shadow-2xl duration-200 overflow-hidden">
+            <div className="flex-1 overflow-y-auto custom-scrollbar bg-zinc-50/50">
+              {detailStep === 1 && (
+                <>
+                  {detailType.imageUrl ? (
+                    <div className="h-64 w-full bg-zinc-100 shrink-0">
+                      <img 
+                        src={detailType.imageUrl} 
+                        alt={detailType.name} 
+                        onClick={() => setViewerImage(detailType.imageUrl)}
+                        className="h-full w-full object-cover cursor-pointer hover:opacity-90 transition-opacity" 
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex h-48 w-full items-center justify-center bg-zinc-100 text-zinc-300 shrink-0">
+                      <House weight="duotone" size={64} />
+                    </div>
+                  )}
+                  
+                  <div className="p-6">
+                    <div className="mb-2 inline-block rounded border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">
+                      {detailType.projectName}
+                    </div>
+                    <h3 className="mb-6 text-2xl font-bold text-zinc-900">{detailType.name}</h3>
+                    
+                    <div className="space-y-4 rounded-xl bg-white p-5 border border-zinc-200 shadow-sm">
+                      <div className="flex justify-between border-b border-zinc-100 pb-3">
+                        <span className="text-sm text-zinc-500 font-medium">Harga Dasar</span>
+                        <span className="font-bold text-zinc-900">{formatRupiah(detailType.price)}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-zinc-100 pb-3">
+                        <span className="text-sm text-zinc-500 font-medium">Luas Tanah / Bangunan</span>
+                        <span className="font-semibold text-zinc-800">{detailType.lt} m² / {detailType.lb} m²</span>
+                      </div>
+                      <div className="flex justify-between border-b border-zinc-100 pb-3">
+                        <span className="text-sm text-zinc-500 font-medium">Kamar Tidur</span>
+                        <span className="font-semibold text-zinc-800">{detailType.bed} Ruangan</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-zinc-500 font-medium">Kamar Mandi</span>
+                        <span className="font-semibold text-zinc-800">{detailType.bath} Ruangan</span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {detailStep === 2 && (
+                <div className="p-6">
+                  <div className="mb-6">
+                    <h3 className="text-xl font-bold text-zinc-900">Milestone BQ (Bill of Quantities)</h3>
+                    <p className="text-sm text-zinc-500 mt-1">Daftar tahapan konstruksi untuk {detailType.name}.</p>
+                  </div>
+                  
+                  {detailType.milestoneTemplates && detailType.milestoneTemplates.length > 0 ? (
+                    <div className="space-y-4">
+                      {Array.from(new Set(detailType.milestoneTemplates.map((m: any) => m.category || "Tanpa Kategori"))).map((cat: any, idx) => {
+                        const items = detailType.milestoneTemplates.filter((m: any) => (m.category || "Tanpa Kategori") === cat);
+                        return (
+                          <div key={idx} className="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-hidden">
+                            <div className="bg-zinc-50 px-4 py-2.5 font-bold text-zinc-700 text-sm border-b border-zinc-200 flex items-center gap-2">
+                              <Stack weight="duotone" size={20} className="text-amber-500" />
+                              <span>{cat}</span>
+                            </div>
+                            <div className="p-3 pl-8 space-y-2 relative before:absolute before:left-6 before:top-0 before:bottom-4 before:w-[2px] before:bg-zinc-200">
+                              {items.map((item: any, i: number) => (
+                                <div key={i} className="flex items-center justify-between gap-3 relative before:absolute before:-left-2 before:top-1/2 before:-translate-y-1/2 before:w-2 before:h-[2px] before:bg-zinc-200">
+                                  <div className="flex items-center gap-2">
+                                    <Hammer weight="duotone" size={16} className="text-zinc-400" />
+                                    <span className="text-sm font-medium text-zinc-700">{item.name}</span>
+                                  </div>
+                                  <div className="px-2 py-1 bg-zinc-100 rounded text-xs font-bold text-zinc-600">
+                                    {item.bobotPersentase}%
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-zinc-300 py-10 flex flex-col items-center justify-center text-center text-sm text-zinc-500 bg-white">
+                      <List weight="duotone" size={32} className="text-zinc-300 mb-2" />
+                      Belum ada BQ yang diatur.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             
-            <div className="p-6">
-              <div className="mb-2 inline-block rounded border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-700">
-                {detailType.projectName}
-              </div>
-              <h3 className="mb-6 text-2xl font-bold text-zinc-900">{detailType.name}</h3>
-              
-              <div className="space-y-4 rounded-xl bg-zinc-50 p-5 border border-zinc-100">
-                <div className="flex justify-between border-b border-zinc-200 pb-3">
-                  <span className="text-sm text-zinc-500 font-medium">Harga Dasar</span>
-                  <span className="font-bold text-zinc-900">{formatRupiah(detailType.price)}</span>
-                </div>
-                <div className="flex justify-between border-b border-zinc-200 pb-3">
-                  <span className="text-sm text-zinc-500 font-medium">Luas Tanah / Bangunan</span>
-                  <span className="font-semibold text-zinc-800">{detailType.lt} m² / {detailType.lb} m²</span>
-                </div>
-                <div className="flex justify-between border-b border-zinc-200 pb-3">
-                  <span className="text-sm text-zinc-500 font-medium">Kamar Tidur</span>
-                  <span className="font-semibold text-zinc-800">{detailType.bed} Ruangan</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-zinc-500 font-medium">Kamar Mandi</span>
-                  <span className="font-semibold text-zinc-800">{detailType.bath} Ruangan</span>
-                </div>
-              </div>
-              
-              <button 
-                onClick={() => setDetailType(null)} 
-                className="mt-6 w-full rounded-xl bg-zinc-900 py-3 text-sm font-semibold text-white transition-colors hover:bg-zinc-800"
-              >
-                Tutup Detail
-              </button>
+            <div className="flex-none p-4 border-t border-zinc-100 bg-white flex justify-end gap-3">
+              {detailStep === 1 ? (
+                <>
+                  <button 
+                    onClick={() => { setDetailType(null); setDetailStep(1); }} 
+                    className="rounded-lg px-5 py-2.5 text-sm font-semibold text-zinc-600 transition-colors hover:bg-zinc-200"
+                  >
+                    Tutup
+                  </button>
+                  <button 
+                    onClick={() => setDetailStep(2)} 
+                    className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-amber-600/20 transition-all hover:bg-amber-700"
+                  >
+                    Lanjut: Lihat Milestone ➔
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => setDetailStep(1)} 
+                    className="rounded-lg px-5 py-2.5 text-sm font-semibold text-zinc-600 transition-colors hover:bg-zinc-200"
+                  >
+                    ⬅ Kembali
+                  </button>
+                  <button 
+                    onClick={() => { setDetailType(null); setDetailStep(1); }} 
+                    className="rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-zinc-800"
+                  >
+                    Tutup Detail
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>,

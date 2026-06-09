@@ -58,6 +58,8 @@ export type Milestone = {
   id: string;
   unitId: string;
   name: string;
+  category?: string;
+  bobotPersentase?: number;
   orderNo: number;
   targetDate: string;
   actualDate?: string;
