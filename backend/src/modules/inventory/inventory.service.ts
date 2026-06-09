@@ -196,8 +196,10 @@ export class InventoryService {
         ...(isReadyStock && propertyType.milestoneTemplates && {
           milestones: {
             create: propertyType.milestoneTemplates.map((template) => ({
+              category: template.category,
               name: template.name,
               orderNo: template.orderNo,
+              bobotPersentase: template.bobotPersentase,
               status: "COMPLETED",
               actualDate: new Date(),
             })),
@@ -271,8 +273,10 @@ export class InventoryService {
           ...(isReadyStock && propertyType.milestoneTemplates && {
             milestones: {
               create: propertyType.milestoneTemplates.map((template) => ({
+                category: template.category,
                 name: template.name,
                 orderNo: template.orderNo,
+                bobotPersentase: template.bobotPersentase,
                 status: "COMPLETED",
                 actualDate: new Date(),
               })),

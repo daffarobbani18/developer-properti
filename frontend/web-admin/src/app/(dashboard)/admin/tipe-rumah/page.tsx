@@ -43,6 +43,7 @@ export default function TipeRumahPage() {
     id: undefined as string | undefined,
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [formStep, setFormStep] = useState<1 | 2>(1);
 
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
@@ -236,6 +237,7 @@ export default function TipeRumahPage() {
   const openNewModal = () => {
     setTypeForm({ projectId: "", name: "", lt: 0, lb: 0, bed: 0, bath: 0, price: 0, estimasiRab: 0, facilities: "", imageUrl: "", milestoneTemplates: [{ category: "", name: "", bobotPersentase: 0 }], id: undefined });
     setSelectedFile(null);
+    setFormStep(1);
     setIsTypeModalOpen(true);
   };
 
@@ -340,7 +342,7 @@ export default function TipeRumahPage() {
                   <button onClick={() => setDetailType(type)} className="rounded p-2 text-zinc-400 transition-colors hover:bg-blue-50 hover:text-blue-600" title="Lihat Detail">
                     <Eye weight="duotone" size={18} />
                   </button>
-                  <button onClick={() => handleEditClick(type)} className="rounded p-2 text-zinc-400 transition-colors hover:bg-amber-50 hover:text-amber-600" title="Edit">
+                  <button onClick={() => { handleEditClick(type); setFormStep(1); }} className="rounded p-2 text-zinc-400 transition-colors hover:bg-amber-50 hover:text-amber-600" title="Edit">
                     <PencilSimple weight="duotone" size={18} />
                   </button>
                   <button onClick={() => handleDeleteClick(type.id)} className="rounded p-2 text-zinc-400 transition-colors hover:bg-rose-50 hover:text-rose-600" title="Hapus">
@@ -362,15 +364,18 @@ export default function TipeRumahPage() {
       {/* Modal Input Tipe Baru */}
       {isTypeModalOpen && mounted && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-[95vw] lg:max-w-6xl flex flex-col max-h-[90vh] animate-in zoom-in-95 rounded-2xl bg-white shadow-2xl duration-200">
+          <div className={`w-full flex flex-col max-h-[90vh] animate-in zoom-in-95 rounded-2xl bg-white shadow-2xl duration-200 transition-all ${formStep === 1 ? 'max-w-2xl' : 'max-w-[95vw] lg:max-w-6xl'}`}>
             <div className="flex items-center justify-between rounded-t-2xl border-b border-zinc-100 bg-zinc-50/50 px-6 py-4">
-              <h3 className="text-lg font-bold text-zinc-900">{typeForm.id ? "Edit Tipe Rumah" : "Input Master Tipe Baru"}</h3>
+              <h3 className="text-lg font-bold text-zinc-900">
+                {formStep === 1 ? (typeForm.id ? "Edit Tipe Rumah" : "Input Master Tipe Baru") : "Langkah 2: Template Milestone BQ"}
+              </h3>
               <button onClick={() => setIsTypeModalOpen(false)} className="p-1 text-zinc-400 transition-colors hover:text-rose-500">
                 <X weight="duotone" size={20} />
               </button>
             </div>
-            <div className="flex-1 p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 max-h-[75vh] overflow-hidden">
-              <div className="lg:col-span-4 space-y-5 overflow-y-auto pr-2 pb-8">
+            <div className="flex-1 overflow-hidden">
+              {formStep === 1 && (
+                <div className="space-y-5 p-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
               <div>
                 <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Pilih Proyek (Tahap 1)</label>
                 <select
@@ -516,11 +521,12 @@ export default function TipeRumahPage() {
                     </label>
                   </div>
                 </div>
-              </div>
-              
-              </div>
+                </div>
+                </div>
+              )}
 
-              <div className="lg:col-span-8 flex flex-col bg-zinc-50/50 rounded-2xl border border-zinc-200 overflow-hidden shadow-sm">
+              {formStep === 2 && (
+                <div className="flex flex-col bg-zinc-50/50 h-full overflow-hidden">
                 <div className="flex-none flex items-center justify-between border-b border-zinc-200 bg-white p-5">
                   <div>
                     <label className="block text-sm font-bold uppercase tracking-wider text-zinc-800">Template Milestone (Wajib)</label>
@@ -548,8 +554,24 @@ export default function TipeRumahPage() {
                     const uniqueCategories = Array.from(new Set(typeForm.milestoneTemplates.map(m => m.category).filter(c => c)));
                     const categoryOptions = uniqueCategories.map(c => ({ value: c, label: c }));
                     
-                    return typeForm.milestoneTemplates.map((m, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
+                    const grouped = typeForm.milestoneTemplates.map((m, idx) => ({ ...m, originalIndex: idx })).reduce((acc, curr) => {
+                      const cat = curr.category || "Tanpa Kategori";
+                      if (!acc[cat]) acc[cat] = [];
+                      acc[cat].push(curr);
+                      return acc;
+                    }, {} as Record<string, any[]>);
+
+                    return Object.entries(grouped).map(([category, items]) => (
+                      <div key={category} className="mb-4 bg-white border border-zinc-200 rounded-xl shadow-sm">
+                        <div className="bg-zinc-100 px-4 py-2.5 font-bold text-zinc-700 text-sm border-b border-zinc-200 uppercase tracking-wider flex items-center justify-between">
+                          <span>{category}</span>
+                          <span className="text-xs font-semibold bg-white px-2 py-1 rounded text-zinc-500 border border-zinc-200">{items.length} Item</span>
+                        </div>
+                        <div className="p-3 space-y-2">
+                          {items.map((m) => {
+                            const idx = m.originalIndex;
+                            return (
+                              <div key={idx} className="flex items-center gap-2">
                         <div className="flex h-11 w-8 items-center justify-center rounded-lg bg-zinc-100 text-xs font-bold text-zinc-500 shrink-0">
                           {idx + 1}
                         </div>
@@ -614,7 +636,11 @@ export default function TipeRumahPage() {
                           className="shrink-0 rounded-lg bg-rose-50 p-2.5 text-rose-500 transition-colors hover:bg-rose-100 hover:text-rose-700"
                         >
                           <Trash weight="duotone" size={18} />
-                        </button>
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     ));
                   })()}
@@ -638,21 +664,43 @@ export default function TipeRumahPage() {
                   })()}
                 </div>
               </div>
+              )}
             </div>
             <div className="flex justify-end gap-3 rounded-b-2xl border-t border-zinc-100 bg-white px-6 py-4">
-              <button
-                onClick={() => setIsTypeModalOpen(false)}
-                className="rounded-lg px-5 py-2.5 text-sm font-semibold text-zinc-600 transition-colors hover:bg-zinc-200"
-              >
-                Batal
-              </button>
-              <button 
-                onClick={handleTypeSubmit} 
-                disabled={!typeForm.projectId || !typeForm.name || typeForm.milestoneTemplates.length === 0 || Math.abs(typeForm.milestoneTemplates.reduce((sum, t) => sum + (Number(t.bobotPersentase) || 0), 0) - 100) > 0.001}
-                className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-amber-600/20 transition-all hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {typeForm.id ? "Simpan Perubahan" : "Simpan Tipe Baru"}
-              </button>
+              {formStep === 1 && (
+                <>
+                  <button
+                    onClick={() => setIsTypeModalOpen(false)}
+                    className="rounded-lg px-5 py-2.5 text-sm font-semibold text-zinc-600 transition-colors hover:bg-zinc-200"
+                  >
+                    Batal
+                  </button>
+                  <button 
+                    onClick={() => setFormStep(2)} 
+                    disabled={!typeForm.projectId || !typeForm.name}
+                    className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-amber-600/20 transition-all hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Lanjut: Atur Milestone ➔
+                  </button>
+                </>
+              )}
+              {formStep === 2 && (
+                <>
+                  <button
+                    onClick={() => setFormStep(1)}
+                    className="rounded-lg px-5 py-2.5 text-sm font-semibold text-zinc-600 transition-colors hover:bg-zinc-200"
+                  >
+                    ⬅ Kembali
+                  </button>
+                  <button 
+                    onClick={handleTypeSubmit} 
+                    disabled={!typeForm.projectId || !typeForm.name || typeForm.milestoneTemplates.length === 0 || Math.abs(typeForm.milestoneTemplates.reduce((sum, t) => sum + (Number(t.bobotPersentase) || 0), 0) - 100) > 0.001}
+                    className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-amber-600/20 transition-all hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {typeForm.id ? "Simpan Perubahan" : "Simpan Tipe Baru"}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>,
