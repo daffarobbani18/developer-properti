@@ -3,6 +3,7 @@ import { FinanceController } from "./finance.controller.js";
 import { verifyToken, requireRole } from "../../core/middlewares/auth.middleware.js";
 import { validate } from "../../core/middlewares/validate.middleware.js";
 import { verifyPaymentDto } from "./dto/finance.dto.js";
+import { getSpkList, disburseSpk } from "./finance.spk.controller.js";
 
 const router = Router();
 
@@ -117,5 +118,27 @@ router.get("/expenses", FinanceController.getExpenses);
  *       - bearerAuth: []
  */
 router.put("/expenses/:id/status", FinanceController.updateExpenseStatus);
+
+/**
+ * @swagger
+ * /api/finance/spk:
+ *   get:
+ *     summary: Mendapatkan daftar SPK beserta progres dan kalkulasi sisa dana
+ *     tags: [Finance]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get("/spk", getSpkList);
+
+/**
+ * @swagger
+ * /api/finance/spk/{id}/disburse:
+ *   post:
+ *     summary: Pencairan kasbon/termin ke mandor secara manual
+ *     tags: [Finance]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post("/spk/:id/disburse", disburseSpk);
 
 export default router;

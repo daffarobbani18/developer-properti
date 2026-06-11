@@ -180,8 +180,10 @@ model Spk {
   date            DateTime
   contractorName  String
   totalPrice      Decimal
+  totalDisbursed  Decimal        @default(0) // Akumulasi total dana yang dicairkan
   
   units           Unit[]
+  expenses        Expense[]      // Pencatatan jurnal kas keluar untuk SPK ini
   
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -210,8 +212,10 @@ model Expense {
   description     String
   status          String    @default("Menunggu Transfer") // Menunggu Transfer, Sudah Ditransfer
   bookingId       String?   // Opsional, digunakan jika pengeluaran terkait dengan pembatalan klien
+  spkId           String?   // Opsional, untuk kas keluar proyek (Kasbon/Termin Mandor)
   
   booking         Booking?  @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  spk             Spk?      @relation(fields: [spkId], references: [id], onDelete: SetNull)
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
