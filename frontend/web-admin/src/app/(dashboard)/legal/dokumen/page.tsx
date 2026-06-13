@@ -1,356 +1,165 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { 
-  ArrowUpRight, FileText, ShieldCheck, Clock, Warning, 
-  SealCheck, Scales, MagnifyingGlass, Funnel, Eye, CircleNotch
-} from "@phosphor-icons/react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
-  dummyDokumenInduk, statusDokumenIndukLabels, statusDokumenIndukColors,
-  statusProgresLegalLabels, statusProgresLegalColors, formatTanggal,
-  type StatusProgresLegal
-} from "@/lib/legal-data";
+import DocumentModal from "./DocumentModal";
 
-const legalStats = [
-  { label: "Izin Aktif", value: "12", note: "dari 14 dokumen terdaftar", icon: FileText, bg: "bg-emerald-50", color: "text-emerald-500" },
-  { label: "Segera Expired", value: "2", note: "perlu follow-up segera", icon: Clock, bg: "bg-amber-50", color: "text-amber-500" },
-  { label: "Dokumen Risiko", value: "1", note: "butuh revisi lampiran", icon: Warning, bg: "bg-rose-50", color: "text-rose-500" },
-];
-
-const legalTasks = [
-  { title: "Perpanjangan IMB", desc: "Dokumen administrasi perlu diperbarui untuk blok B dan C.", status: "Menunggu tanda tangan", statusColor: "bg-amber-100 text-amber-700", dotColor: "bg-amber-500" },
-  { title: "Review Akta Kerja Sama", desc: "Pastikan perubahan klausul pemasaran sudah sesuai versi terbaru.", status: "Dalam tinjauan", statusColor: "bg-blue-100 text-blue-700", dotColor: "bg-blue-500" },
-  { title: "Validasi Sertifikat", desc: "Cek kelengkapan salinan sertifikat lahan tahap kedua.", status: "Siap dicek", statusColor: "bg-emerald-100 text-emerald-700", dotColor: "bg-emerald-500" },
-];
-
-const checklistItems = [
-  "Simpan status dokumen per proyek agar mudah dipantau lintas tim.",
-  "Tandai izin yang perlu revisi sebelum memasuki fase penjualan.",
-  "Gunakan tampilan ini sebagai ringkasan awal sebelum integrasi backend.",
-];
-
-type LegalitasUnit = {
+interface LegalDocument {
   id: string;
-  namaPembeli: string;
-  nomorUnit: string;
-  statusPPJB: StatusProgresLegal;
-  statusPecahSertifikat: StatusProgresLegal;
-  statusAJB: StatusProgresLegal;
-  statusBBN: StatusProgresLegal;
-  tanggalUpdateTerakhir: string;
-};
+  documentType: string;
+  status: string;
+  fileUrl?: string;
+}
 
-export default function LegalPage() {
+interface BookingData {
+  id: string;
+  status: string;
+  paymentMethod: string;
+  lead: { name: string };
+  unit: { blok: string; nomor: string; kawasan: string };
+  legalDocuments: LegalDocument[];
+}
+
+export default function LegalDokumenPage() {
+  const [bookings, setBookings] = useState<BookingData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [legalitasUnit, setLegalitasUnit] = useState<LegalitasUnit[]>([]);
-  const [searchDoc, setSearchDoc] = useState("");
-  const [searchUnit, setSearchUnit] = useState("");
+  const [error, setError] = useState("");
+  const [selectedBooking, setSelectedBooking] = useState<BookingData | null>(null);
+
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+      const loginRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "legal@erp.com", password: "password123" }) // Dummy login for Legal
+      });
+      const { token } = await loginRes.json();
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/legal/bookings`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const resData = await response.json();
+      if (!response.ok) {
+        throw new Error(resData.message || "Gagal mengambil data");
+      }
+
+      setBookings(resData.data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchLegalStatus = async () => {
-      try {
-        setLoading(true);
-        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
-        });
-        const loginData = await loginRes.json();
-
-        if (loginData.token) {
-          const res = await fetch("http://localhost:4000/api/legal/status", {
-            headers: { "Authorization": `Bearer ${loginData.token}` }
-          });
-          const result = await res.json();
-          if (result.data) {
-            const mapped = result.data.map((b: any) => {
-              // Helper to get status from array of legal documents
-              const getDocStatus = (type: string): StatusProgresLegal => {
-                const doc = b.legalDocuments?.find((d: any) => d.documentType === type);
-                if (!doc) return "belum_mulai";
-                if (doc.status === "Selesai") return "selesai";
-                if (doc.status === "Diproses") return "proses";
-                return "belum_mulai";
-              };
-
-              return {
-                id: b.id,
-                namaPembeli: b.lead?.name || "Unknown",
-                nomorUnit: b.unit ? `${b.unit.kawasan} ${b.unit.blok}/${b.unit.nomor}` : "-",
-                statusPPJB: getDocStatus("PPJB"),
-                statusPecahSertifikat: getDocStatus("Pecah Sertifikat"),
-                statusAJB: getDocStatus("AJB"),
-                statusBBN: getDocStatus("SHM"),
-                tanggalUpdateTerakhir: b.updatedAt || b.createdAt,
-              };
-            });
-            setLegalitasUnit(mapped);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch legal status", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchLegalStatus();
+    fetchBookings();
   }, []);
 
-  const filteredDocs = dummyDokumenInduk.filter(d => 
-    d.namaDokumen.toLowerCase().includes(searchDoc.toLowerCase()) || 
-    d.instansi.toLowerCase().includes(searchDoc.toLowerCase())
-  );
+  const getDocStatus = (docs: LegalDocument[], type: string) => {
+    const doc = docs.find(d => d.documentType === type);
+    if (!doc) return { status: "Belum Ada", color: "bg-zinc-100 text-zinc-500", url: null };
+    if (doc.status === "Selesai") return { status: "Selesai", color: "bg-emerald-100 text-emerald-700", url: doc.fileUrl };
+    return { status: "Diproses", color: "bg-amber-100 text-amber-700", url: doc.fileUrl };
+  };
 
-  const filteredUnits = legalitasUnit.filter(u => 
-    u.namaPembeli.toLowerCase().includes(searchUnit.toLowerCase()) || 
-    u.nomorUnit.toLowerCase().includes(searchUnit.toLowerCase())
-  );
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[70vh]">
-        <CircleNotch className="w-10 h-10 text-violet-600 animate-spin" />
-        <span className="ml-3 text-zinc-500 text-sm font-medium animate-pulse">Menyinkronkan data legalitas...</span>
-      </div>
-    );
-  }
+  if (loading) return <div className="p-8 text-center text-zinc-500 animate-pulse">Memuat data dokumen legal...</div>;
+  if (error) return <div className="p-8 text-center text-red-500 bg-red-50 rounded-xl">{error}</div>;
 
   return (
-    <div className="space-y-6">
-      {/* HEADER SECTION */}
-      <section className="module-hero md:p-8" style={{ "--hero-accent": "rgba(139,92,246,0.06)" } as React.CSSProperties}>
-        <div className="hero-pattern absolute inset-0 pointer-events-none rounded-2xl opacity-50" />
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-violet-700">
-              <Scales weight="bold" size={11} className="text-violet-500" /> Legal &amp; Perizinan
-            </div>
-            <div className="flex items-center gap-3">
-              <h1 className="font-[family-name:var(--font-heading)] text-2xl font-normal tracking-tight text-zinc-900 md:text-3xl">Monitoring Dokumen &amp; Perizinan</h1>
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-violet-100 text-violet-700 animate-pulse border border-violet-200">
-                <div className="w-1.5 h-1.5 rounded-full bg-violet-500 mr-1.5" /> LIVE SYNC
-              </span>
-            </div>
-            <p className="max-w-2xl text-sm text-zinc-500 leading-relaxed">Kelola dokumen hukum (KTP/NPWP pelanggan), proses PPJB, AJB, dan balik nama sertifikat unit secara tersinkronisasi.</p>
-          </div>
-          <Link href="/" className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-5 py-2.5 text-sm font-semibold text-violet-600 shadow-sm transition-all hover:bg-violet-100 hover:shadow-md">
-            <ShieldCheck size={16} /> Ringkasan Proyek
-          </Link>
+    <div className="p-8 max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">Dokumen Legal & Sertifikasi</h1>
+        <p className="text-zinc-500 mt-2 text-lg">Pantau dan kelola progres dokumen kepemilikan konsumen (SP3K, PPJB, AJB, SHM).</p>
+      </div>
+
+      <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs text-zinc-500 uppercase bg-zinc-50 border-b border-zinc-200">
+              <tr>
+                <th className="px-6 py-4 font-semibold tracking-wider">Konsumen & Unit</th>
+                <th className="px-6 py-4 font-semibold tracking-wider text-center">SP3K / KPR</th>
+                <th className="px-6 py-4 font-semibold tracking-wider text-center">PPJB</th>
+                <th className="px-6 py-4 font-semibold tracking-wider text-center">AJB</th>
+                <th className="px-6 py-4 font-semibold tracking-wider text-center">SHM</th>
+                <th className="px-6 py-4 font-semibold tracking-wider text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-100">
+              {bookings.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-zinc-500">Tidak ada data transaksi.</td>
+                </tr>
+              ) : (
+                bookings.map((booking) => {
+                  const sp3k = getDocStatus(booking.legalDocuments, "SP3K");
+                  const ppjb = getDocStatus(booking.legalDocuments, "PPJB");
+                  const ajb = getDocStatus(booking.legalDocuments, "AJB");
+                  const shm = getDocStatus(booking.legalDocuments, "SHM");
+
+                  return (
+                    <tr key={booking.id} className="hover:bg-zinc-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-zinc-900 text-base">{booking.lead.name}</div>
+                        <div className="text-zinc-500">Blok {booking.unit.blok} No. {booking.unit.nomor}</div>
+                        <div className="text-xs font-medium text-indigo-600 mt-1 bg-indigo-50 inline-block px-2 py-0.5 rounded-md border border-indigo-100">{booking.paymentMethod}</div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${sp3k.color}`}>
+                          {sp3k.status}
+                        </span>
+                        {sp3k.url && <a href={`${process.env.NEXT_PUBLIC_API_BASE_URL}${sp3k.url}`} target="_blank" className="block mt-1 text-xs text-blue-600 hover:underline">Lihat File</a>}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${ppjb.color}`}>
+                          {ppjb.status}
+                        </span>
+                        {ppjb.url && <a href={`${process.env.NEXT_PUBLIC_API_BASE_URL}${ppjb.url}`} target="_blank" className="block mt-1 text-xs text-blue-600 hover:underline">Lihat File</a>}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${ajb.color}`}>
+                          {ajb.status}
+                        </span>
+                        {ajb.url && <a href={`${process.env.NEXT_PUBLIC_API_BASE_URL}${ajb.url}`} target="_blank" className="block mt-1 text-xs text-blue-600 hover:underline">Lihat File</a>}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${shm.color}`}>
+                          {shm.status}
+                        </span>
+                        {shm.url && <a href={`${process.env.NEXT_PUBLIC_API_BASE_URL}${shm.url}`} target="_blank" className="block mt-1 text-xs text-blue-600 hover:underline">Lihat File</a>}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => setSelectedBooking(booking)}
+                          className="px-4 py-2 text-sm font-medium rounded-xl transition-all bg-zinc-900 text-white hover:bg-zinc-800 active:scale-95 shadow-sm"
+                        >
+                          Kelola Dokumen
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
-      </section>
+      </div>
 
-      {/* TABS SECTION */}
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="mb-6 bg-zinc-100/50 p-1 border border-zinc-200/50 rounded-xl">
-          <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Overview</TabsTrigger>
-          <TabsTrigger value="dokumen-induk" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Dokumen Induk (Proyek)</TabsTrigger>
-          <TabsTrigger value="legalitas-unit" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Legalitas Unit (Pembeli)</TabsTrigger>
-        </TabsList>
-
-        {/* TAB 1: OVERVIEW */}
-        <TabsContent value="overview" className="space-y-6 animate-fade-in">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {legalStats.map((stat) => (
-              <div key={stat.label} className="stat-card group flex items-center justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-zinc-600 truncate">{stat.label}</p>
-                  <h3 className="mt-1 text-3xl font-bold text-zinc-900 tracking-tight">{stat.value}</h3>
-                  <p className="mt-1 text-xs text-zinc-500 truncate">{stat.note}</p>
-                </div>
-                <div className={`icon-wrapper h-14 w-14 shrink-0 ${stat.bg === 'bg-emerald-50' ? 'icon-emerald' : stat.bg === 'bg-amber-50' ? 'icon-amber' : 'icon-rose'}`}>
-                  <stat.icon weight="duotone" size={28} />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.4fr_0.6fr]">
-            <div className="table-wrapper">
-              <div className="border-b border-zinc-100 px-6 py-4"><h3 className="text-sm font-bold text-zinc-900">Tugas Legal Aktif</h3></div>
-              <div className="divide-y divide-zinc-50">
-                {legalTasks.map((task) => (
-                  <div key={task.title} className="group flex items-center justify-between gap-4 px-6 py-4 transition-colors hover:bg-zinc-50/50">
-                    <div className="flex items-start gap-4 min-w-0">
-                      <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100"><FileText size={14} className="text-zinc-400" /></div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-zinc-900">{task.title}</p>
-                        <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">{task.desc}</p>
-                      </div>
-                    </div>
-                    <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${task.statusColor}`}>
-                      <span className={`h-1.5 w-1.5 rounded-full ${task.dotColor}`} />{task.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm">
-              <div className="border-b border-zinc-100 px-6 py-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50"><ShieldCheck weight="duotone" size={18} className="text-emerald-600 mb-2" /></div>
-                  <div><p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Panduan</p><h3 className="text-sm font-bold text-zinc-900">Langkah Validasi</h3></div>
-                </div>
-              </div>
-              <ul className="space-y-3 p-6">
-                {checklistItems.map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-3 text-sm text-zinc-500 leading-relaxed">
-                    <ArrowUpRight className={`mt-0.5 h-4 w-4 shrink-0 ${idx === 0 ? "text-violet-500" : "text-violet-400"}`} />{item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* TAB 2: DOKUMEN INDUK */}
-        <TabsContent value="dokumen-induk" className="space-y-4 animate-fade-in">
-          <Card className="p-4 border-zinc-200/60 shadow-sm rounded-xl bg-white">
-            <div className="flex flex-col md:flex-row gap-4 mb-4">
-              <div className="flex-1 relative">
-                <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                <Input
-                  placeholder="Cari nama dokumen atau instansi..."
-                  value={searchDoc}
-                  onChange={(e) => setSearchDoc(e.target.value)}
-                  className="pl-10 rounded-lg border-zinc-200/80 bg-white"
-                />
-              </div>
-              <Select defaultValue="all">
-                <SelectTrigger className="w-full md:w-48 rounded-lg border-zinc-200/80 bg-white">
-                  <Funnel className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="aktif">Aktif / Berlaku</SelectItem>
-                  <SelectItem value="segera_expired">Segera Expired</SelectItem>
-                  <SelectItem value="expired">Kadaluarsa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-zinc-200 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 bg-zinc-50/50">
-                    <th className="p-4 rounded-tl-lg">Nama Dokumen</th>
-                    <th className="p-4">Nomor &amp; Instansi</th>
-                    <th className="p-4">Tgl. Terbit</th>
-                    <th className="p-4">Tgl. Expired</th>
-                    <th className="p-4">Status</th>
-                    <th className="p-4 rounded-tr-lg">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100 text-sm">
-                  {filteredDocs.map((doc) => (
-                    <tr key={doc.id} className="hover:bg-zinc-50/50 transition-colors">
-                      <td className="p-4">
-                        <p className="font-medium text-zinc-900">{doc.namaDokumen}</p>
-                        {doc.catatan && <p className="text-xs text-amber-600 mt-1">{doc.catatan}</p>}
-                      </td>
-                      <td className="p-4">
-                        <p className="text-zinc-900">{doc.nomorSurat}</p>
-                        <p className="text-xs text-zinc-500">{doc.instansi}</p>
-                      </td>
-                      <td className="p-4 text-zinc-700">{formatTanggal(doc.tanggalTerbit)}</td>
-                      <td className="p-4 text-zinc-700">{formatTanggal(doc.tanggalExpired)}</td>
-                      <td className="p-4">
-                        <Badge variant="outline" className={`border ${statusDokumenIndukColors[doc.status]}`}>
-                          {statusDokumenIndukLabels[doc.status]}
-                        </Badge>
-                      </td>
-                      <td className="p-4">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg">
-                          <Eye weight="bold" size={16} />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </TabsContent>
-
-        {/* TAB 3: LEGALITAS UNIT */}
-        <TabsContent value="legalitas-unit" className="space-y-4 animate-fade-in">
-          <Card className="p-4 border-zinc-200/60 shadow-sm rounded-xl bg-white">
-            <div className="flex flex-col md:flex-row gap-4 mb-4">
-              <div className="flex-1 relative">
-                <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                <Input
-                  placeholder="Cari nama pembeli atau unit..."
-                  value={searchUnit}
-                  onChange={(e) => setSearchUnit(e.target.value)}
-                  className="pl-10 rounded-lg border-zinc-200/80 bg-white"
-                />
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-zinc-200 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 bg-zinc-50/50">
-                    <th className="p-4 rounded-tl-lg">Pembeli &amp; Unit</th>
-                    <th className="p-4 text-center">PPJB</th>
-                    <th className="p-4 text-center">Pecah Sertifikat</th>
-                    <th className="p-4 text-center">AJB</th>
-                    <th className="p-4 text-center">BBN (SHM)</th>
-                    <th className="p-4 text-right rounded-tr-lg">Update Terakhir</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100 text-sm">
-                  {filteredUnits.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="text-center py-12 text-sm text-zinc-400">Tidak ada data legalitas unit.</td>
-                    </tr>
-                  ) : filteredUnits.map((unit) => (
-                    <tr key={unit.id} className="hover:bg-zinc-50/50 transition-colors">
-                      <td className="p-4">
-                        <p className="font-semibold text-zinc-900">{unit.namaPembeli}</p>
-                        <p className="text-xs text-zinc-500 font-mono mt-0.5">Unit: {unit.nomorUnit}</p>
-                      </td>
-                      <td className="p-4 text-center">
-                        <Badge variant="secondary" className={`text-xs ${statusProgresLegalColors[unit.statusPPJB]}`}>
-                          {statusProgresLegalLabels[unit.statusPPJB]}
-                        </Badge>
-                      </td>
-                      <td className="p-4 text-center">
-                        <Badge variant="secondary" className={`text-xs ${statusProgresLegalColors[unit.statusPecahSertifikat]}`}>
-                          {statusProgresLegalLabels[unit.statusPecahSertifikat]}
-                        </Badge>
-                      </td>
-                      <td className="p-4 text-center">
-                        <Badge variant="secondary" className={`text-xs ${statusProgresLegalColors[unit.statusAJB]}`}>
-                          {statusProgresLegalLabels[unit.statusAJB]}
-                        </Badge>
-                      </td>
-                      <td className="p-4 text-center">
-                        <Badge variant="secondary" className={`text-xs ${statusProgresLegalColors[unit.statusBBN]}`}>
-                          {statusProgresLegalLabels[unit.statusBBN]}
-                        </Badge>
-                      </td>
-                      <td className="p-4 text-right text-zinc-500 text-xs">
-                        {formatTanggal(unit.tanggalUpdateTerakhir)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {selectedBooking && (
+        <DocumentModal
+          bookingId={selectedBooking.id}
+          bookingName={selectedBooking.lead.name}
+          unitName={`Blok ${selectedBooking.unit.blok} No. ${selectedBooking.unit.nomor}`}
+          onClose={() => setSelectedBooking(null)}
+          onSuccess={() => {
+            setSelectedBooking(null);
+            fetchBookings();
+          }}
+        />
+      )}
     </div>
   );
 }

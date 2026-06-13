@@ -27,6 +27,8 @@ import {
   MapTrifold,
   FileText,
   Bank,
+  Key,
+  Wrench,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { ROLE_HOME, USER_ROLES, readRoleFromAuthPayload, type UserRole } from "@/lib/access";
@@ -135,13 +137,15 @@ const menuItems: MenuGroup[] = [
       },
 
       {
-        label: "Legal & Perizinan",
+        label: "Legal & Purna Jual",
         href: "/legal",
         icon: Stamp,
         roles: ["legal"],
         children: [
           { label: "Pipeline KPR", href: "/legal/kpr", icon: Bank, roles: ["legal"] },
-          { label: "Dokumen & BAST", href: "/legal/dokumen", icon: FileText, roles: ["legal"] },
+          { label: "Dokumen Legal", href: "/legal/dokumen", icon: FileText, roles: ["legal"] },
+          { label: "Serah Terima (BAST)", href: "/legal/bast", icon: Key, roles: ["legal"] },
+          { label: "Masa Retensi & Komplain", href: "/legal/retensi", icon: Wrench, roles: ["legal"] },
         ],
       },
     ],

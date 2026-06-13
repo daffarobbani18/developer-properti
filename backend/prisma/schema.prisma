@@ -169,6 +169,7 @@ model Booking {
   basts          Bast[]
   commissions    Commission[]
   kprApplication KprApplication?
+  defects        DefectComplaint[]
   
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -401,3 +402,14 @@ model MilestoneLog {
   createdAt   DateTime  @default(now())
 }
 
+model DefectComplaint {
+  id          String    @id @default(uuid())
+  bookingId   String
+  description String
+  photoUrl    String?
+  status      String    @default("Dilaporkan") // Dilaporkan, Sedang Diperbaiki, Selesai
+  reportedAt  DateTime  @default(now())
+  resolvedAt  DateTime?
+
+  booking     Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}

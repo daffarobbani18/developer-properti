@@ -8,9 +8,14 @@ export class LegalService {
     return await prisma.booking.findMany({
       include: {
         lead: { select: { name: true } },
-        unit: { select: { blok: true, nomor: true, kawasan: true } },
+        unit: { select: { blok: true, nomor: true, kawasan: true, progress: true, statusPembangunan: true } },
         legalDocuments: true,
-        basts: true
+        basts: true,
+        defects: true,
+        invoices: true
+      },
+      where: {
+        status: "Approved"
       },
       orderBy: { createdAt: "desc" }
     });
@@ -108,8 +113,20 @@ export class LegalService {
       throw new Error("Booking tidak ditemukan");
     }
 
-    if (booking.unit.statusPembangunan !== "Siap Huni") {
+    if (booking.unit.progress < 100 && booking.unit.statusPembangunan !== "Siap Huni") {
       throw new Error("Rumah belum selesai dibangun, BAST tidak dapat dijadwalkan");
+    }
+
+    // Validasi ketat: Pastikan tidak ada defect yang belum selesai
+    const activeDefects = await prisma.defectComplaint.count({
+      where: {
+        bookingId: data.bookingId,
+        status: { in: ["Dilaporkan", "Sedang Diperbaiki"] }
+      }
+    });
+
+    if (activeDefects > 0) {
+      throw new Error("Masih ada komplain/defect yang belum selesai diperbaiki.");
     }
 
     // Buat jadwal BAST
@@ -165,6 +182,52 @@ export class LegalService {
       });
 
       return updatedBast;
+    });
+  }
+
+  // ==========================================
+  // DEFECT COMPLAINT MANAGEMENT (MASA RETENSI)
+  // ==========================================
+
+  static async getAllDefects() {
+    return await prisma.defectComplaint.findMany({
+      include: {
+        booking: {
+          include: {
+            unit: true,
+            lead: true
+          }
+        }
+      },
+      orderBy: { reportedAt: "desc" }
+    });
+  }
+
+  static async createDefect(data: {
+    bookingId: string;
+    description: string;
+    photoUrl?: string;
+  }) {
+    return await prisma.defectComplaint.create({
+      data: {
+        bookingId: data.bookingId,
+        description: data.description,
+        photoUrl: data.photoUrl,
+        status: "Dilaporkan"
+      }
+    });
+  }
+
+  static async updateDefectStatus(id: string, status: string) {
+    const defect = await prisma.defectComplaint.findUnique({ where: { id } });
+    if (!defect) throw new Error("Defect tidak ditemukan");
+
+    return await prisma.defectComplaint.update({
+      where: { id },
+      data: {
+        status,
+        resolvedAt: status === "Selesai" ? new Date() : defect.resolvedAt
+      }
     });
   }
 }

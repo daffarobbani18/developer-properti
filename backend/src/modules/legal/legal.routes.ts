@@ -178,6 +178,28 @@ router.put("/bast/:bastId/complete", upload.single("file"), validate(completeBas
  */
 router.get("/status", LegalController.getAllLegalStatuses);
 
+/**
+ * @swagger
+ * /api/legal/bookings:
+ *   get:
+ *     summary: Mendapatkan semua booking untuk modul legal & BAST
+ *     tags: [Legal]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: OK
+ */
+router.get("/bookings", LegalController.getAllLegalStatuses);
+
+// ==========================================
+// ROUTES: DEFECT COMPLAINT (MASA RETENSI)
+// ==========================================
+
+router.get("/defects", LegalController.getAllDefects);
+router.post("/defects", upload.single("file"), LegalController.reportDefect);
+router.put("/defects/:id/status", LegalController.updateDefectStatus);
+
 router.use("/kpr", kprRoutes);
 
 export default router;

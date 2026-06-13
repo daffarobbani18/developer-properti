@@ -131,4 +131,59 @@ export class LegalController {
       }
     }
   }
+
+  // ==========================================
+  // DEFECT COMPLAINT MANAGEMENT
+  // ==========================================
+
+  static async getAllDefects(req: Request, res: Response): Promise<void> {
+    try {
+      const defects = await LegalService.getAllDefects();
+      res.status(200).json({ message: "Berhasil mengambil data komplain", data: defects });
+    } catch (error: any) {
+      console.error("getAllDefects error:", error);
+      res.status(500).json({ error: "Gagal mengambil data komplain" });
+    }
+  }
+
+  static async reportDefect(req: Request, res: Response): Promise<void> {
+    try {
+      const { bookingId, description } = req.body;
+      const photoUrl = req.file ? `/uploads/legal/${req.file.filename}` : undefined;
+
+      if (!bookingId || !description) {
+        res.status(400).json({ error: "Data wajib (bookingId, description) tidak lengkap" });
+        return;
+      }
+
+      const defect = await LegalService.createDefect({
+        bookingId: String(bookingId),
+        description: String(description),
+        photoUrl
+      });
+
+      res.status(201).json({ message: "Komplain berhasil dicatat", data: defect });
+    } catch (error: any) {
+      console.error("reportDefect error:", error);
+      res.status(500).json({ error: "Terjadi kesalahan saat mencatat komplain" });
+    }
+  }
+
+  static async updateDefectStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      if (!status) {
+        res.status(400).json({ error: "Status wajib diisi" });
+        return;
+      }
+
+      const defect = await LegalService.updateDefectStatus(String(id), String(status));
+      res.status(200).json({ message: "Status perbaikan komplain berhasil diupdate", data: defect });
+    } catch (error: any) {
+      console.error("updateDefectStatus error:", error);
+      res.status(500).json({ error: "Gagal mengupdate status komplain" });
+    }
+  }
 }
