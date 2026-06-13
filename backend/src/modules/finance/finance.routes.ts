@@ -3,7 +3,7 @@ import { FinanceController } from "./finance.controller.js";
 import { verifyToken, requireRole } from "../../core/middlewares/auth.middleware.js";
 import { validate } from "../../core/middlewares/validate.middleware.js";
 import { verifyPaymentDto } from "./dto/finance.dto.js";
-import { getSpkList, disburseSpk } from "./finance.spk.controller.js";
+import { getSpkList, disburseSpk, generateBapp } from "./finance.spk.controller.js";
 
 const router = Router();
 
@@ -140,5 +140,16 @@ router.get("/spk", getSpkList);
  *       - bearerAuth: []
  */
 router.post("/spk/:id/disburse", disburseSpk);
+
+/**
+ * @swagger
+ * /api/finance/spk/{id}/bapp:
+ *   get:
+ *     summary: Generate HTML Berita Acara Penyelesaian Pekerjaan (BAPP)
+ *     tags: [Finance]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get("/spk/:id/bapp", generateBapp);
 
 export default router;

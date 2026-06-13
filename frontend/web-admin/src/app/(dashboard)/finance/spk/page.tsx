@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import DisburseModal from "./DisburseModal";
-import { formatCurrency } from "@/lib/utils/currency"; // Asumsi ada utilitas formatCurrency, jika tidak kita pakai toLocaleString inline
 
 interface UnitData {
   id: string;
@@ -33,8 +32,14 @@ export default function SpkFinancePage() {
   const fetchSpks = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/finance/spk`, {
+      const loginRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "finance@erp.com", password: "password123" })
+      });
+      const { token } = await loginRes.json();
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/finance/spk`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -60,6 +65,34 @@ export default function SpkFinancePage() {
   const handleOpenModal = (spk: SpkData) => {
     setSelectedSpk(spk);
     setIsModalOpen(true);
+  };
+
+  const handlePrintBapp = async (spkId: string) => {
+    try {
+      const loginRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "finance@erp.com", password: "password123" })
+      });
+      const { token } = await loginRes.json();
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/finance/spk/${spkId}/bapp`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      if (!res.ok) throw new Error("Gagal mengambil BAPP");
+      
+      const html = await res.text();
+      const printWindow = window.open("", "_blank");
+      if (printWindow) {
+        printWindow.document.write(html);
+        printWindow.document.close();
+      }
+    } catch (err: any) {
+      alert("Gagal mencetak BAPP: " + err.message);
+    }
   };
 
   const handleDisbursementSuccess = () => {
@@ -89,9 +122,10 @@ export default function SpkFinancePage() {
               <tr>
                 <th className="px-6 py-4 font-semibold tracking-wider">No. SPK & Mandor</th>
                 <th className="px-6 py-4 font-semibold tracking-wider">Kavling Tercakup</th>
-                <th className="px-6 py-4 font-semibold tracking-wider">Rata-Rata Progres</th>
+                <th className="px-6 py-4 font-semibold tracking-wider">Progres Fisik</th>
                 <th className="px-6 py-4 font-semibold tracking-wider">Nilai Kontrak</th>
-                <th className="px-6 py-4 font-semibold tracking-wider">Total Cair & Sisa Dana</th>
+                <th className="px-6 py-4 font-semibold tracking-wider">Progres Pencairan</th>
+                <th className="px-6 py-4 font-semibold tracking-wider">Status</th>
                 <th className="px-6 py-4 font-semibold tracking-wider text-right">Aksi</th>
               </tr>
             </thead>
@@ -129,27 +163,50 @@ export default function SpkFinancePage() {
                       Rp {spk.totalPrice.toLocaleString("id-ID")}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-emerald-600 font-medium flex justify-between">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-full bg-zinc-200 rounded-full h-2.5 max-w-[100px]">
+                          <div className={`h-2.5 rounded-full ${spk.remainingBalance <= 0 ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${Math.min(100, (spk.totalDisbursed / spk.totalPrice) * 100)}%` }}></div>
+                        </div>
+                        <span className="font-semibold text-zinc-700">{Math.round((spk.totalDisbursed / spk.totalPrice) * 100)}%</span>
+                      </div>
+                      <div className="text-emerald-600 font-medium flex justify-between text-xs">
                         <span>Cair:</span>
                         <span>Rp {spk.totalDisbursed.toLocaleString("id-ID")}</span>
                       </div>
-                      <div className="text-amber-600 font-semibold flex justify-between mt-1 border-t border-zinc-100 pt-1">
+                      <div className="text-rose-600 font-semibold flex justify-between mt-1 border-t border-zinc-100 pt-1 text-xs">
                         <span>Sisa:</span>
                         <span>Rp {spk.remainingBalance.toLocaleString("id-ID")}</span>
                       </div>
                     </td>
+                    <td className="px-6 py-4">
+                      {spk.remainingBalance <= 0 ? (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                          SELESAI
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                          BERJALAN
+                        </span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleOpenModal(spk)}
-                        disabled={spk.remainingBalance <= 0}
-                        className={`px-4 py-2 text-sm font-medium rounded-xl transition-all ${
-                          spk.remainingBalance <= 0
-                            ? "bg-zinc-100 text-zinc-400 cursor-not-allowed"
-                            : "bg-zinc-900 text-white hover:bg-zinc-800 active:scale-95 shadow-sm"
-                        }`}
-                      >
-                        {spk.remainingBalance <= 0 ? "Lunas" : "Pencairan"}
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        {spk.remainingBalance <= 0 ? (
+                          <button
+                            onClick={() => handlePrintBapp(spk.id)}
+                            className="px-4 py-2 text-sm font-medium rounded-xl transition-all bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm whitespace-nowrap"
+                          >
+                            Cetak BAPP
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleOpenModal(spk)}
+                            className="px-4 py-2 text-sm font-medium rounded-xl transition-all bg-zinc-900 text-white hover:bg-zinc-800 active:scale-95 shadow-sm whitespace-nowrap"
+                          >
+                            Pencairan
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))

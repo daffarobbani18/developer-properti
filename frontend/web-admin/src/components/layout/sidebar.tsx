@@ -129,6 +129,7 @@ const menuItems: MenuGroup[] = [
           { label: "Cashflow", href: "/finance/cashflow", icon: ChartLineUp, roles: ["finance"] },
           { label: "Tagihan", href: "/finance/tagihan", icon: Receipt, roles: ["finance"] },
           { label: "Pengeluaran", href: "/finance/pengeluaran", icon: Wallet, roles: ["finance"] },
+          { label: "Monitoring SPK", href: "/finance/spk", icon: HardHat, roles: ["finance"] },
           { label: "RAB & Realisasi", href: "/finance/rab", icon: ListChecks, roles: ["finance"] },
         ],
       },
