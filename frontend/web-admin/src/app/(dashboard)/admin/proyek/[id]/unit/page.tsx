@@ -27,7 +27,8 @@ import {
   Bathtub,
   CornersOut,
   Package,
-  X
+  X,
+  Plus
 } from "@phosphor-icons/react";
 import {
   statusUnitColor,
@@ -277,6 +278,13 @@ export default function ProjectDashboardPage({ params }: PageProps) {
         </TabsList>
         
         <TabsContent value="tipe-rumah" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+            <div className="flex justify-end mb-4">
+              <Link href="/admin/tipe-rumah">
+                <Button className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-sm">
+                  <Plus weight="bold" className="mr-2" /> Tambah Tipe Rumah
+                </Button>
+              </Link>
+            </div>
             {propertyTypes.length === 0 ? (
               <div className="col-span-full py-16 text-center border-2 border-dashed border-zinc-200 rounded-3xl bg-white shadow-sm">
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 mb-4">
@@ -333,6 +341,13 @@ export default function ProjectDashboardPage({ params }: PageProps) {
         </TabsContent>
         
         <TabsContent value="kavling-unit" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+            <div className="flex justify-end mb-4">
+              <Link href="/admin/kavling-unit">
+                <Button className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-sm">
+                  <Plus weight="bold" className="mr-2" /> Tambah Kavling & Unit
+                </Button>
+              </Link>
+            </div>
             <div className="space-y-6">
               {bloks.length === 0 ? (
                 <div className="col-span-full py-16 text-center border-2 border-dashed border-zinc-200 rounded-3xl bg-white shadow-sm">
