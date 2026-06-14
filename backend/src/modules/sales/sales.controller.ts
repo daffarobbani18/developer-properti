@@ -81,7 +81,7 @@ export class SalesController {
 
   static async createBooking(req: Request, res: Response): Promise<void> {
     try {
-      const { leadId, unitId, bookingFee, paymentMethod, salesNotes } = req.body;
+      const { leadId, unitId, bookingFee, paymentMethod, salesNotes, termins } = req.body;
       const salesId = (req as any).user.id;
 
       if (!leadId || !unitId || !bookingFee || !paymentMethod) {
@@ -95,6 +95,7 @@ export class SalesController {
         bookingFee: Number(bookingFee),
         paymentMethod: String(paymentMethod),
         salesNotes: salesNotes ? String(salesNotes) : undefined,
+        termins: termins && Array.isArray(termins) ? termins : [],
       });
 
       res.status(201).json({

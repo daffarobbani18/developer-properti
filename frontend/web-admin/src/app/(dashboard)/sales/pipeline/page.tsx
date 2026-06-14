@@ -47,11 +47,41 @@ export default function PipelineSalesPage() {
     try {
       setLoading(true);
       const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
-        let token = "";
-        if (authDataStr) {
-          const authData = JSON.parse(authDataStr);
-          token = authData.token;
+      let token = "";
+      if (authDataStr) {
+        const authData = JSON.parse(authDataStr);
+        token = authData.token;
+      }
+
+      if (token) {
+        const res = await fetch("http://localhost:4000/api/sales/leads", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (res.ok && data.data) {
+          setLeads(data.data);
         }
+      }
+    } catch (err) {
+      console.error("Fetch error", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateLeadStatus = async (leadId: string, newStatus: string) => {
+    // Optimistic UI update
+    const previousLeads = [...leads];
+    setLeads(leads.map(l => l.id === leadId ? { ...l, statusCrm: newStatus } : l));
+    setMobileMoveLead(null);
+
+    try {
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+      let token = "";
+      if (authDataStr) {
+        const authData = JSON.parse(authDataStr);
+        token = authData.token;
+      }
 
       if (token) {
         const res = await fetch(`http://localhost:4000/api/sales/leads/${leadId}`, {
@@ -69,8 +99,8 @@ export default function PipelineSalesPage() {
     } catch (err) {
       console.error("Update error", err);
       // Revert if failed
+      setLeads(previousLeads);
       showToast("Gagal mengubah status, mengembalikan data", "error");
-      fetchData();
     }
   };
 

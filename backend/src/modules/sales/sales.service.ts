@@ -71,7 +71,30 @@ export class SalesService {
     bookingFee: number;
     paymentMethod: string;
     salesNotes?: string;
+    termins?: {
+      nominal: number;
+      triggerType: string;
+      triggerEvent?: string;
+      dueDate?: string;
+    }[];
   }) {
+    // 0. Fetch Active KPR Settings if paymentMethod is KPR Subsidi
+    let kprPlafonSnapshot: number | null = null;
+    let kprHargaSubsidiSnapshot: number | null = null;
+    let kprDpPercentageSnapshot: number | null = null;
+
+    if (data.paymentMethod.includes("KPR")) {
+      const activeSetting = await prisma.kprSetting.findFirst({
+        where: { isActive: true },
+        orderBy: { createdAt: "desc" },
+      });
+      if (activeSetting) {
+        kprHargaSubsidiSnapshot = activeSetting.kprMaxPlafon;
+        kprDpPercentageSnapshot = activeSetting.kprMinDpPercent;
+        kprPlafonSnapshot = activeSetting.kprMaxPlafon - (activeSetting.kprMaxPlafon * activeSetting.kprMinDpPercent / 100);
+      }
+    }
+
     // Memulai transaksi database (semua berhasil atau semua gagal)
     return await prisma.$transaction(async (tx: any) => {
       // 1. Cari Unit berdasarkan unitId
@@ -88,7 +111,7 @@ export class SalesService {
         throw new Error("Unit sudah tidak tersedia (Booked / Terjual)");
       }
 
-      // 3. Buat data Booking baru
+      // 3. Buat data Booking baru dengan snapshot
       const booking = await tx.booking.create({
         data: {
           leadId: data.leadId,
@@ -97,6 +120,9 @@ export class SalesService {
           paymentMethod: data.paymentMethod,
           salesNotes: data.salesNotes,
           status: "Menunggu Verifikasi",
+          kprPlafonSnapshot,
+          kprHargaSubsidiSnapshot,
+          kprDpPercentageSnapshot,
         },
       });
 
@@ -108,6 +134,26 @@ export class SalesService {
           status: "Booked", // Sinkronisasi field lama
         },
       });
+
+      // 5. Buat Invoices (Termin) dengan status Draft jika ada termins
+      if (data.termins && data.termins.length > 0) {
+        let index = 1;
+        for (const termin of data.termins) {
+          await tx.invoice.create({
+            data: {
+              bookingId: booking.id,
+              invoiceNumber: `INV-${Date.now()}-${index}`,
+              invoiceType: data.paymentMethod.includes("KPR") ? "Cicilan DP" : "Cash Bertahap",
+              amountDue: Number(termin.nominal),
+              dueDate: termin.dueDate ? new Date(termin.dueDate) : null,
+              triggerType: termin.triggerType || "DATE",
+              triggerEvent: termin.triggerEvent || null,
+              status: "Draft",
+            },
+          });
+          index++;
+        }
+      }
 
       return booking;
     });

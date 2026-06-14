@@ -161,6 +161,11 @@ model Booking {
   financeNotes   String?
   salesNotes     String?   // Catatan dari Sales (misal: "KPR 15 Tahun", "Cash Bertahap 12x")
   
+  // KPR Snapshot Data
+  kprPlafonSnapshot      Float?
+  kprHargaSubsidiSnapshot Float?
+  kprDpPercentageSnapshot Float?
+  
   lead           Lead      @relation(fields: [leadId], references: [id], onDelete: Restrict)
   unit           Unit      @relation(fields: [unitId], references: [id], onDelete: Restrict)
   
@@ -197,7 +202,9 @@ model Invoice {
   invoiceNumber   String    @unique
   invoiceType     String    // e.g., 'DP', 'Cicilan KPR', 'Cash Bertahap'
   amountDue       Float
-  dueDate         DateTime
+  dueDate         DateTime?
+  triggerType     String    @default("DATE") // "DATE" or "PROGRESS"
+  triggerEvent    String?   // e.g., "Pondasi Selesai"
   status          String    @default("Unpaid")
   
   booking         Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
@@ -413,4 +420,14 @@ model DefectComplaint {
   resolvedAt  DateTime?
 
   booking     Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model KprSetting {
+  id              String    @id @default(uuid())
+  kprYear         Int       // Tahun Regulasi
+  kprMaxPlafon    Float     // Maksimal Harga Subsidi
+  kprMinDpPercent Float     // Minimal DP Bank
+  isActive        Boolean   @default(true) // Only one can be true
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }

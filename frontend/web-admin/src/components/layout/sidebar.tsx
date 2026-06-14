@@ -113,6 +113,7 @@ const menuItems: MenuGroup[] = [
     group: "Sistem & Pengaturan",
     items: [
       { label: "Manajemen Karyawan", href: "/admin/users", icon: UsersThree, roles: ["admin"] },
+      { label: "Pengaturan KPR", href: "/admin/pengaturan/kpr", icon: Bank, roles: [] as any },
     ],
   },
 ];

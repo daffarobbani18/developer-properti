@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  Plus, X, Trash, CheckCircle, WarningCircle, Buildings, HouseLine, CircleNotch, House, Package, MapPin, ShieldCheck, User
+  Plus, X, Trash, CheckCircle, WarningCircle, Buildings, HouseLine, CircleNotch, House, Package, MapPin, ShieldCheck, User, Bank, Receipt, ListPlus, Calculator
 } from "@phosphor-icons/react";
 
 const formatRupiah = (number: number) =>
@@ -29,11 +29,15 @@ export default function KavlingUnitPage() {
   const [selectedUnit, setSelectedUnit] = useState<any | null>(null);
   const [modalState, setModalState] = useState<"detail" | "form" | "booked_info">("detail");
   const [submitting, setSubmitting] = useState(false);
-  const [bookingForm, setBookingForm] = useState({
+  const [activeKprSetting, setActiveKprSetting] = useState<any>(null);
+  const [bookingForm, setBookingForm] = useState<{
+    leadId: string, bookingFee: number, paymentMethod: string, salesNotes: string, termins: any[]
+  }>({
     leadId: "",
     bookingFee: 0,
-    paymentMethod: "KPR (Kredit Pemilikan Rumah)",
-    salesNotes: ""
+    paymentMethod: "KPR Subsidi",
+    salesNotes: "",
+    termins: []
   });
 
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
@@ -112,6 +116,11 @@ export default function KavlingUnitPage() {
         if (fetchedBookings && fetchedBookings.length > 0) {
           setBookings(fetchedBookings);
         }
+
+        // Fetch KPR Settings
+        const kprRes = await fetch("http://localhost:4000/api/settings/kpr", { headers });
+        const kprJson = await kprRes.json();
+        if (kprJson.data) setActiveKprSetting(kprJson.data);
       }
     } catch (err) {
       console.error("Failed to fetch backend data", err);
@@ -163,14 +172,35 @@ export default function KavlingUnitPage() {
     setBookingForm({
       leadId: "",
       bookingFee: 0,
-      paymentMethod: "KPR (Kredit Pemilikan Rumah)",
-      salesNotes: ""
+      paymentMethod: "KPR Subsidi",
+      salesNotes: "",
+      termins: []
     });
+  };
+
+  const getPlafonBank = () => {
+    if (bookingForm.paymentMethod.includes("KPR") && activeKprSetting) {
+      return activeKprSetting.kprMaxPlafon - (activeKprSetting.kprMaxPlafon * activeKprSetting.kprMinDpPercent / 100);
+    }
+    return 0;
+  };
+
+  const getSisaTagihan = () => {
+    if (!selectedUnit) return 0;
+    const tagihanAwal = bookingForm.paymentMethod.includes("KPR") ? (selectedUnit.price - getPlafonBank()) : selectedUnit.price;
+    return tagihanAwal - (bookingForm.bookingFee || 0);
   };
 
   const handleBookingSubmit = async () => {
     if (!bookingForm.leadId || !bookingForm.bookingFee) {
       showToast("Pilih pelanggan dan masukkan booking fee", "error");
+      return;
+    }
+
+    const sisaTagihan = getSisaTagihan();
+    const totalTermin = bookingForm.termins.reduce((sum, t) => sum + Number(t.nominal), 0);
+    if (bookingForm.termins.length > 0 && totalTermin !== sisaTagihan) {
+      showToast(`Total Termin (${formatRupiah(totalTermin)}) tidak sama dengan Sisa Tagihan (${formatRupiah(sisaTagihan)})!`, "error");
       return;
     }
 
@@ -188,7 +218,8 @@ export default function KavlingUnitPage() {
         unitId: selectedUnit.id,
         bookingFee: Number(bookingForm.bookingFee),
         paymentMethod: bookingForm.paymentMethod,
-        salesNotes: bookingForm.salesNotes
+        salesNotes: bookingForm.salesNotes,
+        termins: bookingForm.termins
       };
       
       const res = await fetch("http://localhost:4000/api/sales/bookings", {
@@ -459,81 +490,186 @@ export default function KavlingUnitPage() {
                   </button>
                 </div>
               ) : (
-                <div className="space-y-5">
-                  <div>
-                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-zinc-600">Pilih Pelanggan (Leads) <span className="text-rose-500">*</span></label>
-                    <select 
-                      value={bookingForm.leadId} 
-                      onChange={(e) => setBookingForm({ ...bookingForm, leadId: e.target.value })}
-                      className="w-full cursor-pointer appearance-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-semibold transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
-                    >
-                      <option value="" disabled>-- Cari atau Pilih Pelanggan --</option>
-                      {leads.map((l: any) => (
-                        <option key={l.id} value={l.id}>
-                          {l.name} - {l.phone}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-zinc-600">Nominal Booking Fee <span className="text-rose-500">*</span></label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-zinc-400">Rp</span>
-                      <input
-                        type="text"
-                        value={bookingForm.bookingFee ? new Intl.NumberFormat('id-ID').format(bookingForm.bookingFee) : ""}
-                        onChange={(e) => {
-                          const rawValue = e.target.value.replace(/\D/g, "");
-                          setBookingForm({ ...bookingForm, bookingFee: Number(rawValue) });
-                        }}
-                        placeholder="Contoh: 2.000.000"
-                        className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3 pl-12 pr-4 text-sm font-bold transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
-                      />
+                <div className="space-y-6">
+                  {/* Bagian A: Info & Auto Kalkulasi */}
+                  <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 space-y-3">
+                    <div className="flex justify-between items-center pb-2 border-b border-blue-100">
+                      <span className="text-sm font-semibold text-blue-800">Total Harga Unit</span>
+                      <span className="text-lg font-bold text-blue-900">{formatRupiah(selectedUnit.price)}</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 pt-1">
+                      <div>
+                        <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-blue-600">Skema Pembayaran</label>
+                        <select 
+                          value={bookingForm.paymentMethod} 
+                          onChange={(e) => setBookingForm({ ...bookingForm, paymentMethod: e.target.value, termins: [] })}
+                          className="w-full appearance-none rounded-lg border border-blue-200 bg-white px-3 py-2 text-xs font-semibold text-blue-900 transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        >
+                          <option value="KPR Subsidi">KPR Subsidi</option>
+                          <option value="KPR Komersil">KPR Komersil</option>
+                          <option value="Cash Keras">Cash Keras (Hard Cash)</option>
+                          <option value="Cash Bertahap">Cash Bertahap (Installment)</option>
+                        </select>
+                      </div>
+                      
+                      {bookingForm.paymentMethod.includes("KPR") && activeKprSetting ? (
+                        <div>
+                          <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-blue-600">Estimasi Plafon Bank</label>
+                          <div className="w-full rounded-lg border border-blue-200 bg-blue-100/50 px-3 py-2 text-xs font-bold text-blue-900">
+                            {formatRupiah(getPlafonBank())}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
 
-                  <div>
-                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-zinc-600">Skema Pembayaran <span className="text-rose-500">*</span></label>
-                    <select 
-                      value={bookingForm.paymentMethod} 
-                      onChange={(e) => setBookingForm({ ...bookingForm, paymentMethod: e.target.value })}
-                      className="w-full cursor-pointer appearance-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-semibold transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
-                    >
-                      <option value="KPR (Kredit Pemilikan Rumah)">KPR (Kredit Pemilikan Rumah)</option>
-                      <option value="Cash Keras (Hard Cash)">Cash Keras (Hard Cash)</option>
-                      <option value="Cash Bertahap (Installment)">Cash Bertahap (Installment)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-zinc-600">Catatan Kesepakatan / Tenor (Opsional)</label>
-                    <textarea 
-                      value={bookingForm.salesNotes} 
-                      onChange={(e) => setBookingForm({ ...bookingForm, salesNotes: e.target.value })}
-                      placeholder="Contoh: Cash Bertahap 12x, atau KPR BCA 15 Tahun..."
-                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-semibold transition-all focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 resize-none"
-                      rows={2}
-                    />
-                  </div>
-                  
-                  {/* Calculation Box */}
-                  <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 space-y-2 mt-4 shadow-sm">
-                     <div className="flex justify-between text-xs font-medium text-zinc-500">
-                        <span>Total Harga Unit</span>
-                        <span>{formatRupiah(selectedUnit.price)}</span>
-                     </div>
-                     <div className="flex justify-between text-xs font-medium text-emerald-600">
-                        <span>Pembayaran Awal (Booking)</span>
-                        <span>- {formatRupiah(bookingForm.bookingFee || 0)}</span>
-                     </div>
-                     <div className="h-px bg-zinc-200 w-full my-1"></div>
-                     <div className="flex justify-between text-sm font-bold text-zinc-900">
-                        <span>Sisa Tagihan</span>
-                        <span>{formatRupiah(selectedUnit.price - (bookingForm.bookingFee || 0))}</span>
-                     </div>
+                  {/* Bagian B: Lead & Booking Fee */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-zinc-600">Pilih Pelanggan <span className="text-rose-500">*</span></label>
+                      <select 
+                        value={bookingForm.leadId} 
+                        onChange={(e) => setBookingForm({ ...bookingForm, leadId: e.target.value })}
+                        className="w-full cursor-pointer appearance-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-semibold transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      >
+                        <option value="" disabled>-- Pilih Pelanggan --</option>
+                        {leads.map((l: any) => (
+                          <option key={l.id} value={l.id}>{l.name} - {l.phone}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-zinc-600">Booking Fee <span className="text-rose-500">*</span></label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">Rp</span>
+                        <input
+                          type="text"
+                          value={bookingForm.bookingFee ? new Intl.NumberFormat('id-ID').format(bookingForm.bookingFee) : ""}
+                          onChange={(e) => {
+                            const raw = Number(e.target.value.replace(/\D/g, ""));
+                            setBookingForm({ ...bookingForm, bookingFee: raw });
+                          }}
+                          className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3 pl-9 pr-3 text-sm font-bold transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col justify-end">
+                      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5">
+                        <span className="block text-[10px] font-bold uppercase text-emerald-600">Sisa Tagihan</span>
+                        <span className="block text-lg font-black text-emerald-700">{formatRupiah(getSisaTagihan())}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex gap-3 pt-2 border-t border-zinc-100 mt-6">
+                  {/* Bagian C: Tabel Termin */}
+                  <div className="rounded-xl border border-zinc-200 bg-white p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-sm font-bold text-zinc-800 flex items-center gap-2">
+                        <ListPlus weight="duotone" className="text-amber-500" size={20} />
+                        Rencana Pembayaran (Termin)
+                      </h4>
+                      <button 
+                        onClick={() => setBookingForm({ ...bookingForm, termins: [...bookingForm.termins, { nominal: 0, triggerType: "DATE", dueDate: "" }]})}
+                        className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-zinc-800"
+                      >
+                        <Plus weight="bold" /> Tambah Termin
+                      </button>
+                    </div>
+
+                    {bookingForm.termins.length === 0 ? (
+                      <div className="text-center py-6 bg-zinc-50 rounded-xl border border-dashed border-zinc-200">
+                        <p className="text-xs text-zinc-500">Belum ada termin cicilan ditambahkan.<br/>Sisa tagihan akan ditagih 1x di muka jika dibiarkan kosong.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {bookingForm.termins.map((t, idx) => (
+                          <div key={idx} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-zinc-50 p-3 rounded-xl border border-zinc-100">
+                            <div className="w-full sm:w-1/3">
+                              <label className="text-[10px] font-bold text-zinc-500 uppercase block mb-1">Nominal</label>
+                              <div className="relative">
+                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">Rp</span>
+                                <input 
+                                  type="text"
+                                  value={t.nominal ? new Intl.NumberFormat('id-ID').format(t.nominal) : ""}
+                                  onChange={(e) => {
+                                    const raw = Number(e.target.value.replace(/\D/g, ""));
+                                    const newTermins = [...bookingForm.termins];
+                                    newTermins[idx].nominal = raw;
+                                    setBookingForm({ ...bookingForm, termins: newTermins });
+                                  }}
+                                  className="w-full rounded-md border border-zinc-200 py-1.5 pl-8 pr-2 text-xs font-bold"
+                                />
+                              </div>
+                            </div>
+                            <div className="w-full sm:w-1/3">
+                              <label className="text-[10px] font-bold text-zinc-500 uppercase block mb-1">Metode</label>
+                              <select
+                                value={t.triggerType}
+                                onChange={(e) => {
+                                  const newTermins = [...bookingForm.termins];
+                                  newTermins[idx].triggerType = e.target.value;
+                                  setBookingForm({ ...bookingForm, termins: newTermins });
+                                }}
+                                className="w-full rounded-md border border-zinc-200 py-1.5 px-2 text-xs font-semibold"
+                              >
+                                <option value="DATE">Tanggal</option>
+                                <option value="PROGRESS">Progres Pembangunan</option>
+                              </select>
+                            </div>
+                            <div className="w-full sm:flex-1">
+                              <label className="text-[10px] font-bold text-zinc-500 uppercase block mb-1">Nilai</label>
+                              {t.triggerType === "DATE" ? (
+                                <input 
+                                  type="date"
+                                  value={t.dueDate || ""}
+                                  onChange={(e) => {
+                                    const newTermins = [...bookingForm.termins];
+                                    newTermins[idx].dueDate = e.target.value;
+                                    setBookingForm({ ...bookingForm, termins: newTermins });
+                                  }}
+                                  className="w-full rounded-md border border-zinc-200 py-1.5 px-2 text-xs font-medium"
+                                />
+                              ) : (
+                                <input 
+                                  type="text"
+                                  placeholder="Contoh: Pondasi Selesai"
+                                  value={t.triggerEvent || ""}
+                                  onChange={(e) => {
+                                    const newTermins = [...bookingForm.termins];
+                                    newTermins[idx].triggerEvent = e.target.value;
+                                    setBookingForm({ ...bookingForm, termins: newTermins });
+                                  }}
+                                  className="w-full rounded-md border border-zinc-200 py-1.5 px-2 text-xs font-medium"
+                                />
+                              )}
+                            </div>
+                            <button 
+                              onClick={() => {
+                                const newTermins = bookingForm.termins.filter((_, i) => i !== idx);
+                                setBookingForm({ ...bookingForm, termins: newTermins });
+                              }}
+                              className="mt-4 sm:mt-0 p-1.5 text-rose-400 hover:bg-rose-50 hover:text-rose-600 rounded-md flex-shrink-0"
+                            >
+                              <Trash weight="bold" size={16} />
+                            </button>
+                          </div>
+                        ))}
+                        
+                        {/* Summary of Termins */}
+                        <div className="flex justify-between items-center pt-2 px-1">
+                          <span className="text-xs font-medium text-zinc-500">Total Nominal Termin:</span>
+                          <span className={`text-sm font-bold ${bookingForm.termins.reduce((s, t) => s + Number(t.nominal), 0) === getSisaTagihan() ? 'text-emerald-600' : 'text-rose-500'}`}>
+                            {formatRupiah(bookingForm.termins.reduce((s, t) => s + Number(t.nominal), 0))}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
                     <button 
                       onClick={() => setModalState("detail")}
                       className="flex-1 rounded-xl bg-zinc-100 py-3.5 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-200"
