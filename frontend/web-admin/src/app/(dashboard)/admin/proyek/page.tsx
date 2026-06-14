@@ -41,7 +41,6 @@ export default function ProyekPage() {
     totalUnits: "",
     targetSelesai: "",
     status: "perencanaan",
-    kontraktorName: "",
     nomorIzin: "",
     description: "",
     imageUrl: "",
@@ -149,7 +148,6 @@ export default function ProyekPage() {
         totalUnits: parseInt(projectForm.totalUnits) || 0,
         targetSelesai: projectForm.targetSelesai ? new Date(projectForm.targetSelesai).toISOString() : null,
         status: projectForm.status,
-        kontraktorName: projectForm.kontraktorName,
         nomorIzin: projectForm.nomorIzin,
         description: projectForm.description,
         imageUrl: finalImageUrl,
@@ -174,7 +172,7 @@ export default function ProyekPage() {
       
       setIsProjectModalOpen(false);
       setEditProjectId(null);
-      setProjectForm({ name: "", location: "", totalUnits: "", targetSelesai: "", status: "perencanaan", kontraktorName: "", nomorIzin: "", description: "", imageUrl: "" });
+      setProjectForm({ name: "", location: "", totalUnits: "", targetSelesai: "", status: "perencanaan", nomorIzin: "", description: "", imageUrl: "" });
       setSelectedFile(null);
       
       await fetchProjects();
@@ -329,7 +327,6 @@ export default function ProyekPage() {
                   totalUnits: String(p.totalUnit),
                   targetSelesai: p.targetSelesai ? new Date(p.targetSelesai).toISOString().split('T')[0] : "",
                   status: p.statusProyek,
-                  kontraktorName: p.kontraktorName || "",
                   nomorIzin: p.nomorIzin || "",
                   description: p.description || "",
                   imageUrl: p.imageUrl || "",
@@ -396,16 +393,6 @@ export default function ProyekPage() {
                     className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                   />
                 </div>
-              </div>
-              <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Nama Kontraktor</label>
-                <input
-                  type="text"
-                  value={projectForm.kontraktorName}
-                  onChange={(e) => setProjectForm({ ...projectForm, kontraktorName: e.target.value })}
-                  placeholder="PT Bangun Bersama"
-                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm transition-all focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-                />
               </div>
               <div className="grid grid-cols-2 gap-5">
                 <div>
