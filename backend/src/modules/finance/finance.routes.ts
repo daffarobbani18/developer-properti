@@ -99,6 +99,30 @@ router.post("/invoices/:invoiceId/payments", FinanceController.receivePayment);
 
 /**
  * @swagger
+ * /api/finance/invoices/{invoiceId}/publish:
+ *   patch:
+ *     summary: Menerbitkan tagihan dari Draft menjadi Unpaid
+ */
+router.patch("/invoices/:invoiceId/publish", FinanceController.publishInvoice);
+
+/**
+ * @swagger
+ * /api/finance/invoices/{invoiceId}/pdf/invoice:
+ *   get:
+ *     summary: Mengunduh PDF Invoice resmi
+ */
+router.get("/invoices/:invoiceId/pdf/invoice", FinanceController.downloadInvoicePDF);
+
+/**
+ * @swagger
+ * /api/finance/invoices/{invoiceId}/pdf/receipt:
+ *   get:
+ *     summary: Mengunduh PDF Kuitansi Pembayaran Lunas
+ */
+router.get("/invoices/:invoiceId/pdf/receipt", FinanceController.downloadReceiptPDF);
+
+/**
+ * @swagger
  * /api/finance/expenses:
  *   get:
  *     summary: Mendapatkan daftar pengeluaran (Expenses)

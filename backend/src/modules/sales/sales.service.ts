@@ -68,7 +68,7 @@ export class SalesService {
   static async createBooking(data: {
     leadId: string;
     unitId: string;
-    bookingFee: number;
+    bookingFee?: number;
     paymentMethod: string;
     salesNotes?: string;
     termins?: {
@@ -76,6 +76,7 @@ export class SalesService {
       triggerType: string;
       triggerEvent?: string;
       dueDate?: string;
+      invoiceType?: string;
     }[];
   }) {
     // 0. Fetch Active KPR Settings if paymentMethod is KPR Subsidi
@@ -112,11 +113,12 @@ export class SalesService {
       }
 
       // 3. Buat data Booking baru dengan snapshot
+      const extractedBookingFee = data.termins && data.termins.length > 0 ? Number(data.termins[0].nominal) : (data.bookingFee || 0);
       const booking = await tx.booking.create({
         data: {
           leadId: data.leadId,
           unitId: data.unitId,
-          bookingFee: data.bookingFee,
+          bookingFee: extractedBookingFee,
           paymentMethod: data.paymentMethod,
           salesNotes: data.salesNotes,
           status: "Menunggu Verifikasi",
@@ -126,12 +128,12 @@ export class SalesService {
         },
       });
 
-      // 4. Update statusPenjualan pada Unit menjadi 'Booked' (update juga legacy field 'status')
+      // 4. Update statusPenjualan pada Unit menjadi 'PENDING_BOOKING' (update juga legacy field 'status')
       await tx.unit.update({
         where: { id: data.unitId },
         data: {
-          statusPenjualan: "Booked",
-          status: "Booked", // Sinkronisasi field lama
+          statusPenjualan: "PENDING_BOOKING",
+          status: "PENDING_BOOKING", // Sinkronisasi field lama
         },
       });
 
@@ -139,11 +141,12 @@ export class SalesService {
       if (data.termins && data.termins.length > 0) {
         let index = 1;
         for (const termin of data.termins) {
+          const invType = termin.invoiceType || termin.triggerEvent || (data.paymentMethod.includes("KPR") ? `Cicilan DP ${index - 1}` : `Cash Bertahap ${index - 1}`);
           await tx.invoice.create({
             data: {
               bookingId: booking.id,
               invoiceNumber: `INV-${Date.now()}-${index}`,
-              invoiceType: data.paymentMethod.includes("KPR") ? "Cicilan DP" : "Cash Bertahap",
+              invoiceType: invType,
               amountDue: Number(termin.nominal),
               dueDate: termin.dueDate ? new Date(termin.dueDate) : null,
               triggerType: termin.triggerType || "DATE",

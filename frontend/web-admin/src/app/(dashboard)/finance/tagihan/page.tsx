@@ -258,6 +258,60 @@ export default function TagihanFinancePage() {
     }
   };
 
+  const handlePublishInvoice = async (invoiceId: string) => {
+    try {
+      setSubmitting(true);
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+      let token = "";
+      if (authDataStr) {
+        const authData = JSON.parse(authDataStr);
+        token = authData.token;
+      }
+
+      const res = await fetch(`http://localhost:4000/api/finance/invoices/${invoiceId}/publish`, {
+        method: "PATCH",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        showToast("Tagihan berhasil diterbitkan", "success");
+        if (selectedBooking) fetchInvoices(selectedBooking.id);
+      } else {
+        const err = await res.json();
+        showToast(`Gagal: ${err.error}`, "error");
+      }
+    } catch (error) {
+      showToast("Gagal menerbitkan tagihan", "error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDownloadPDF = async (invoiceId: string, type: "invoice" | "receipt") => {
+    try {
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+      let token = "";
+      if (authDataStr) {
+        const authData = JSON.parse(authDataStr);
+        token = authData.token;
+      }
+
+      const res = await fetch(`http://localhost:4000/api/finance/invoices/${invoiceId}/pdf/${type}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        window.open(`http://localhost:4000${data.url}`, "_blank");
+      } else {
+        const err = await res.json();
+        showToast(`Gagal: ${err.error}`, "error");
+      }
+    } catch (error) {
+      showToast("Gagal mengunduh dokumen", "error");
+    }
+  };
+
   if (!mounted) return null;
 
   // Filter Data
@@ -702,18 +756,47 @@ export default function TagihanFinancePage() {
                                 </span>
                               </td>
                               <td className="px-4 py-3 text-right">
-                                {inv.status === "Unpaid" && (
-                                  <button
-                                    onClick={() => {
-                                      setSelectedInvoice(inv);
-                                      setAmountPaid(inv.amountDue.toString());
-                                      setIsPaymentModalOpen(true);
-                                    }}
-                                    className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 text-emerald-700 px-3 py-1.5 text-xs font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
-                                  >
-                                    <Money weight="bold" size={14} /> Terima Pembayaran
-                                  </button>
-                                )}
+                                <div className="flex items-center justify-end gap-1.5">
+                                  {inv.status === "Draft" && (
+                                    <button
+                                      onClick={() => handlePublishInvoice(inv.id)}
+                                      disabled={submitting}
+                                      className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 text-blue-700 px-3 py-1.5 text-xs font-bold hover:bg-blue-600 hover:text-white transition-all shadow-sm whitespace-nowrap"
+                                    >
+                                      <Note weight="bold" size={14} /> Terbitkan Tagihan
+                                    </button>
+                                  )}
+                                  
+                                  {inv.status === "Unpaid" && (
+                                    <>
+                                      <button
+                                        onClick={() => handleDownloadPDF(inv.id, "invoice")}
+                                        className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-700 px-3 py-1.5 text-xs font-bold hover:bg-zinc-50 hover:text-blue-600 transition-all shadow-sm whitespace-nowrap"
+                                      >
+                                        <FilePdf weight="fill" size={14} className="text-rose-500" /> Cetak Invoice
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          setSelectedInvoice(inv);
+                                          setAmountPaid(inv.amountDue.toString());
+                                          setIsPaymentModalOpen(true);
+                                        }}
+                                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 text-emerald-700 px-3 py-1.5 text-xs font-bold hover:bg-emerald-600 hover:text-white transition-all shadow-sm whitespace-nowrap"
+                                      >
+                                        <Money weight="bold" size={14} /> Terima Pembayaran
+                                      </button>
+                                    </>
+                                  )}
+
+                                  {inv.status === "Paid" && (
+                                    <button
+                                      onClick={() => handleDownloadPDF(inv.id, "receipt")}
+                                      className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 px-3 py-1.5 text-xs font-bold hover:bg-emerald-100 hover:text-emerald-800 transition-all shadow-sm whitespace-nowrap"
+                                    >
+                                      <FilePdf weight="fill" size={14} className="text-rose-500" /> Unduh Kuitansi
+                                    </button>
+                                  )}
+                                </div>
                               </td>
                             </tr>
                           );

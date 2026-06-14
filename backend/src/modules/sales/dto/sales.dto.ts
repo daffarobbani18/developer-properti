@@ -30,7 +30,9 @@ export const createBookingDto = z.object({
   body: z.object({
     leadId: z.string().uuid("leadId harus berupa UUID"),
     unitId: z.string().uuid("unitId harus berupa UUID"),
-    bookingFee: z.number().positive("Booking fee harus lebih dari 0"),
+    bookingFee: z.number().positive("Booking fee harus lebih dari 0").optional(),
     paymentMethod: z.string().min(1, "Metode pembayaran wajib diisi"),
+    salesNotes: z.string().optional(),
+    termins: z.array(z.any()).optional(),
   }),
 });

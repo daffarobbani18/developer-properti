@@ -47,20 +47,45 @@ export class ReportingService {
       }
     }
 
-    const [totalRevenue, totalExpense, pendingInvoices] = await Promise.all([
+    const [totalRevenue, totalExpense, pendingInvoices, kprBookings] = await Promise.all([
       prisma.payment.aggregate({ where: paymentWhere, _sum: { amountPaid: true } }),
       prisma.expense.aggregate({ where: expenseWhere, _sum: { amount: true } }),
       prisma.invoice.aggregate({ where: invoiceWhere, _sum: { amountDue: true } }),
+      prisma.booking.findMany({
+        where: {
+          paymentMethod: { contains: "KPR" },
+          status: { not: "Ditolak" }
+        },
+        include: {
+          unit: true,
+          invoices: true,
+          kprApplication: true
+        }
+      })
     ]);
 
     const revenue = totalRevenue._sum.amountPaid || 0;
     const expense = totalExpense._sum.amount || 0;
+
+    let piutangKpr = 0;
+    kprBookings.forEach(b => {
+      // Jika KPR sudah dicairkan (Selesai Akad / Pencairan Selesai dsb) idealnya ada status khusus.
+      // Untuk saat ini asumsikan KPR yang belum Selesai Akad = piutang KPR.
+      // Nominal KPR = Harga Jual - Total Tagihan (DP)
+      const totalInvoices = b.invoices.reduce((sum, inv) => sum + inv.amountDue, 0);
+      const expectedKpr = b.unit.totalPrice - totalInvoices;
+      if (expectedKpr > 0 && b.kprApplication?.status !== "Selesai Akad") {
+        piutangKpr += expectedKpr;
+      }
+    });
 
     return {
       totalRevenue: revenue,
       totalExpense: expense,
       cashflow: revenue - expense,
       outstandingInvoices: pendingInvoices._sum.amountDue || 0,
+      piutangDeveloper: pendingInvoices._sum.amountDue || 0,
+      piutangKpr: piutangKpr,
     };
   }
 

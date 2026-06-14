@@ -94,7 +94,7 @@ export class InventoryService {
     if (Math.abs(totalPersentase - 100) > 0.001) {
       throw new Error("Total bobot persentase milestone harus tepat 100.");
     }
-    return await prisma.propertyType.update({
+    const updatedPropertyType = await prisma.propertyType.update({
       where: { id },
       data: {
         ...(data.projectId && { projectId: data.projectId }),
@@ -120,6 +120,32 @@ export class InventoryService {
         }),
       },
     });
+
+    // Sinkronisasi harga pada unit yang masih "Tersedia" jika basePrice berubah
+    if (data.basePrice !== undefined) {
+      const availableUnits = await prisma.unit.findMany({
+        where: {
+          propertyTypeId: id,
+          statusPenjualan: "Tersedia"
+        }
+      });
+
+      if (availableUnits.length > 0) {
+        const updatePromises = availableUnits.map(unit => {
+          const newTotalPrice = data.basePrice! + unit.priceMarkup;
+          return prisma.unit.update({
+            where: { id: unit.id },
+            data: {
+              totalPrice: newTotalPrice,
+              price: newTotalPrice
+            }
+          });
+        });
+        await Promise.all(updatePromises);
+      }
+    }
+
+    return updatedPropertyType;
   }
 
   /**

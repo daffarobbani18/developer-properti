@@ -31,13 +31,18 @@ export default function KavlingUnitPage() {
   const [submitting, setSubmitting] = useState(false);
   const [activeKprSetting, setActiveKprSetting] = useState<any>(null);
   const [bookingForm, setBookingForm] = useState<{
-    leadId: string, bookingFee: number, paymentMethod: string, salesNotes: string, termins: any[]
+    leadId: string, paymentMethod: string, salesNotes: string, termins: any[]
   }>({
     leadId: "",
-    bookingFee: 0,
     paymentMethod: "KPR Subsidi",
     salesNotes: "",
-    termins: []
+    termins: [{
+      nominal: 0,
+      triggerType: "DATE",
+      dueDate: new Date().toISOString().split("T")[0],
+      isLocked: true,
+      invoiceType: "Booking Fee (Tanda Jadi)"
+    }]
   });
 
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
@@ -171,10 +176,15 @@ export default function KavlingUnitPage() {
     setModalState("detail");
     setBookingForm({
       leadId: "",
-      bookingFee: 0,
       paymentMethod: "KPR Subsidi",
       salesNotes: "",
-      termins: []
+      termins: [{
+        nominal: 0,
+        triggerType: "DATE",
+        dueDate: new Date().toISOString().split("T")[0],
+        isLocked: true,
+        invoiceType: "Booking Fee (Tanda Jadi)"
+      }]
     });
   };
 
@@ -185,22 +195,21 @@ export default function KavlingUnitPage() {
     return 0;
   };
 
-  const getSisaTagihan = () => {
+  const getTotalTagihan = () => {
     if (!selectedUnit) return 0;
-    const tagihanAwal = bookingForm.paymentMethod.includes("KPR") ? (selectedUnit.price - getPlafonBank()) : selectedUnit.price;
-    return tagihanAwal - (bookingForm.bookingFee || 0);
+    return bookingForm.paymentMethod.includes("KPR") ? (selectedUnit.price - getPlafonBank()) : selectedUnit.price;
   };
 
   const handleBookingSubmit = async () => {
-    if (!bookingForm.leadId || !bookingForm.bookingFee) {
-      showToast("Pilih pelanggan dan masukkan booking fee", "error");
+    if (!bookingForm.leadId || bookingForm.termins.length === 0 || bookingForm.termins[0].nominal <= 0) {
+      showToast("Pilih pelanggan dan pastikan nominal Booking Fee di baris pertama terisi", "error");
       return;
     }
 
-    const sisaTagihan = getSisaTagihan();
+    const totalTagihan = getTotalTagihan();
     const totalTermin = bookingForm.termins.reduce((sum, t) => sum + Number(t.nominal), 0);
-    if (bookingForm.termins.length > 0 && totalTermin !== sisaTagihan) {
-      showToast(`Total Termin (${formatRupiah(totalTermin)}) tidak sama dengan Sisa Tagihan (${formatRupiah(sisaTagihan)})!`, "error");
+    if (totalTermin !== totalTagihan) {
+      showToast(`Total Termin (${formatRupiah(totalTermin)}) harus sama persis dengan Total Tagihan (${formatRupiah(totalTagihan)})!`, "error");
       return;
     }
 
@@ -216,7 +225,6 @@ export default function KavlingUnitPage() {
       const payload = {
         leadId: bookingForm.leadId,
         unitId: selectedUnit.id,
-        bookingFee: Number(bookingForm.bookingFee),
         paymentMethod: bookingForm.paymentMethod,
         salesNotes: bookingForm.salesNotes,
         termins: bookingForm.termins
@@ -407,8 +415,8 @@ export default function KavlingUnitPage() {
 
       {/* Booking Modal */}
       {selectedUnit && mounted && createPortal(
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg animate-in zoom-in-95 rounded-3xl bg-white shadow-2xl duration-200 overflow-hidden">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-zinc-950/60 p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-3xl my-8 animate-in zoom-in-95 rounded-3xl bg-white shadow-2xl duration-200 overflow-hidden flex flex-col max-h-[90vh]">
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-100 bg-zinc-50/50">
               <div>
@@ -423,7 +431,7 @@ export default function KavlingUnitPage() {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6">
+            <div className="p-6 overflow-y-auto custom-scrollbar">
               {modalState === "booked_info" ? (
                 <div className="space-y-6">
                   <div className="rounded-2xl border border-amber-100 bg-amber-50/50 p-5 space-y-4 shadow-sm">
@@ -524,9 +532,9 @@ export default function KavlingUnitPage() {
                     </div>
                   </div>
 
-                  {/* Bagian B: Lead & Booking Fee */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2">
+                  {/* Bagian B: Lead & Kalkulasi Sisa */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="sm:col-span-1">
                       <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-zinc-600">Pilih Pelanggan <span className="text-rose-500">*</span></label>
                       <select 
                         value={bookingForm.leadId} 
@@ -540,26 +548,10 @@ export default function KavlingUnitPage() {
                       </select>
                     </div>
 
-                    <div>
-                      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-zinc-600">Booking Fee <span className="text-rose-500">*</span></label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">Rp</span>
-                        <input
-                          type="text"
-                          value={bookingForm.bookingFee ? new Intl.NumberFormat('id-ID').format(bookingForm.bookingFee) : ""}
-                          onChange={(e) => {
-                            const raw = Number(e.target.value.replace(/\D/g, ""));
-                            setBookingForm({ ...bookingForm, bookingFee: raw });
-                          }}
-                          className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3 pl-9 pr-3 text-sm font-bold transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col justify-end">
+                    <div className="flex flex-col justify-end sm:col-span-1">
                       <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5">
-                        <span className="block text-[10px] font-bold uppercase text-emerald-600">Sisa Tagihan</span>
-                        <span className="block text-lg font-black text-emerald-700">{formatRupiah(getSisaTagihan())}</span>
+                        <span className="block text-[10px] font-bold uppercase text-emerald-600">Total Tagihan (Termasuk Tanda Jadi)</span>
+                        <span className="block text-lg font-black text-emerald-700">{formatRupiah(getTotalTagihan())}</span>
                       </div>
                     </div>
                   </div>
@@ -586,11 +578,11 @@ export default function KavlingUnitPage() {
                     ) : (
                       <div className="space-y-3">
                         {bookingForm.termins.map((t, idx) => (
-                          <div key={idx} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-zinc-50 p-3 rounded-xl border border-zinc-100">
-                            <div className="w-full sm:w-1/3">
-                              <label className="text-[10px] font-bold text-zinc-500 uppercase block mb-1">Nominal</label>
+                          <div key={idx} className="flex flex-col md:flex-row gap-4 items-start md:items-end bg-zinc-50/80 p-4 rounded-xl border border-zinc-200">
+                            <div className="w-full md:w-1/3">
+                              <label className="text-[10px] font-bold text-zinc-500 uppercase block mb-1.5">Nominal</label>
                               <div className="relative">
-                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">Rp</span>
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">Rp</span>
                                 <input 
                                   type="text"
                                   value={t.nominal ? new Intl.NumberFormat('id-ID').format(t.nominal) : ""}
@@ -600,27 +592,33 @@ export default function KavlingUnitPage() {
                                     newTermins[idx].nominal = raw;
                                     setBookingForm({ ...bookingForm, termins: newTermins });
                                   }}
-                                  className="w-full rounded-md border border-zinc-200 py-1.5 pl-8 pr-2 text-xs font-bold"
+                                  className="w-full rounded-lg border border-zinc-300 py-2.5 pl-9 pr-3 text-sm font-bold transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                                 />
                               </div>
                             </div>
-                            <div className="w-full sm:w-1/3">
-                              <label className="text-[10px] font-bold text-zinc-500 uppercase block mb-1">Metode</label>
-                              <select
-                                value={t.triggerType}
-                                onChange={(e) => {
-                                  const newTermins = [...bookingForm.termins];
-                                  newTermins[idx].triggerType = e.target.value;
-                                  setBookingForm({ ...bookingForm, termins: newTermins });
-                                }}
-                                className="w-full rounded-md border border-zinc-200 py-1.5 px-2 text-xs font-semibold"
-                              >
-                                <option value="DATE">Tanggal</option>
-                                <option value="PROGRESS">Progres Pembangunan</option>
-                              </select>
+                            <div className="w-full md:w-1/3">
+                              <label className="text-[10px] font-bold text-zinc-500 uppercase block mb-1.5">{t.isLocked ? "Nama Tagihan" : "Metode"}</label>
+                              {t.isLocked ? (
+                                <div className="w-full rounded-lg border border-amber-200 bg-amber-50 py-2.5 px-3 text-sm font-semibold text-amber-700 cursor-not-allowed">
+                                  {t.invoiceType}
+                                </div>
+                              ) : (
+                                <select
+                                  value={t.triggerType}
+                                  onChange={(e) => {
+                                    const newTermins = [...bookingForm.termins];
+                                    newTermins[idx].triggerType = e.target.value;
+                                    setBookingForm({ ...bookingForm, termins: newTermins });
+                                  }}
+                                  className="w-full rounded-lg border border-zinc-300 py-2.5 px-3 text-sm font-semibold transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                >
+                                  <option value="DATE">Tanggal</option>
+                                  <option value="PROGRESS">Progres Pembangunan</option>
+                                </select>
+                              )}
                             </div>
-                            <div className="w-full sm:flex-1">
-                              <label className="text-[10px] font-bold text-zinc-500 uppercase block mb-1">Nilai</label>
+                            <div className="w-full md:flex-1">
+                              <label className="text-[10px] font-bold text-zinc-500 uppercase block mb-1.5">Nilai</label>
                               {t.triggerType === "DATE" ? (
                                 <input 
                                   type="date"
@@ -630,7 +628,7 @@ export default function KavlingUnitPage() {
                                     newTermins[idx].dueDate = e.target.value;
                                     setBookingForm({ ...bookingForm, termins: newTermins });
                                   }}
-                                  className="w-full rounded-md border border-zinc-200 py-1.5 px-2 text-xs font-medium"
+                                  className="w-full rounded-lg border border-zinc-300 py-2.5 px-3 text-sm font-medium transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                                 />
                               ) : (
                                 <input 
@@ -642,26 +640,32 @@ export default function KavlingUnitPage() {
                                     newTermins[idx].triggerEvent = e.target.value;
                                     setBookingForm({ ...bookingForm, termins: newTermins });
                                   }}
-                                  className="w-full rounded-md border border-zinc-200 py-1.5 px-2 text-xs font-medium"
+                                  className="w-full rounded-lg border border-zinc-300 py-2.5 px-3 text-sm font-medium transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                                 />
                               )}
                             </div>
-                            <button 
-                              onClick={() => {
-                                const newTermins = bookingForm.termins.filter((_, i) => i !== idx);
-                                setBookingForm({ ...bookingForm, termins: newTermins });
-                              }}
-                              className="mt-4 sm:mt-0 p-1.5 text-rose-400 hover:bg-rose-50 hover:text-rose-600 rounded-md flex-shrink-0"
-                            >
-                              <Trash weight="bold" size={16} />
-                            </button>
+                            {!t.isLocked ? (
+                              <button 
+                                onClick={() => {
+                                  const newTermins = bookingForm.termins.filter((_, i) => i !== idx);
+                                  setBookingForm({ ...bookingForm, termins: newTermins });
+                                }}
+                                className="mt-2 md:mt-0 md:mb-1 w-full md:w-auto flex items-center justify-center p-2.5 text-rose-500 hover:bg-rose-100 hover:text-rose-700 bg-rose-50 rounded-lg transition-colors flex-shrink-0"
+                              >
+                                <Trash weight="bold" size={20} />
+                              </button>
+                            ) : (
+                              <div className="mt-2 md:mt-0 md:mb-1 w-full md:w-auto flex items-center justify-center p-2.5 text-transparent bg-transparent flex-shrink-0 cursor-default pointer-events-none">
+                                <Trash weight="bold" size={20} />
+                              </div>
+                            )}
                           </div>
                         ))}
                         
                         {/* Summary of Termins */}
                         <div className="flex justify-between items-center pt-2 px-1">
                           <span className="text-xs font-medium text-zinc-500">Total Nominal Termin:</span>
-                          <span className={`text-sm font-bold ${bookingForm.termins.reduce((s, t) => s + Number(t.nominal), 0) === getSisaTagihan() ? 'text-emerald-600' : 'text-rose-500'}`}>
+                          <span className={`text-sm font-bold ${bookingForm.termins.reduce((s, t) => s + Number(t.nominal), 0) === getTotalTagihan() ? 'text-emerald-600' : 'text-rose-500'}`}>
                             {formatRupiah(bookingForm.termins.reduce((s, t) => s + Number(t.nominal), 0))}
                           </span>
                         </div>

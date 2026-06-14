@@ -296,10 +296,167 @@ export class FinanceService {
         data: { status: "Paid" },
       });
 
-      return {
-        message: "Pembayaran berhasil, kuitansi untuk invoice telah dibuat",
-        invoice: updatedInvoice
-      };
+      if (updatedInvoice.invoiceType === "Booking Fee (Tanda Jadi)") {
+        const booking = await tx.booking.findFirst({
+          where: { id: updatedInvoice.bookingId },
+        });
+
+        if (booking) {
+          await tx.unit.update({
+            where: { id: booking.unitId },
+            data: { statusPenjualan: "Booked" },
+          });
+        }
+      }
+
+      return updatedInvoice;
+    });
+  }
+
+  static async publishInvoice(invoiceId: string) {
+    const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
+    if (!invoice) throw new Error("Invoice tidak ditemukan");
+    if (invoice.status !== "Draft") throw new Error("Hanya tagihan berstatus Draft yang bisa diterbitkan");
+
+    return await prisma.invoice.update({
+      where: { id: invoiceId },
+      data: { status: "Unpaid" }
+    });
+  }
+
+  static async generateInvoicePDF(invoiceId: string): Promise<string> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const invoice = await prisma.invoice.findUnique({
+          where: { id: invoiceId },
+          include: { booking: { include: { lead: true, unit: true } } }
+        });
+        if (!invoice) throw new Error("Invoice tidak ditemukan");
+
+        const publicDir = path.join(process.cwd(), "public");
+        const uploadsDir = path.join(publicDir, "uploads");
+        const receiptsDir = path.join(uploadsDir, "receipts");
+        
+        if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir);
+        if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
+        if (!fs.existsSync(receiptsDir)) fs.mkdirSync(receiptsDir);
+
+        const fileName = `invoice-${invoice.id}.pdf`;
+        const filePath = path.join(receiptsDir, fileName);
+
+        const doc = new PDFDocument({ margin: 50 });
+        const writeStream = fs.createWriteStream(filePath);
+
+        doc.pipe(writeStream);
+
+        // Header Invoice
+        doc.fontSize(20).text("INVOICE TAGIHAN", { align: "center" });
+        doc.moveDown();
+        
+        doc.fontSize(12).text(`Nomor Tagihan: ${invoice.invoiceNumber}`);
+        doc.text(`Tanggal Terbit: ${new Date().toLocaleDateString("id-ID")}`);
+        doc.text(`Jatuh Tempo: ${invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString("id-ID") : "-"}`);
+        doc.moveDown();
+
+        doc.fontSize(14).text("Ditagihkan Kepada:");
+        doc.fontSize(12).text(`Nama   : ${invoice.booking.lead?.name || "-"}`);
+        doc.text(`No. HP : ${invoice.booking.lead?.phone || "-"}`);
+        doc.moveDown();
+
+        doc.fontSize(14).text("Keterangan Tagihan:");
+        doc.fontSize(12).text(`Tipe Tagihan : ${invoice.invoiceType}`);
+        doc.text(`Unit Kavling : Kawasan ${invoice.booking.unit?.kawasan || "-"} Blok ${invoice.booking.unit?.blok || "-"}/${invoice.booking.unit?.nomor || "-"}`);
+        doc.moveDown();
+
+        doc.fontSize(16).text(`Total Tagihan: Rp ${invoice.amountDue.toLocaleString("id-ID")}`, { underline: true });
+        
+        doc.moveDown(2);
+        doc.fontSize(12).text("Instruksi Pembayaran:");
+        doc.fontSize(10).text("Silakan transfer ke rekening resmi perusahaan berikut:");
+        doc.text("Bank BCA: 1234567890 a.n PT Developer Properti");
+        doc.text("Bank Mandiri: 0987654321 a.n PT Developer Properti");
+        doc.moveDown();
+        doc.fillColor("red").text("PENTING: Jangan melakukan transfer ke rekening pribadi Sales atau staf lainnya demi keamanan transaksi Anda.");
+        doc.fillColor("black");
+        
+        doc.moveDown(2);
+        doc.text("Invoice ini dicetak secara otomatis dan sah tanpa tanda tangan basah.", { align: "center" });
+
+        doc.end();
+
+        writeStream.on("finish", () => {
+          resolve(`/uploads/receipts/${fileName}`);
+        });
+
+        writeStream.on("error", (err) => {
+          reject(err);
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  static async generateInvoiceReceiptPDF(invoiceId: string): Promise<string> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const invoice = await prisma.invoice.findUnique({
+          where: { id: invoiceId },
+          include: { booking: { include: { lead: true, unit: true } } }
+        });
+        if (!invoice) throw new Error("Invoice tidak ditemukan");
+
+        const publicDir = path.join(process.cwd(), "public");
+        const uploadsDir = path.join(publicDir, "uploads");
+        const receiptsDir = path.join(uploadsDir, "receipts");
+        
+        if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir);
+        if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
+        if (!fs.existsSync(receiptsDir)) fs.mkdirSync(receiptsDir);
+
+        const fileName = `receipt-inv-${invoice.id}.pdf`;
+        const filePath = path.join(receiptsDir, fileName);
+
+        const doc = new PDFDocument({ margin: 50 });
+        const writeStream = fs.createWriteStream(filePath);
+
+        doc.pipe(writeStream);
+
+        // Header Kuitansi
+        doc.fontSize(20).text("KUITANSI PEMBAYARAN", { align: "center" });
+        doc.moveDown();
+        
+        doc.fontSize(12).text(`Tanggal Terbit: ${new Date().toLocaleDateString("id-ID")}`);
+        doc.text(`Nomor Tagihan: ${invoice.invoiceNumber}`);
+        doc.moveDown();
+
+        doc.fontSize(14).text("Telah Terima Dari:");
+        doc.fontSize(12).text(`Nama   : ${invoice.booking.lead?.name || "-"}`);
+        doc.moveDown();
+
+        doc.fontSize(14).text("Untuk Pembayaran:");
+        doc.fontSize(12).text(`Tipe Tagihan : ${invoice.invoiceType}`);
+        doc.text(`Unit Kavling : Kawasan ${invoice.booking.unit?.kawasan || "-"} Blok ${invoice.booking.unit?.blok || "-"}/${invoice.booking.unit?.nomor || "-"}`);
+        doc.moveDown();
+
+        doc.fontSize(16).text(`Total Dibayar: Rp ${invoice.amountDue.toLocaleString("id-ID")}`, { underline: true });
+        
+        doc.moveDown(3);
+        doc.fontSize(10).text("Terima kasih atas kepercayaan Anda kepada kami.", { align: "center" });
+        doc.text("Kuitansi ini dicetak secara otomatis dan sah tanpa tanda tangan basah.", { align: "center" });
+
+        doc.end();
+
+        writeStream.on("finish", () => {
+          resolve(`/uploads/receipts/${fileName}`);
+        });
+
+        writeStream.on("error", (err) => {
+          reject(err);
+        });
+      } catch (error) {
+        reject(error);
+      }
     });
   }
 

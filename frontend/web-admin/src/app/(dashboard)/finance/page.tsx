@@ -21,6 +21,8 @@ export default function FinanceAdminPage() {
   const [loading, setLoading] = useState(true);
   const [financeData, setFinanceData] = useState<any>({
     totalRevenue: 0,
+    piutangDeveloper: 0,
+    piutangKpr: 0,
     pendingBookings: [],
     invoices: []
   });
@@ -52,7 +54,9 @@ export default function FinanceAdminPage() {
           const invoicesData = await invoicesRes.json();
 
           setFinanceData({
-            totalRevenue: dashboardData?.financialStats?.totalRevenue || 0,
+            totalRevenue: dashboardData?.data?.financialStats?.totalRevenue || dashboardData?.financialStats?.totalRevenue || 0,
+            piutangDeveloper: dashboardData?.data?.financialStats?.piutangDeveloper || dashboardData?.financialStats?.piutangDeveloper || 0,
+            piutangKpr: dashboardData?.data?.financialStats?.piutangKpr || dashboardData?.financialStats?.piutangKpr || 0,
             pendingBookings: pendingData?.data || [],
             invoices: invoicesData?.data || []
           });
@@ -78,6 +82,8 @@ export default function FinanceAdminPage() {
 
   // --- Computed Stats ---
   const totalRevenue = financeData.totalRevenue;
+  const piutangDeveloper = financeData.piutangDeveloper;
+  const piutangKpr = financeData.piutangKpr;
   const pendingBookings = financeData.pendingBookings;
   const invoices = financeData.invoices;
 
@@ -87,10 +93,10 @@ export default function FinanceAdminPage() {
   const totalOverdueAmount = overdueInvoices.reduce((sum: number, inv: any) => sum + (inv.amountDue || 0), 0);
 
   const financeStats = [
-    { label: "Total Terkumpul", value: formatCurrencyCompact(totalRevenue || 4800000000), note: "Kas Bersih diverifikasi", trend: "+12%", trendUp: true, icon: CurrencyDollar, bg: "bg-emerald-50", color: "text-emerald-500" },
-    { label: "Pending Verifikasi", value: String(pendingBookings.length), note: `${formatCurrencyCompact(totalPendingAmount)} pending`, trend: `${pendingBookings.length} baru`, trendUp: false, icon: Clock, bg: "bg-amber-50", color: "text-amber-500" },
+    { label: "Total Kas Masuk", value: formatCurrencyCompact(totalRevenue), note: "Kas Bersih diverifikasi", trend: "Liquid", trendUp: true, icon: CurrencyDollar, bg: "bg-emerald-50", color: "text-emerald-500" },
+    { label: "Piutang Customer", value: formatCurrencyCompact(piutangDeveloper), note: "Sisa DP & Cicilan Bertahap", trend: "Ke Developer", trendUp: true, icon: Clock, bg: "bg-amber-50", color: "text-amber-500" },
+    { label: "Piutang Pencairan KPR", value: formatCurrencyCompact(piutangKpr), note: "Plafon Bank Menunggu Cair", trend: "Ke Bank", trendUp: true, icon: TrendUp, bg: "bg-blue-50", color: "text-blue-500" },
     { label: "Tagihan Jatuh Tempo", value: String(overdueInvoices.length), note: `${formatCurrencyCompact(totalOverdueAmount)} perlu ditagih`, trend: overdueInvoices.length > 0 ? "Awas" : "Aman", trendUp: overdueInvoices.length === 0, icon: Warning, bg: "bg-rose-50", color: "text-rose-500" },
-    { label: "Kesehatan Kas", value: totalRevenue > totalOverdueAmount ? "Baik" : "Waspada", note: "Likuiditas dalam kondisi aman", trend: "Stabil", trendUp: true, icon: TrendUp, bg: "bg-blue-50", color: "text-blue-500" },
   ];
 
   const actionCards = [

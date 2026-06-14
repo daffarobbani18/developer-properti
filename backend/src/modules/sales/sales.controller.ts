@@ -84,15 +84,15 @@ export class SalesController {
       const { leadId, unitId, bookingFee, paymentMethod, salesNotes, termins } = req.body;
       const salesId = (req as any).user.id;
 
-      if (!leadId || !unitId || !bookingFee || !paymentMethod) {
-        res.status(400).json({ error: "Semua parameter (leadId, unitId, bookingFee, paymentMethod) wajib diisi" });
+      if (!leadId || !unitId || !paymentMethod) {
+        res.status(400).json({ error: "Semua parameter (leadId, unitId, paymentMethod) wajib diisi" });
         return;
       }
 
       const booking = await SalesService.createBooking({
         leadId: String(leadId),
         unitId: String(unitId),
-        bookingFee: Number(bookingFee),
+        bookingFee: bookingFee ? Number(bookingFee) : undefined,
         paymentMethod: String(paymentMethod),
         salesNotes: salesNotes ? String(salesNotes) : undefined,
         termins: termins && Array.isArray(termins) ? termins : [],

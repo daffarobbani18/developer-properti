@@ -121,6 +121,45 @@ export class FinanceController {
     }
   }
 
+  static async publishInvoice(req: Request, res: Response): Promise<void> {
+    try {
+      const { invoiceId } = req.params;
+      const result = await FinanceService.publishInvoice(String(invoiceId));
+      res.status(200).json({
+        message: "Tagihan berhasil diterbitkan",
+        data: result,
+      });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  static async downloadInvoicePDF(req: Request, res: Response): Promise<void> {
+    try {
+      const { invoiceId } = req.params;
+      const fileUrl = await FinanceService.generateInvoicePDF(String(invoiceId));
+      res.status(200).json({
+        message: "PDF Invoice berhasil di-generate",
+        url: fileUrl,
+      });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  static async downloadReceiptPDF(req: Request, res: Response): Promise<void> {
+    try {
+      const { invoiceId } = req.params;
+      const fileUrl = await FinanceService.generateInvoiceReceiptPDF(String(invoiceId));
+      res.status(200).json({
+        message: "PDF Kuitansi berhasil di-generate",
+        url: fileUrl,
+      });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
   static async getExpenses(req: Request, res: Response): Promise<void> {
     try {
       const expenses = await FinanceService.getExpenses();
