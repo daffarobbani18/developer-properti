@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import {
   Badge,
@@ -27,6 +27,7 @@ type ApprovalItem = {
 
 export function ApprovalScreen(): React.JSX.Element {
   const { auth } = useAuth();
+  const navigation = useNavigation();
   const [pendingApprovals, setPendingApprovals] = useState<ApprovalItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -120,7 +121,17 @@ export function ApprovalScreen(): React.JSX.Element {
   );
 
   return (
-    <ScreenShell title="Approval" subtitle="Review dan setujui perubahan milestone">
+    <ScreenShell 
+      title="Approval" 
+      subtitle="Review dan setujui perubahan milestone"
+      onBack={() => {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          (navigation as any).navigate("Dashboard");
+        }
+      }}
+    >
       <Card>
         <SectionTitle title="Statistik Approval" caption="Ringkasan antrian approval" />
         <View style={styles.statsGrid}>

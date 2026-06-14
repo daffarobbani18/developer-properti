@@ -31,7 +31,7 @@ import {
   Wrench,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
-import { ROLE_HOME, USER_ROLES, readRoleFromAuthPayload, type UserRole } from "@/lib/access";
+import { ROLE_HOME, USER_ROLES, readAuthPayload, type UserRole, type AuthPayload } from "@/lib/access";
 
 type RoleWithGuest = UserRole | "guest";
 
@@ -148,17 +148,24 @@ const menuItems: MenuGroup[] = [
           { label: "Masa Retensi & Komplain", href: "/legal/retensi", icon: Wrench, roles: ["legal"] },
         ],
       },
+      {
+        label: "Manajemen Karyawan",
+        href: "/admin/users",
+        icon: UsersThree,
+        roles: ["admin"],
+      },
     ],
   },
 ];
 
-const roleLabels: Record<UserRole, string> = {
+const roleLabels: Record<string, string> = {
   admin: "Administrator",
   inventory: "Admin Inventory",
   sales: "Sales & Marketing",
   finance: "Finance & Accounting",
   legal: "Legal & Perizinan",
   supervisor: "Supervisor",
+  owner: "Owner / Director"
 };
 
 interface SidebarProps {
@@ -168,30 +175,40 @@ interface SidebarProps {
 export default function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
   const [currentRole, setCurrentRole] = useState<RoleWithGuest>("guest");
+  const [isOwner, setIsOwner] = useState(false);
+  const [allowedMenus, setAllowedMenus] = useState<string[]>([]);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const [pendingTagihanCount, setPendingTagihanCount] = useState(0);
   const [pendingKprCount, setPendingKprCount] = useState(0);
   const [pendingExpenseCount, setPendingExpenseCount] = useState(0);
 
   useEffect(() => {
-    const readStoredRole = (): RoleWithGuest => {
+    const readStoredPayload = (): AuthPayload | null => {
       try {
         const localAuth = localStorage.getItem("simdp_auth");
         const sessionAuth = sessionStorage.getItem("simdp_auth");
         const authRaw = localAuth ?? sessionAuth;
 
         if (!authRaw) {
-          return "guest";
+          return null;
         }
 
-        const role = readRoleFromAuthPayload(authRaw);
-        return role ?? "guest";
+        return readAuthPayload(authRaw);
       } catch {
-        return "guest";
+        return null;
       }
     };
 
-    setCurrentRole(readStoredRole());
+    const payload = readStoredPayload();
+    if (payload) {
+      setCurrentRole(payload.role);
+      setIsOwner(payload.isOwner || false);
+      setAllowedMenus(payload.allowedMenus || []);
+    } else {
+      setCurrentRole("guest");
+      setIsOwner(false);
+      setAllowedMenus([]);
+    }
   }, []);
 
   useEffect(() => {
@@ -219,11 +236,23 @@ export default function Sidebar({ onClose }: SidebarProps) {
     return menuItems
       .map((group) => {
         const items = group.items
-          .filter((item) => item.roles.includes(currentRole))
+          .filter((item) => {
+            if (isOwner) return true;
+            if (allowedMenus && allowedMenus.length > 0) {
+              return allowedMenus.includes(item.href) || (item.children && item.children.some(c => allowedMenus.includes(c.href))) || item.label === "Dashboard";
+            }
+            return item.roles.includes(currentRole);
+          })
           .map((item) => ({
             ...item,
-            href: item.label === "Dashboard" ? ROLE_HOME[currentRole] : item.href,
-            children: item.children?.filter((child) => child.roles.includes(currentRole)),
+            href: item.label === "Dashboard" ? ROLE_HOME[currentRole] || "/" : item.href,
+            children: item.children?.filter((child) => {
+              if (isOwner) return true;
+              if (allowedMenus && allowedMenus.length > 0) {
+                return allowedMenus.includes(child.href);
+              }
+              return child.roles.includes(currentRole);
+            }),
           }))
           .filter((item) => !item.children || item.children.length > 0 || item.label === "Dashboard");
 
@@ -232,7 +261,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           items,
         };
       }) as MenuGroup[];
-  }, [currentRole]);
+  }, [currentRole, isOwner, allowedMenus]);
 
   useEffect(() => {
     let isMounted = true;

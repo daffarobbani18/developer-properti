@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native";
-import { BottomTabNavigationOptions, createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Ionicons } from "@expo/vector-icons";
 
 import { useAuth } from "../hooks/useAuth";
 import type { FieldStackParamList, CustomerStackParamList, PengawasStackParamList } from "./types";
@@ -41,6 +39,9 @@ import { MilestoneUpdateScreen } from "../screens/field-app/MilestoneUpdateScree
 import { UnitDetailScreen } from "../screens/field-app/UnitDetailScreen";
 import { PhotoCaptureScreen } from "../screens/field-app/PhotoCaptureScreen";
 import { IssueFormScreen } from "../screens/field-app/IssueFormScreen";
+import { InspectionUnitsScreen } from "../screens/pengawas/InspectionUnitsScreen";
+import { InspectionDetailScreen } from "../screens/pengawas/InspectionDetailScreen";
+import { AddDefectScreen } from "../screens/pengawas/AddDefectScreen";
 import { MobilePushRouteName } from "../services/notifications";
 
 const FIELD_ROUTES = {
@@ -51,48 +52,21 @@ const FIELD_ROUTES = {
   NOTIFIKASI: 'FieldNotifikasi',
 } as const;
 
-type TabIconName = React.ComponentProps<typeof Ionicons>["name"];
-
-const FieldTabs = createBottomTabNavigator();
-const CustomerTabs = createBottomTabNavigator();
-const ProjectManagerTabs = createBottomTabNavigator();
 const FieldStack = createNativeStackNavigator<FieldStackParamList>();
 const CustomerStack = createNativeStackNavigator<CustomerStackParamList>();
 const ProjectManagerStack = createNativeStackNavigator<PengawasStackParamList>();
 
-type FieldRouteName = "Beranda" | "Milestone" | "Unit" | "Kendala" | "Notifikasi" | "UnitDetail" | "UpdateHistory" | "ProjectSelect" | "UnitSelect" | "MilestoneList" | "MilestoneUpdate" | "UnitDetailField" | "PhotoCapture" | "IssueForm" | "UpdateHistoryField" | "IssueHistory" | "Attendance" | "AttendanceHistory" | "ProjectDetail" | "FieldUnits" | "FieldMilestones";
+type FieldRouteName = "Beranda" | "FieldMilestone" | "FieldUnit" | "FieldKendala" | "FieldNotifikasi" | "UnitDetail" | "UpdateHistory" | "ProjectSelect" | "UnitSelect" | "MilestoneList" | "MilestoneUpdate" | "UnitDetailField" | "PhotoCapture" | "IssueForm" | "UpdateHistoryField" | "IssueHistory" | "Attendance" | "AttendanceHistory" | "ProjectDetail" | "FieldUnits" | "FieldMilestones" | "InspectionUnits" | "InspectionDetail" | "AddDefect";
 
 type CustomerRouteName = "Beranda" | "Progres" | "Tagihan" | "Dokumen" | "Bantuan" | "PhotoGallery" | "TicketDetail" | "FaqContact";
 
-type ProjectManagerRouteName = "Dashboard" | "Approval" | "Team" | "Laporan" | "Notifikasi" | "IssueHistory" | "AttendanceHistory" | "TeamAttendance" | "FieldUnits" | "FieldUnitDetail" | "FieldMilestones" | "MilestoneList" | "FieldIssues" | "FieldDailyReport" | "FieldAttendance" | "ProjectDetail";
+type ProjectManagerRouteName = "Dashboard" | "Approval" | "Team" | "Laporan" | "Notifikasi" | "IssueHistory" | "AttendanceHistory" | "TeamAttendance" | "FieldUnits" | "FieldUnitDetail" | "FieldMilestones" | "MilestoneList" | "FieldIssues" | "FieldDailyReport" | "FieldAttendance" | "ProjectDetail" | "InspectionUnits" | "InspectionDetail" | "AddDefect";
 
-const FIELD_ROUTE_NAMES: FieldRouteName[] = ["Beranda", "Milestone", "Unit", "Kendala", "Notifikasi", "UnitDetail", "UpdateHistory", "ProjectSelect", "UnitSelect", "MilestoneList", "MilestoneUpdate", "UnitDetailField", "PhotoCapture", "IssueForm", "UpdateHistoryField", "IssueHistory", "Attendance", "AttendanceHistory", "ProjectDetail", "FieldUnits", "FieldMilestones"];
+const FIELD_ROUTE_NAMES: FieldRouteName[] = ["Beranda", "FieldMilestone", "FieldUnit", "FieldKendala", "FieldNotifikasi", "UnitDetail", "UpdateHistory", "ProjectSelect", "UnitSelect", "MilestoneList", "MilestoneUpdate", "UnitDetailField", "PhotoCapture", "IssueForm", "UpdateHistoryField", "IssueHistory", "Attendance", "AttendanceHistory", "ProjectDetail", "FieldUnits", "FieldMilestones", "InspectionUnits", "InspectionDetail", "AddDefect"];
 
 const CUSTOMER_ROUTE_NAMES: CustomerRouteName[] = ["Beranda", "Progres", "Tagihan", "Dokumen", "Bantuan", "PhotoGallery", "TicketDetail", "FaqContact"];
 
-const PROJECT_MANAGER_ROUTE_NAMES: ProjectManagerRouteName[] = ["Dashboard", "Approval", "Team", "Laporan", "Notifikasi", "IssueHistory", "AttendanceHistory", "TeamAttendance", "FieldUnits", "FieldUnitDetail", "FieldMilestones", "MilestoneList", "FieldIssues", "FieldDailyReport", "FieldAttendance", "ProjectDetail"];
-
-function getCommonTabOptions(): BottomTabNavigationOptions {
-   return {
-     headerShown: false,
-     tabBarHideOnKeyboard: true,
-     tabBarActiveTintColor: "#0f172a",
-     tabBarInactiveTintColor: "#94a3b8",
-     tabBarLabelStyle: styles.tabLabel,
-     tabBarItemStyle: styles.tabItem,
-     tabBarStyle: styles.tabBar,
-   };
- }
-
-function tabOptions(activeIcon: TabIconName, inactiveIcon: TabIconName): BottomTabNavigationOptions {
-  return {
-    tabBarIcon: ({ focused, color, size }) => (
-      <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
-        <Ionicons name={focused ? activeIcon : inactiveIcon} color={color} size={focused ? size + 1 : size} />
-      </View>
-    ),
-  };
-}
+const PROJECT_MANAGER_ROUTE_NAMES: ProjectManagerRouteName[] = ["Dashboard", "Approval", "Team", "Laporan", "Notifikasi", "IssueHistory", "AttendanceHistory", "TeamAttendance", "FieldUnits", "FieldUnitDetail", "FieldMilestones", "MilestoneList", "FieldIssues", "FieldDailyReport", "FieldAttendance", "ProjectDetail", "InspectionUnits", "InspectionDetail", "AddDefect"];
 
 function BootSplash(): React.JSX.Element {
   return (
@@ -115,247 +89,77 @@ function isProjectManagerRouteName(value: string | null | undefined): value is P
   return Boolean(value && PROJECT_MANAGER_ROUTE_NAMES.includes(value as ProjectManagerRouteName));
 }
 
-function FieldTabsNavigator(): React.JSX.Element {
+function FieldNavigator(): React.JSX.Element {
    return (
-      <FieldStack.Navigator screenOptions={{ headerShown: false }}>
-        <FieldStack.Screen name="FieldTabs">
-          {() => (
-            <FieldTabs.Navigator
-              id="field-tabs"
-              screenOptions={getCommonTabOptions()}
-            >
-              <FieldTabs.Screen
-                name="Beranda"
-                options={tabOptions("home", "home-outline")}
-              >
-                {() => <FieldHomeScreen />}
-              </FieldTabs.Screen>
-              <FieldTabs.Screen
-                name={FIELD_ROUTES.MILESTONE}
-                component={MilestoneListScreen}
-                options={tabOptions("checkbox", "checkbox-outline")}
-              />
-              <FieldTabs.Screen
-                name={FIELD_ROUTES.UNIT}
-                component={UnitSelectScreen}
-                options={tabOptions("business", "business-outline")}
-              />
-              <FieldTabs.Screen
-                name={FIELD_ROUTES.KENDALA}
-                component={IssueFormScreen}
-                options={tabOptions("warning", "warning-outline")}
-              />
-              <FieldTabs.Screen
-                name={FIELD_ROUTES.NOTIFIKASI}
-                component={FieldNotificationsScreen}
-                options={tabOptions("notifications", "notifications-outline")}
-              />
-            </FieldTabs.Navigator>
-          )}
-        </FieldStack.Screen>
-        <FieldStack.Screen
-          name="UnitDetail"
-          component={FieldUnitDetailScreen}
-          options={{ title: "Detail Unit" }}
-        />
-        <FieldStack.Screen
-          name="UpdateHistory"
-          component={FieldUpdateHistoryScreen}
-          options={{ title: "Riwayat Update" }}
-        />
-        <FieldStack.Screen
-          name="ProjectSelect"
-          component={ProjectSelectScreen}
-          options={{ title: "Pilih Proyek" }}
-        />
-        <FieldStack.Screen
-          name="UnitSelect"
-          component={UnitSelectScreen}
-          options={{ title: "Pilih Unit" }}
-        />
-        <FieldStack.Screen
-          name="MilestoneList"
-          component={MilestoneListScreen}
-          options={{ title: "Daftar Milestone" }}
-        />
-        <FieldStack.Screen
-          name="MilestoneUpdate"
-          component={MilestoneUpdateScreen}
-          options={{ title: "Update Milestone" }}
-        />
-        <FieldStack.Screen
-          name="UnitDetailField"
-          component={UnitDetailScreen}
-          options={{ title: "Detail Unit" }}
-        />
-        <FieldStack.Screen
-          name="PhotoCapture"
-          component={PhotoCaptureScreen}
-          options={{ title: "Ambil Foto" }}
-        />
-        <FieldStack.Screen
-          name="IssueForm"
-          component={IssueFormScreen}
-          options={{ title: "Laporan Kendala" }}
-        />
-        <FieldStack.Screen
-          name="UpdateHistoryField"
-          component={UpdateHistoryScreen}
-          options={{ title: "Riwayat Update" }}
-        />
-        <FieldStack.Screen
-          name="IssueHistory"
-          component={IssueHistoryScreen}
-          options={{ title: "Riwayat Kendala" }}
-        />
-        <FieldStack.Screen
-          name="Attendance"
-          component={FieldAttendanceScreen}
-          options={{ title: "Absensi" }}
-        />
-        <FieldStack.Screen
-          name="AttendanceHistory"
-          component={AttendanceHistoryScreen}
-          options={{ title: "Riwayat Absensi" }}
-        />
-        <FieldStack.Screen
-          name="ProjectDetail"
-          component={ProjectDetailScreen}
-          options={{ title: "Detail Proyek", headerShown: true, headerBackTitle: "Kembali" }}
-        />
-        <FieldStack.Screen
-          name="FieldUnits"
-          component={FieldUnitsScreen}
-          options={{ title: "Daftar Unit" }}
-        />
-        <FieldStack.Screen
-          name="FieldMilestones"
-          component={FieldMilestonesScreen}
-          options={{ title: "Update Milestone" }}
-        />
+      <FieldStack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Beranda">
+        <FieldStack.Screen name="Beranda" component={FieldHomeScreen} />
+        <FieldStack.Screen name="FieldMilestone" component={MilestoneListScreen} />
+        <FieldStack.Screen name="FieldUnit" component={UnitSelectScreen} />
+        <FieldStack.Screen name="FieldKendala" component={IssueFormScreen} />
+        <FieldStack.Screen name="FieldNotifikasi" component={FieldNotificationsScreen} />
+        <FieldStack.Screen name="UnitDetail" component={FieldUnitDetailScreen} options={{ title: "Detail Unit" }} />
+        <FieldStack.Screen name="UpdateHistory" component={FieldUpdateHistoryScreen} options={{ title: "Riwayat Update" }} />
+        <FieldStack.Screen name="ProjectSelect" component={ProjectSelectScreen} options={{ title: "Pilih Proyek" }} />
+        <FieldStack.Screen name="UnitSelect" component={UnitSelectScreen} options={{ title: "Pilih Unit" }} />
+        <FieldStack.Screen name="MilestoneList" component={MilestoneListScreen} options={{ title: "Daftar Milestone" }} />
+        <FieldStack.Screen name="MilestoneUpdate" component={MilestoneUpdateScreen} options={{ title: "Update Milestone" }} />
+        <FieldStack.Screen name="UnitDetailField" component={UnitDetailScreen} options={{ title: "Detail Unit" }} />
+        <FieldStack.Screen name="PhotoCapture" component={PhotoCaptureScreen} options={{ title: "Ambil Foto" }} />
+        <FieldStack.Screen name="IssueForm" component={IssueFormScreen} options={{ title: "Laporan Kendala" }} />
+        <FieldStack.Screen name="UpdateHistoryField" component={UpdateHistoryScreen} options={{ title: "Riwayat Update" }} />
+        <FieldStack.Screen name="IssueHistory" component={IssueHistoryScreen} options={{ title: "Riwayat Kendala" }} />
+        <FieldStack.Screen name="Attendance" component={FieldAttendanceScreen} options={{ title: "Absensi" }} />
+        <FieldStack.Screen name="AttendanceHistory" component={AttendanceHistoryScreen} options={{ title: "Riwayat Absensi" }} />
+        <FieldStack.Screen name="ProjectDetail" component={ProjectDetailScreen} options={{ title: "Detail Proyek", headerShown: true, headerBackTitle: "Kembali" }} />
+        <FieldStack.Screen name="FieldUnits" component={FieldUnitsScreen} options={{ title: "Daftar Unit" }} />
+        <FieldStack.Screen name="FieldMilestones" component={FieldMilestonesScreen} options={{ title: "Update Milestone" }} />
+        <FieldStack.Screen name="InspectionUnits" component={InspectionUnitsScreen} options={{ title: "Daftar Unit Inspeksi" }} />
+        <FieldStack.Screen name="InspectionDetail" component={InspectionDetailScreen} options={{ title: "Detail Inspeksi" }} />
+        <FieldStack.Screen name="AddDefect" component={AddDefectScreen} options={{ title: "Lapor Komplain" }} />
       </FieldStack.Navigator>
     );
-  }
+}
 
- function CustomerTabsNavigator(): React.JSX.Element {
-    return (
-       <CustomerStack.Navigator screenOptions={{ headerShown: false }}>
-         <CustomerStack.Screen name="CustomerTabs">
-           {() => (
-             <CustomerTabs.Navigator
-               id="customer-tabs"
-               screenOptions={getCommonTabOptions()}
-             >
-               <CustomerTabs.Screen name="Beranda" options={tabOptions("home", "home-outline")}>
-                 {() => <CustomerHomeScreen />}
-               </CustomerTabs.Screen>
-              <CustomerTabs.Screen
-                name="Progres"
-                component={CustomerProgressScreen}
-                options={tabOptions("stats-chart", "stats-chart-outline")}
-              />
-              <CustomerTabs.Screen
-                name="Tagihan"
-                component={CustomerBillingScreen}
-                options={tabOptions("wallet", "wallet-outline")}
-              />
-              <CustomerTabs.Screen
-                name="Dokumen"
-                component={CustomerDocumentsScreen}
-                options={tabOptions("document-text", "document-text-outline")}
-              />
-              <CustomerTabs.Screen
-                name="Bantuan"
-                component={CustomerSupportScreen}
-                options={tabOptions("help-circle", "help-circle-outline")}
-              />
-</CustomerTabs.Navigator>
-           )}
-         </CustomerStack.Screen>
-         <CustomerStack.Screen
-           name="PhotoGallery"
-           component={PhotoGalleryScreen}
-           options={{ title: "Galeri Foto" }}
-         />
-         <CustomerStack.Screen
-           name="TicketDetail"
-           component={TicketDetailScreen}
-           options={{ title: "Detail Tiket" }}
-         />
-         <CustomerStack.Screen
-           name="FaqContact"
-           component={FaqContactScreen}
-           options={{ title: "FAQ & Kontak" }}
-         />
-       </CustomerStack.Navigator>
-     );
-   }
+function CustomerNavigator(): React.JSX.Element {
+  return (
+    <CustomerStack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Beranda">
+      <CustomerStack.Screen name="Beranda" component={CustomerHomeScreen} />
+      <CustomerStack.Screen name="Progres" component={CustomerProgressScreen} />
+      <CustomerStack.Screen name="Tagihan" component={CustomerBillingScreen} />
+      <CustomerStack.Screen name="Dokumen" component={CustomerDocumentsScreen} />
+      <CustomerStack.Screen name="Bantuan" component={CustomerSupportScreen} />
+      <CustomerStack.Screen name="PhotoGallery" component={PhotoGalleryScreen} options={{ title: "Galeri Foto" }} />
+      <CustomerStack.Screen name="TicketDetail" component={TicketDetailScreen} options={{ title: "Detail Tiket" }} />
+      <CustomerStack.Screen name="FaqContact" component={FaqContactScreen} options={{ title: "FAQ & Kontak" }} />
+    </CustomerStack.Navigator>
+  );
+}
 
- function ProjectManagerTabsNavigator(): React.JSX.Element {
-    return (
-       <ProjectManagerStack.Navigator screenOptions={{ headerShown: false }}>
-         <ProjectManagerStack.Screen name="ProjectManagerTabs">
-           {() => (
-             <ProjectManagerTabs.Navigator
-               id="project-manager-tabs"
-               screenOptions={getCommonTabOptions()}
-             >
-               <ProjectManagerTabs.Screen name="Dashboard" options={tabOptions("grid", "grid-outline")}>
-                 {() => <ProjectDashboardScreen />}
-               </ProjectManagerTabs.Screen>
-              <ProjectManagerTabs.Screen
-                name="Approval"
-                component={ApprovalScreen}
-                options={tabOptions("checkbox", "checkbox-outline")}
-              />
-              <ProjectManagerTabs.Screen
-                name="Team"
-                component={TeamManagementScreen}
-                options={tabOptions("people", "people-outline")}
-              />
-<ProjectManagerTabs.Screen
-                  name="Laporan"
-                  component={ProjectReportsScreen}
-                  options={tabOptions("document", "document-outline")}
-                />
-              <ProjectManagerTabs.Screen
-                name="Notifikasi"
-                component={FieldNotificationsScreen}
-                options={tabOptions("notifications", "notifications-outline")}
-              />
-            </ProjectManagerTabs.Navigator>
-          )}
-        </ProjectManagerStack.Screen>
-        <ProjectManagerStack.Screen
-          name="IssueHistory"
-          component={IssueHistoryScreen}
-          options={{ title: "Riwayat Kendala" }}
-        />
-        <ProjectManagerStack.Screen
-          name="AttendanceHistory"
-          component={AttendanceHistoryScreen}
-          options={{ title: "Riwayat Absensi" }}
-        />
-<ProjectManagerStack.Screen
-           name="TeamAttendance"
-           component={TeamAttendanceScreen}
-           options={{ title: "Absensi Tim" }}
-         />
-         <ProjectManagerStack.Screen name="FieldUnits" component={FieldUnitsScreen} />
-         <ProjectManagerStack.Screen name="FieldUnitDetail" component={FieldUnitDetailScreen} options={{ title: "Detail Unit" }} />
-         <ProjectManagerStack.Screen name="FieldMilestones" component={FieldMilestonesScreen} />
-         <ProjectManagerStack.Screen name="MilestoneList" component={MilestoneListScreen} options={{ title: "Daftar Milestone" }} />
-         <ProjectManagerStack.Screen name="FieldIssues" component={FieldIssuesScreen} options={{ title: "Kendala Lapangan" }} />
-         <ProjectManagerStack.Screen name="FieldDailyReport" component={FieldDailyReportScreen} />
-         <ProjectManagerStack.Screen name="FieldAttendance" component={FieldAttendanceScreen} />
-         <ProjectManagerStack.Screen
-           name="ProjectDetail"
-           component={ProjectDetailScreen}
-           options={{ title: "Detail Proyek", headerShown: true, headerBackTitle: "Kembali" }}
-         />
-       </ProjectManagerStack.Navigator>
-     );
-   }
+function ProjectManagerNavigator(): React.JSX.Element {
+  return (
+    <ProjectManagerStack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Dashboard">
+      <ProjectManagerStack.Screen name="Dashboard" component={ProjectDashboardScreen} />
+      <ProjectManagerStack.Screen name="Approval" component={ApprovalScreen} />
+      <ProjectManagerStack.Screen name="Team" component={TeamManagementScreen} />
+      <ProjectManagerStack.Screen name="Laporan" component={ProjectReportsScreen} />
+      <ProjectManagerStack.Screen name="Notifikasi" component={FieldNotificationsScreen} />
+      <ProjectManagerStack.Screen name="IssueHistory" component={IssueHistoryScreen} options={{ title: "Riwayat Kendala" }} />
+      <ProjectManagerStack.Screen name="AttendanceHistory" component={AttendanceHistoryScreen} options={{ title: "Riwayat Absensi" }} />
+      <ProjectManagerStack.Screen name="TeamAttendance" component={TeamAttendanceScreen} options={{ title: "Absensi Tim" }} />
+      <ProjectManagerStack.Screen name="FieldUnits" component={FieldUnitsScreen} />
+      <ProjectManagerStack.Screen name="FieldUnitDetail" component={FieldUnitDetailScreen} options={{ title: "Detail Unit" }} />
+      <ProjectManagerStack.Screen name="FieldMilestones" component={FieldMilestonesScreen} />
+      <ProjectManagerStack.Screen name="MilestoneList" component={MilestoneListScreen} options={{ title: "Daftar Milestone" }} />
+      <ProjectManagerStack.Screen name="FieldIssues" component={FieldIssuesScreen} options={{ title: "Kendala Lapangan" }} />
+      <ProjectManagerStack.Screen name="FieldDailyReport" component={FieldDailyReportScreen} />
+      <ProjectManagerStack.Screen name="FieldAttendance" component={FieldAttendanceScreen} />
+      <ProjectManagerStack.Screen name="ProjectDetail" component={ProjectDetailScreen} options={{ title: "Detail Proyek", headerShown: true, headerBackTitle: "Kembali" }} />
+      <ProjectManagerStack.Screen name="InspectionUnits" component={InspectionUnitsScreen} options={{ title: "Daftar Unit Inspeksi" }} />
+      <ProjectManagerStack.Screen name="InspectionDetail" component={InspectionDetailScreen} options={{ title: "Detail Inspeksi" }} />
+      <ProjectManagerStack.Screen name="AddDefect" component={AddDefectScreen} options={{ title: "Lapor Komplain" }} />
+    </ProjectManagerStack.Navigator>
+  );
+}
 
 export function AppNavigator({
    pendingRouteName,
@@ -415,11 +219,11 @@ export function AppNavigator({
        }}
      >
        {auth.user.role === "CUSTOMER" ? (
-         <CustomerTabsNavigator />
+         <CustomerNavigator />
        ) : auth.user.role === "PROJECT_MANAGER" ? (
-         <ProjectManagerTabsNavigator />
+         <ProjectManagerNavigator />
        ) : (
-         <FieldTabsNavigator />
+         <FieldNavigator />
        )}
      </NavigationContainer>
    );
@@ -437,50 +241,4 @@ export function AppNavigator({
        color: "#475569",
        fontSize: 14,
      },
- tabBar: {
-        position: "absolute",
-        left: 16,
-        right: 16,
-        bottom: 16,
-        height: 60,
-        minHeight: 60,
-        borderRadius: 16,
-        borderTopWidth: 0,
-        borderWidth: 1,
-        borderColor: "#e2e8f0",
-        backgroundColor: "#ffffff",
-        paddingTop: 6,
-        paddingBottom: 6,
-        shadowColor: "#0f172a",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
-        elevation: 8,
-      },
-     tabLabel: {
-       fontSize: 11,
-       fontWeight: "600",
-       marginBottom: 4,
-     },
-     tabItem: {
-       borderRadius: 10,
-       marginHorizontal: 2,
-       minHeight: 56,
-       minWidth: 56,
-     },
-    iconWrap: {
-      width: 30,
-      height: 24,
-      alignItems: "center",
-      justifyContent: "center",
-      borderRadius: 8,
-    },
-    iconWrapActive: {
-      backgroundColor: "#fcd34d",
-      shadowColor: "#f59e0b",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.4,
-      shadowRadius: 4,
-      elevation: 2,
-    },
-  });
+ });

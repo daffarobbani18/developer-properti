@@ -7,12 +7,7 @@ import { ArrowRight, CheckCircle, Eye, EyeSlash, Lock, Envelope, ShieldWarning, 
 type UserRole = "admin" | "inventory" | "sales" | "finance" | "legal";
 
 const DEV_ACCOUNTS = [
-  { label: "Superadmin", email: "superadmin@erp.com", password: "password123", role: "admin" as UserRole, redirectTo: "/admin/dashboard" },
-  { label: "Director", email: "director@erp.com", password: "password123", role: "admin" as UserRole, redirectTo: "/admin/dashboard" },
-  { label: "Admin Inventory", email: "inventory@erp.com", password: "password123", role: "inventory" as UserRole, redirectTo: "/admin/dashboard" },
-  { label: "Sales & Marketing", email: "sales@erp.com", password: "password123", role: "sales" as UserRole, redirectTo: "/sales/dashboard" },
-  { label: "Finance & Accounting", email: "finance@erp.com", password: "password123", role: "finance" as UserRole, redirectTo: "/finance/dashboard" },
-  { label: "Tim Legal", email: "legal@erp.com", password: "password123", role: "legal" as UserRole, redirectTo: "/legal/dashboard" },
+  { label: "Owner", email: "owner@erp.com", password: "password123", role: "owner" as UserRole, redirectTo: "/admin/dashboard" },
 ];
 
 const DEFAULT_REDIRECT = "/admin/dashboard";
@@ -41,26 +36,37 @@ export default function App() {
     return account?.redirectTo ?? DEFAULT_REDIRECT;
   };
 
-  const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoginState("loading");
-    const matchedAccount = getAccountByEmail(email);
-    const resolvedRole: UserRole = matchedAccount?.role ?? DEFAULT_ROLE;
-    const targetRoute = getRoleRedirect(email);
 
-    window.setTimeout(() => {
-      if (!matchedAccount || matchedAccount.password !== password) {
+    try {
+      const response = await fetch("http://localhost:4000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
         setLoginState("error");
-        window.setTimeout(() => setLoginState("idle"), 2500);
+        setTimeout(() => setLoginState("idle"), 2500);
         return;
       }
 
       setLoginState("success");
 
-      window.setTimeout(() => {
+      const resolvedRole = data.user.role.toLowerCase() === "superadmin" ? "admin" : data.user.role.toLowerCase() as UserRole;
+      const targetRoute = getRoleRedirect(email) || "/admin/dashboard";
+
+      setTimeout(() => {
         const authPayload = JSON.stringify({
-          email: email.trim(),
+          email: data.user.email,
           role: resolvedRole,
+          isOwner: data.user.isOwner,
+          allowedMenus: data.user.allowedMenus || [],
+          token: data.token,
           redirectTo: targetRoute,
           loginAt: Date.now(),
         });
@@ -70,12 +76,12 @@ export default function App() {
             localStorage.setItem("simdp_auth", authPayload);
             sessionStorage.removeItem("simdp_auth");
             document.cookie = `simdp_role=${resolvedRole}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
-            document.cookie = `simdp_email=${encodeURIComponent(email.trim())}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
+            document.cookie = `simdp_email=${encodeURIComponent(data.user.email)}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`;
           } else {
             sessionStorage.setItem("simdp_auth", authPayload);
             localStorage.removeItem("simdp_auth");
             document.cookie = `simdp_role=${resolvedRole}; path=/; samesite=lax`;
-            document.cookie = `simdp_email=${encodeURIComponent(email.trim())}; path=/; samesite=lax`;
+            document.cookie = `simdp_email=${encodeURIComponent(data.user.email)}; path=/; samesite=lax`;
           }
         } catch {
           // Ignore storage errors in preview mode.
@@ -84,7 +90,10 @@ export default function App() {
         router.push(targetRoute);
         setLoginState("idle");
       }, 1800);
-    }, 2200);
+    } catch (error) {
+      setLoginState("error");
+      setTimeout(() => setLoginState("idle"), 2500);
+    }
   };
 
   return (

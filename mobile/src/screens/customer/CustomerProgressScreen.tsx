@@ -97,7 +97,17 @@ export function CustomerProgressScreen(): React.JSX.Element {
   }, [milestones]);
 
   return (
-    <ScreenShell title="Progres Unit" subtitle="Pantau milestone pembangunan dan foto terbaru">
+    <ScreenShell 
+      title="Progres Unit" 
+      subtitle="Pantau milestone pembangunan dan foto terbaru"
+      onBack={() => {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          navigation.navigate("Beranda");
+        }
+      }}
+    >
       <Card>
         <SectionTitle title="Ringkasan" />
         <Text style={styles.summaryText}>Total milestone: {stats.total}</Text>

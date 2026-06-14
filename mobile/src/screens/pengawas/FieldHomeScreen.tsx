@@ -52,7 +52,7 @@ export function FieldHomeScreen(): React.JSX.Element {
   }, [auth]);
 
   const goToTab = useCallback(
-    (tabName: "FieldMilestone" | "FieldUnit" | "FieldKendala" | "FieldNotifikasi") => {
+    (tabName: "FieldMilestone" | "FieldUnit" | "FieldKendala" | "FieldNotifikasi" | "InspectionUnits") => {
       navigation.navigate(tabName as never);
     },
     [navigation]
@@ -138,6 +138,17 @@ export function FieldHomeScreen(): React.JSX.Element {
             </View>
             <Text style={styles.quickActionTitle}>Update Progres</Text>
             <Text style={styles.quickActionCaption}>Lapor milestone</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => goToTab("InspectionUnits")}
+            style={({ pressed }) => [styles.quickActionBtn, pressed && styles.quickActionBtnPressed]}
+          >
+            <View style={[styles.iconCircle, { backgroundColor: "#10b981", shadowColor: "#10b981", shadowOpacity: 0.6, shadowRadius: 8, elevation: 6 }]}>
+              <Ionicons name="checkmark-done-circle" size={22} color="#ffffff" />
+            </View>
+            <Text style={styles.quickActionTitle}>Inspeksi Pra-BAST</Text>
+            <Text style={styles.quickActionCaption}>Cek & lapor defect</Text>
           </Pressable>
 
           <Pressable

@@ -24,6 +24,7 @@ model User {
   constructionProgresses ConstructionProgress[]
   commissions Commission[]
   activities  Activity[]
+  allowedMenus String[] @default([]) // Added for custom permissions
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

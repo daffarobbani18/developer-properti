@@ -98,7 +98,17 @@ export function FieldNotificationsScreen(): React.JSX.Element {
      : notifications;
 
    return (
-     <ScreenShell title="Notifikasi" subtitle="Ringkasan pengingat dan update lapangan">
+     <ScreenShell 
+        title="Notifikasi" 
+        subtitle="Ringkasan pengingat dan update lapangan"
+        onBack={() => {
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          } else {
+            (navigation as any).navigate(auth?.user?.role === "CUSTOMER" ? "Beranda" : (auth?.user?.role === "PROJECT_MANAGER" ? "Dashboard" : "Beranda"));
+          }
+        }}
+      >
 <Card>
          <SectionTitle title="Status Notifikasi" caption="Pantau ringkasan notifikasi" />
          <View style={styles.topRow}>

@@ -18,6 +18,7 @@ import uploadRoutes from "./modules/upload/upload.routes.js";
 import reportingRoutes from "./modules/reporting/reporting.routes.js";
 import publicRoutes from "./modules/public/public.routes.js";
 import mobileRoutes from "./modules/mobile/mobile.routes.js";
+import userRoutes from "./modules/user/user.routes.js";
 
 const app = express();
 
@@ -43,5 +44,6 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/reports", reportingRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/mobile", mobileRoutes);
+app.use("/api/users", userRoutes);
 
 export default app;

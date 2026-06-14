@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import {
   Badge,
@@ -23,6 +23,7 @@ type EngineerReport = {
 
 export function ProjectReportsScreen(): React.JSX.Element {
   const { auth } = useAuth();
+  const navigation = useNavigation();
   const [engineers, setEngineers] = useState<EngineerReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -122,7 +123,17 @@ export function ProjectReportsScreen(): React.JSX.Element {
   const submittedReports = totalReports - draftReports;
 
   return (
-    <ScreenShell title="Laporan Tim" subtitle="Review laporan harian engineer">
+    <ScreenShell 
+      title="Laporan Tim" 
+      subtitle="Review laporan harian engineer"
+      onBack={() => {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          (navigation as any).navigate("Dashboard");
+        }
+      }}
+    >
       <Card>
         <SectionTitle title="Statistik Laporan" caption="Ringkasan laporan harian bulan ini" />
         <View style={styles.statsGrid}>

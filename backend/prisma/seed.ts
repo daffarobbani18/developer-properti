@@ -4,80 +4,74 @@ import bcrypt from "bcrypt";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Menghapus data lama...");
-  // Hapus dari hirarki paling bawah agar tidak kena Foreign Key constraint
+  console.log("Memulai proses pembersihan database...");
+  
+  // Hapus semua data dari yang child paling bawah hingga parent
+  await prisma.defectComplaint.deleteMany();
+  await prisma.milestoneLog.deleteMany();
+  await prisma.milestone.deleteMany();
+  await prisma.milestoneTemplate.deleteMany();
+  await prisma.kprDocument.deleteMany();
+  await prisma.kprApplication.deleteMany();
+  await prisma.activity.deleteMany();
   await prisma.commission.deleteMany();
   await prisma.bast.deleteMany();
   await prisma.legalDocument.deleteMany();
+  await prisma.constructionProgress.deleteMany();
   await prisma.payment.deleteMany();
   await prisma.invoice.deleteMany();
-  await prisma.constructionProgress.deleteMany();
+  await prisma.expense.deleteMany();
   await prisma.booking.deleteMany();
   await prisma.lead.deleteMany();
   await prisma.unit.deleteMany();
+  await prisma.spk.deleteMany();
   await prisma.propertyType.deleteMany();
   await prisma.sitePlan.deleteMany();
   await prisma.project.deleteMany();
   await prisma.user.deleteMany();
   await prisma.role.deleteMany();
 
-  console.log("Menambahkan data akun dummy baru...");
+  console.log("Database berhasil dibersihkan!");
+
+  console.log("Membuat Role...");
 
   // 1. Roles
-  const roles = [
+  const roleNames = [
     "Superadmin",
-    "Director",
+    "Owner",
     "Admin Inventory",
     "Sales & Marketing",
     "Finance & Accounting",
     "Project Manager",
     "Tim Legal",
-    "Pengawas Lapangan"
+    "Pengawas Lapangan",
+    "Customer"
   ];
 
   const roleMap: Record<string, string> = {};
-  for (const roleName of roles) {
+  for (const roleName of roleNames) {
     const role = await prisma.role.create({
       data: { name: roleName },
     });
     roleMap[roleName] = role.id;
   }
 
-  // 2. Users
+  // 2. User Owner
+  console.log("Membuat User Owner...");
   const passwordHash = await bcrypt.hash("password123", 10);
   
-  const users = [
-    { email: "superadmin@erp.com", roleId: roleMap["Superadmin"] },
-    { email: "director@erp.com", roleId: roleMap["Director"] },
-    { email: "inventory@erp.com", roleId: roleMap["Admin Inventory"] },
-    { email: "sales@erp.com", roleId: roleMap["Sales & Marketing"] },
-    { email: "finance@erp.com", roleId: roleMap["Finance & Accounting"] },
-    { email: "pm@erp.com", roleId: roleMap["Project Manager"] },
-    { email: "legal@erp.com", roleId: roleMap["Tim Legal"] },
-    { email: "spv@erp.com", roleId: roleMap["Pengawas Lapangan"] }
-  ];
+  await prisma.user.create({
+    data: {
+      email: "owner@erp.com",
+      password: passwordHash,
+      roleId: roleMap["Owner"],
+    },
+  });
 
-  for (const u of users) {
-    await prisma.user.create({
-      data: {
-        email: u.email,
-        password: passwordHash,
-        roleId: u.roleId,
-      },
-    });
-  }
-
-  console.log("Seeding akun selesai!");
-  console.log("Semua data transaksi (Lead, Booking, Invoice, Unit) telah dikosongkan.");
-  console.log("--- Akun Dummy Tersedia ---");
-  console.log("Email: director@erp.com | Password: password123");
-  console.log("Email: sales@erp.com | Password: password123");
-  console.log("Email: finance@erp.com | Password: password123");
-  console.log("Email: inventory@erp.com | Password: password123");
-  console.log("Email: pm@erp.com | Password: password123");
-  console.log("Email: legal@erp.com | Password: password123");
-  console.log("Email: spv@erp.com | Password: password123");
-  console.log("Email: superadmin@erp.com | Password: password123");
+  console.log("--- SEEDING SELESAI ---");
+  console.log("Semua data telah dihapus kecuali User Owner.");
+  console.log("Email Owner       : owner@erp.com");
+  console.log("Password Owner    : password123");
 }
 
 main()

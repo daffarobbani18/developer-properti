@@ -149,6 +149,14 @@ rightAction={<TextButton label="Logout" onPress={() => void signOut()} />}
            </Pressable>
 
            <Pressable
+             onPress={() => (navigation as { navigate: (name: string) => void }).navigate("InspectionUnits")}
+             style={({ pressed }) => [styles.quickActionBtn, pressed && styles.quickActionBtnPressed]}
+           >
+             <Text style={styles.quickActionTitle}>Inspeksi Pra-BAST</Text>
+             <Text style={styles.quickActionCaption}>Lapor Defect</Text>
+           </Pressable>
+
+           <Pressable
              onPress={() => (navigation as { navigate: (name: string) => void }).navigate("FieldMilestones")}
              style={({ pressed }) => [styles.quickActionBtn, pressed && styles.quickActionBtnPressed]}
            >

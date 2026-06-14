@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { Pressable, StyleSheet, Text, View, ActivityIndicator, Alert } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import {
   Badge,
@@ -33,6 +33,7 @@ function statusTone(status: DocumentItem["status"]): "neutral" | "warning" | "su
 
 export function CustomerDocumentsScreen(): React.JSX.Element {
   const { auth } = useAuth();
+  const navigation = useNavigation();
 
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [handoverInfo, setHandoverInfo] = useState<HandoverInfo | null>(null);
@@ -115,7 +116,17 @@ export function CustomerDocumentsScreen(): React.JSX.Element {
   );
 
   return (
-    <ScreenShell title="Dokumen Digital" subtitle="Akses dokumen legal dan transaksi unit Anda">
+    <ScreenShell 
+      title="Dokumen Digital" 
+      subtitle="Akses dokumen legal dan transaksi unit Anda"
+      onBack={() => {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          (navigation as any).navigate("Beranda");
+        }
+      }}
+    >
       <Card>
         <SectionTitle title="Status Dokumen" />
         <Text style={styles.summaryText}>Total dokumen: {documents.length}</Text>

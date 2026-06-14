@@ -163,7 +163,17 @@ export function CustomerSupportScreen(): React.JSX.Element {
   }, []);
 
   return (
-    <ScreenShell title="Bantuan" subtitle="Buat tiket, cek status, dan akses FAQ">
+    <ScreenShell 
+      title="Bantuan" 
+      subtitle="Buat tiket, cek status, dan akses FAQ"
+      onBack={() => {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          (navigation as any).navigate("Beranda");
+        }
+      }}
+    >
       <Card>
         <SectionTitle title="Kontak Cepat" caption="Gunakan kanal ini untuk respon lebih cepat" />
         <View style={styles.contactActionRow}>

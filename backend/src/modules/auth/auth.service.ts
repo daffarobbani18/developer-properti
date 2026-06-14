@@ -65,11 +65,15 @@ export class AuthService {
       throw new Error("Kredensial tidak valid");
     }
 
+    const isOwner = user.role.name === "Owner" || user.role.name === "Superadmin";
+
     // Generate JWT token
     const token = jwt.sign(
       {
         userId: user.id,
         roleName: user.role.name,
+        isOwner: isOwner,
+        allowedMenus: user.allowedMenus,
       },
       JWT_SECRET,
       { expiresIn: "1d" } // Token berlaku 1 hari
@@ -81,6 +85,8 @@ export class AuthService {
         id: user.id,
         email: user.email,
         role: user.role.name,
+        isOwner: isOwner,
+        allowedMenus: user.allowedMenus,
       },
     };
   }

@@ -2,7 +2,11 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { MilestonePhoto, Milestone } from "../types";
 
 export type FieldStackParamList = {
-  FieldTabs: undefined;
+  Beranda: undefined;
+  FieldMilestone: undefined;
+  FieldUnit: undefined;
+  FieldKendala: undefined;
+  FieldNotifikasi: undefined;
   UnitDetail: { unitId: string; unitCode?: string; unitName?: string };
   UpdateHistory: undefined;
   ProjectSelect: undefined;
@@ -24,10 +28,17 @@ export type FieldStackParamList = {
   ProjectDetail: { projectId: string; projectName: string };
   FieldUnits: { projectId?: string } | undefined;
   FieldMilestones: { projectId?: string; unitId?: string } | undefined;
+  InspectionUnits: undefined;
+  InspectionDetail: { bookingId: string; unitName: string };
+  AddDefect: { bookingId: string };
 };
 
 export type CustomerStackParamList = {
-  CustomerTabs: undefined;
+  Beranda: undefined;
+  Progres: undefined;
+  Tagihan: undefined;
+  Dokumen: undefined;
+  Bantuan: undefined;
   PhotoGallery: {
     photos: MilestonePhoto[];
     initialIndex?: number;
@@ -39,12 +50,15 @@ export type CustomerStackParamList = {
 };
 
 export type PengawasStackParamList = {
-  ProjectManagerTabs: undefined;
+  Dashboard: undefined;
+  Approval: undefined;
+  Team: undefined;
+  Laporan: undefined;
+  Notifikasi: undefined;
   IssueHistory: undefined;
   AttendanceHistory: undefined;
   TeamAttendance: undefined;
   ProjectDashboard: undefined;
-  Approval: undefined;
   TeamManagement: undefined;
   FieldNotifications: undefined;
   ProjectReports: undefined;
@@ -56,6 +70,9 @@ export type PengawasStackParamList = {
   FieldDailyReport: undefined;
   FieldAttendance: undefined;
   ProjectDetail: { projectId: string; projectName: string };
+  InspectionUnits: undefined;
+  InspectionDetail: { bookingId: string; unitName: string };
+  AddDefect: { bookingId: string };
 };
 
 export type MilestoneUpdateScreenProps = NativeStackScreenProps<FieldStackParamList, "MilestoneUpdate">;

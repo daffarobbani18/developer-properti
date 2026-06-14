@@ -29,6 +29,7 @@ type ScreenShellProps = PropsWithChildren<{
   rightAction?: React.ReactNode;
   refreshing?: boolean;
   onRefresh?: () => void;
+  onBack?: () => void;
 }>;
 
 export function ScreenShell({
@@ -39,6 +40,7 @@ export function ScreenShell({
   rightAction,
   refreshing,
   onRefresh,
+  onBack,
   children,
 }: ScreenShellProps): React.JSX.Element {
   const netInfo = useNetInfo();
@@ -66,9 +68,14 @@ export function ScreenShell({
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.headerRow}>
-          <View style={styles.headerTextWrap}>
-            <Text style={styles.headerTitle}>{title}</Text>
-            {subtitle ? <Text style={styles.headerSubtitle}>{subtitle}</Text> : null}
+          <View style={styles.headerLeftContainer}>
+            {onBack ? (
+              <IconButton icon="arrow-back" onPress={onBack} size={22} />
+            ) : null}
+            <View style={styles.headerTextWrap}>
+              <Text style={styles.headerTitle}>{title}</Text>
+              {subtitle ? <Text style={styles.headerSubtitle}>{subtitle}</Text> : null}
+            </View>
           </View>
           {rightAction ? <View>{rightAction}</View> : null}
         </View>
@@ -80,9 +87,14 @@ export function ScreenShell({
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.headerRow}>
-        <View style={styles.headerTextWrap}>
-          <Text style={styles.headerTitle}>{title}</Text>
-          {subtitle ? <Text style={styles.headerSubtitle}>{subtitle}</Text> : null}
+        <View style={styles.headerLeftContainer}>
+          {onBack ? (
+            <IconButton icon="arrow-back" onPress={onBack} size={22} />
+          ) : null}
+          <View style={styles.headerTextWrap}>
+            <Text style={styles.headerTitle}>{title}</Text>
+            {subtitle ? <Text style={styles.headerSubtitle}>{subtitle}</Text> : null}
+          </View>
         </View>
         {rightAction ? <View>{rightAction}</View> : null}
       </View>
@@ -593,6 +605,12 @@ export function CountUpNumber({
     borderBottomWidth: 1,
     borderBottomColor: c.neutral200,
     backgroundColor: "#ffffff",
+  },
+  headerLeftContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   headerTextWrap: {
     flex: 1,

@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import {
   Badge,
@@ -25,6 +25,7 @@ type TeamMember = {
 
 export function TeamManagementScreen(): React.JSX.Element {
   const { auth } = useAuth();
+  const navigation = useNavigation();
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [banner, setBanner] = useState<string | null>(null);
@@ -76,7 +77,17 @@ export function TeamManagementScreen(): React.JSX.Element {
   const activeCount = team.filter((m) => m.status === "ACTIVE").length;
 
   return (
-    <ScreenShell title="Manajemen Tim" subtitle="Pantau kehadiran dan aktivitas engineer">
+    <ScreenShell 
+      title="Manajemen Tim" 
+      subtitle="Pantau kehadiran dan aktivitas engineer"
+      onBack={() => {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          (navigation as any).navigate("Dashboard");
+        }
+      }}
+    >
       <Card>
         <SectionTitle title="Statistik Tim" caption="Ringkasan kehadiran hari ini" />
         <View style={styles.statsGrid}>

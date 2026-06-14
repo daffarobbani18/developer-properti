@@ -11,7 +11,7 @@ import {
 
 const isPublicPath = (pathname: string) => PUBLIC_PATHS.includes(pathname as (typeof PUBLIC_PATHS)[number]);
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const roleCookie = request.cookies.get("simdp_role")?.value;
   const role = isUserRole(roleCookie) ? roleCookie : null;

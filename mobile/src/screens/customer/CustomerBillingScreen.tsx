@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 import {
    Badge,
@@ -49,6 +49,7 @@ function toneByPaymentStatus(status: PaymentItem["status"]): "warning" | "succes
 
 export function CustomerBillingScreen(): React.JSX.Element {
   const { auth } = useAuth();
+  const navigation = useNavigation();
 
   const [summary, setSummary] = useState<BillingSummary | null>(null);
   const [invoices, setInvoices] = useState<InvoiceItem[]>([]);
@@ -199,7 +200,17 @@ export function CustomerBillingScreen(): React.JSX.Element {
   }, []);
 
   return (
-    <ScreenShell title="Tagihan & Pembayaran" subtitle="Pantau invoice dan kirim bukti transfer">
+    <ScreenShell 
+      title="Tagihan & Pembayaran" 
+      subtitle="Pantau invoice dan kirim bukti transfer"
+      onBack={() => {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          (navigation as any).navigate("Beranda");
+        }
+      }}
+    >
       {summary ? (
         <Card>
           <SectionTitle

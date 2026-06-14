@@ -30,7 +30,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Melindungi rute ini dengan middleware token & role
-router.use(verifyToken, requireRole(["Tim Legal", "Director"]));
+// Menambahkan "Supervisor" & "PROJECT_MANAGER" agar Pengawas Lapangan bisa mengakses menu Inspeksi Pra-BAST dari mobile
+router.use(verifyToken, requireRole(["Tim Legal", "Director", "Supervisor", "PROJECT_MANAGER"]));
 
 /**
  * @swagger
