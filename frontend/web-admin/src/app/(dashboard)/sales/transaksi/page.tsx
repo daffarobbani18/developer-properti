@@ -25,13 +25,12 @@ export default function TransaksiSalesPage() {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "sales@erp.com", password: "password123" })
-      });
-      const loginData = await loginRes.json();
-      const token = loginData.token;
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       if (token) {
         const res = await fetch("http://localhost:4000/api/sales/bookings", {

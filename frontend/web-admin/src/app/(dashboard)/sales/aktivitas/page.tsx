@@ -83,12 +83,12 @@ export default function AktivitasSalesPage() {
     try {
       setLoading(true);
       // Dummy login buat ambil token (seperti di modul lain)
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "sales@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       // Fetch Activities
       const actRes = await fetch("http://localhost:4000/api/sales/activities", {
@@ -147,12 +147,12 @@ export default function AktivitasSalesPage() {
 
     try {
       setSubmitting(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "sales@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
       
       // Combine date and time
       const dateTimeString = `${formData.date}T${formData.time}:00`;
@@ -187,12 +187,12 @@ export default function AktivitasSalesPage() {
 
   const updateStatus = async (id: string, newStatus: string) => {
     try {
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "sales@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       const res = await fetch(`http://localhost:4000/api/sales/activities/${id}`, {
         method: "PUT",
@@ -213,12 +213,12 @@ export default function AktivitasSalesPage() {
     if (!deleteConfirmId) return;
     try {
       setSubmitting(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "sales@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       const res = await fetch(`http://localhost:4000/api/sales/activities/${deleteConfirmId}`, {
         method: "DELETE",

@@ -49,8 +49,8 @@ export const requireRole = (roles: string[]) => {
     }
 
     
-    // Superadmin bypasses role checks
-    if (user.roleName === "Superadmin") {
+    // Superadmin and Owner bypasses role checks
+    if (user.roleName === "Superadmin" || user.roleName === "Owner" || user.role === "Owner") {
       return next();
     }
 

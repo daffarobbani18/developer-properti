@@ -46,43 +46,12 @@ export default function PipelineSalesPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "sales@erp.com", password: "password123" })
-      });
-      const loginData = await loginRes.json();
-      
-      if (loginData.token) {
-        const res = await fetch("http://localhost:4000/api/sales/leads", {
-          headers: { "Authorization": `Bearer ${loginData.token}` }
-        });
-        const json = await res.json();
-        const data = json.data || json;
-        if (Array.isArray(data)) {
-          setLeads(data);
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
         }
-      }
-    } catch (err) {
-      console.error("Gagal mengambil data", err);
-      showToast("Gagal memuat data prospek", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateLeadStatus = async (leadId: string, newStatus: string) => {
-    // Optimistic UI Update
-    setLeads(prev => prev.map(l => l.id === leadId ? { ...l, statusCrm: newStatus } : l));
-    setMobileMoveLead(null);
-    
-    try {
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "sales@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
 
       if (token) {
         const res = await fetch(`http://localhost:4000/api/sales/leads/${leadId}`, {

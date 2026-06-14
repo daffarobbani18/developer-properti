@@ -176,12 +176,12 @@ export default function KavlingUnitPage() {
 
     try {
       setSubmitting(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "sales@erp.com", password: "password123" }) // use sales for bookings
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
       
       const payload = {
         leadId: bookingForm.leadId,

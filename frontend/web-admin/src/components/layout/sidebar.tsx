@@ -230,12 +230,12 @@ export default function Sidebar({ onClose }: SidebarProps) {
       if (currentRole !== "finance") return;
       
       try {
-        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: "finance@erp.com", password: "password123" })
-        });
-        const { token } = await loginRes.json();
+        const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
         if (!token) return;
 
         const res = await fetch("http://localhost:4000/api/finance/bookings", {
@@ -255,12 +255,12 @@ export default function Sidebar({ onClose }: SidebarProps) {
     const fetchPendingKpr = async () => {
       if (currentRole !== "legal") return;
       try {
-        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: "legal@erp.com", password: "password123" })
-        });
-        const { token } = await loginRes.json();
+        const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
         if (!token) return;
 
         const res = await fetch("http://localhost:4000/api/legal/kpr", {
@@ -280,12 +280,12 @@ export default function Sidebar({ onClose }: SidebarProps) {
     const fetchPendingExpense = async () => {
       if (currentRole !== "finance") return;
       try {
-        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: "finance@erp.com", password: "password123" })
-        });
-        const { token } = await loginRes.json();
+        const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
         if (!token) return;
 
         const res = await fetch("http://localhost:4000/api/finance/expenses", {

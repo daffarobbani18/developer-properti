@@ -26,12 +26,12 @@ export default function BastModal({ bookingId, bastId, bookingName, unitName, ac
 
     try {
       setIsSubmitting(true);
-      const loginRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "legal@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       let url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/legal/bast/schedule`;
       let method = "POST";

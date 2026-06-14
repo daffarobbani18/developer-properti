@@ -125,12 +125,12 @@ export default function InventoryAdminPage() {
 
   const handleTypeSubmit = async () => {
     try {
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: "admin", password: "admin" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+      let token = "";
+      if (authDataStr) {
+        const authData = JSON.parse(authDataStr);
+        token = authData.token;
+      }
       
       let uploadedImageUrl = typeForm.imageUrl;
 
@@ -174,12 +174,12 @@ export default function InventoryAdminPage() {
 
   const handleUnitSubmit = async () => {
     try {
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: "admin", password: "admin" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+      let token = "";
+      if (authDataStr) {
+        const authData = JSON.parse(authDataStr);
+        token = authData.token;
+      }
       
       // Extract Blok and Nomor from input, e.g. "BLK-A12" -> "A" and "12"
       // Simplification: use as is for nomorUnit

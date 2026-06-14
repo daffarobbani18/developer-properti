@@ -48,12 +48,12 @@ export default function DisburseModal({ spk, onClose, onSuccess }: DisburseModal
 
     try {
       setIsSubmitting(true);
-      const loginRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "finance@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
       
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/finance/spk/${spk.id}/disburse`, {
         method: "POST",

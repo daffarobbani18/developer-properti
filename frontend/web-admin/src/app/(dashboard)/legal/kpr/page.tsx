@@ -73,12 +73,12 @@ export default function PipelineKprPage() {
   const fetchKpr = async () => {
     setLoading(true);
     try {
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "legal@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       const res = await fetch("http://localhost:4000/api/legal/kpr", {
         headers: { "Authorization": `Bearer ${token}` }
@@ -120,12 +120,12 @@ export default function PipelineKprPage() {
   const executeApiUpdate = async (bookingId: string, payload: any) => {
     setSubmitting(true);
     try {
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "legal@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       const res = await fetch(`http://localhost:4000/api/legal/kpr/${bookingId}/status`, {
         method: "PUT",
@@ -312,12 +312,12 @@ export default function PipelineKprPage() {
     }
     setSubmitting(true);
     try {
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "legal@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       const payload = {
         status: "Ditolak Bank / Batal",
@@ -359,12 +359,12 @@ export default function PipelineKprPage() {
       formData.append("notes", uploadForm.notes);
       formData.append("file", uploadForm.file);
 
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "legal@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       const res = await fetch(`http://localhost:4000/api/legal/kpr/${selectedBooking.id}/documents`, {
         method: "POST",

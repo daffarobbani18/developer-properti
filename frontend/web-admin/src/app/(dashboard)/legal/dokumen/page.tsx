@@ -28,12 +28,12 @@ export default function LegalDokumenPage() {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const loginRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "legal@erp.com", password: "password123" }) // Dummy login for Legal
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/legal/bookings`, {
         headers: {

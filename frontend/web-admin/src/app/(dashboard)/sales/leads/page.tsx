@@ -53,12 +53,12 @@ export default function SalesLeadsPage() {
       if (debouncedSearch) queryParams.append("search", debouncedSearch);
 
       // Dummy login buat ambil token
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "sales@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       const res = await fetch(`http://localhost:4000/api/sales/leads?${queryParams.toString()}`, {
         headers: { "Authorization": `Bearer ${token}` }
@@ -142,12 +142,12 @@ export default function SalesLeadsPage() {
     try {
       setSubmitting(true);
       // Dummy login buat ambil token (seperti di modul lain)
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "sales@erp.com", password: "password123" }) // Gunakan role sales
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
       
       const endpoint = modalMode === "edit" ? `http://localhost:4000/api/sales/leads/${formData.id}` : "http://localhost:4000/api/sales/leads";
       const method = modalMode === "edit" ? "PUT" : "POST";
@@ -179,12 +179,12 @@ export default function SalesLeadsPage() {
     if (!deleteConfirmId) return;
     try {
       setSubmitting(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "sales@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       const res = await fetch(`http://localhost:4000/api/sales/leads/${deleteConfirmId}`, {
         method: "DELETE",

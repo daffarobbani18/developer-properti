@@ -25,12 +25,12 @@ export default function RetensiPage() {
   const fetchDefects = async () => {
     try {
       setLoading(true);
-      const loginRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "legal@erp.com", password: "password123" }) // Dummy
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/legal/defects`, {
         headers: {
@@ -57,12 +57,12 @@ export default function RetensiPage() {
 
   const updateStatus = async (id: string, newStatus: string) => {
     try {
-      const loginRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "legal@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/legal/defects/${id}/status`, {
         method: "PUT",

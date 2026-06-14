@@ -90,12 +90,12 @@ export default function TagihanFinancePage() {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "finance@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       const res = await fetch("http://localhost:4000/api/finance/bookings", {
         headers: { "Authorization": `Bearer ${token}` }
@@ -114,12 +114,12 @@ export default function TagihanFinancePage() {
 
   const fetchInvoices = async (bookingId: string) => {
     try {
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "finance@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       const res = await fetch(`http://localhost:4000/api/finance/bookings/${bookingId}/invoices`, {
         headers: { "Authorization": `Bearer ${token}` }
@@ -155,12 +155,12 @@ export default function TagihanFinancePage() {
     if (!selectedBooking) return;
     try {
       setSubmitting(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "finance@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       const res = await fetch(`http://localhost:4000/api/finance/bookings/${selectedBooking.id}/verify`, {
         method: "POST",
@@ -187,12 +187,12 @@ export default function TagihanFinancePage() {
     if (!selectedBooking) return;
     try {
       setSubmitting(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "finance@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       const res = await fetch(`http://localhost:4000/api/finance/bookings/${selectedBooking.id}/invoices`, {
         method: "POST",
@@ -226,12 +226,12 @@ export default function TagihanFinancePage() {
     if (!selectedInvoice) return;
     try {
       setSubmitting(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "finance@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       const res = await fetch(`http://localhost:4000/api/finance/invoices/${selectedInvoice.id}/payments`, {
         method: "POST",

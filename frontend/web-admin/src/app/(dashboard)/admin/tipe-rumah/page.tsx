@@ -325,7 +325,7 @@ export default function TipeRumahPage() {
                 </div>
               )}
               <div className="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-zinc-700 shadow-sm backdrop-blur-sm">
-                Tipe {type.lt}/{type.lb}
+                Tipe {type.lb}/{type.lt}
               </div>
             </div>
             <div className="p-6">
