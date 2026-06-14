@@ -38,12 +38,12 @@ export default function CreateSpkPage() {
   const fetchAvailableUnits = async () => {
     try {
       setLoadingUnits(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+      let token = "";
+      if (authDataStr) {
+        const authData = JSON.parse(authDataStr);
+        token = authData.token;
+      }
 
       const res = await fetch("http://localhost:4000/api/inventory/units", {
         headers: { "Authorization": `Bearer ${token}` }
@@ -99,12 +99,12 @@ export default function CreateSpkPage() {
 
     try {
       setSubmitting(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+      let token = "";
+      if (authDataStr) {
+        const authData = JSON.parse(authDataStr);
+        token = authData.token;
+      }
 
       const payload = {
         spkNo: form.spkNo,

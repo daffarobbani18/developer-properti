@@ -30,13 +30,12 @@ export default function FinanceAdminPage() {
       try {
         setLoading(true);
         // Login to get token first
-        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
-        });
-        const loginData = await loginRes.json();
-        const token = loginData.token;
+        const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
         if (token) {
           const headers = { "Authorization": `Bearer ${token}` };

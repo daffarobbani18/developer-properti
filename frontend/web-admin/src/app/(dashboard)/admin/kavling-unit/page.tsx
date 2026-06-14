@@ -72,13 +72,12 @@ export default function KavlingUnitPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
-      });
-      const loginData = await loginRes.json();
-      const token = loginData.token;
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
       if (token) {
         const headers = { "Authorization": `Bearer ${token}` };
@@ -151,12 +150,12 @@ export default function KavlingUnitPage() {
   const handleUnitSubmit = async () => {
     try {
       setSubmitting(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+      let token = "";
+      if (authDataStr) {
+        const authData = JSON.parse(authDataStr);
+        token = authData.token;
+      }
       
       const payload = {
         projectId: unitForm.projectId,
@@ -201,12 +200,12 @@ export default function KavlingUnitPage() {
   const handleBulkSubmit = async () => {
     try {
       setBulkSubmitting(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+      let token = "";
+      if (authDataStr) {
+        const authData = JSON.parse(authDataStr);
+        token = authData.token;
+      }
       
       const payload = {
         ...bulkForm,
@@ -242,12 +241,12 @@ export default function KavlingUnitPage() {
     if (!deleteConfirmId) return;
     try {
       setSubmitting(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+      let token = "";
+      if (authDataStr) {
+        const authData = JSON.parse(authDataStr);
+        token = authData.token;
+      }
       
       const res = await fetch(`http://localhost:4000/api/inventory/units/${deleteConfirmId}`, {
         method: "DELETE",

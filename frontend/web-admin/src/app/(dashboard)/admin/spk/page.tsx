@@ -23,12 +23,12 @@ export default function SpkIndexPage() {
   const fetchSpks = async () => {
     try {
       setLoading(true);
-      const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
-      });
-      const { token } = await loginRes.json();
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+      let token = "";
+      if (authDataStr) {
+        const authData = JSON.parse(authDataStr);
+        token = authData.token;
+      }
 
       const res = await fetch("http://localhost:4000/api/construction/spk", {
         headers: { "Authorization": `Bearer ${token}` }

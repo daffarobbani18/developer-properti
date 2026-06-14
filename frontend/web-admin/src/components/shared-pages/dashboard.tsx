@@ -77,8 +77,8 @@ export default function SharedDashboard({ role }: { role: string }) {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        // Retrieve token from localStorage
-        const authDataStr = localStorage.getItem("simdp_auth");
+        // Retrieve token from localStorage or sessionStorage
+        const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
         if (authDataStr) {
           const authData = JSON.parse(authDataStr);
           if (authData.token) {

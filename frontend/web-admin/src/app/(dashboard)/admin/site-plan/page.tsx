@@ -59,13 +59,12 @@ export default function InventoryAdminPage() {
       try {
         setLoading(true);
         // Step 1: Login to get token (using dummy admin/admin as planned)
-        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
-        });
-        const loginData = await loginRes.json();
-        const token = loginData.token;
+        const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+        let token = "";
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          token = authData.token;
+        }
 
         if (token) {
           // Step 2: Fetch Property Types
