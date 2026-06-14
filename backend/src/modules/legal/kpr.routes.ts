@@ -25,7 +25,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Role Tim Legal
-router.use(verifyToken, requireRole(["Tim Legal", "Director"]));
+router.use(verifyToken, requireRole(["Tim Legal", "Owner"]));
 
 // Routes KPR
 router.get("/", KprController.getAllKpr);

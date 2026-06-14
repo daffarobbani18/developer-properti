@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import { ReportingController } from "./reporting.controller.js";
 import { verifyToken, requireRole } from "../../core/middlewares/auth.middleware.js";
 import { validate } from "../../core/middlewares/validate.middleware.js";
@@ -7,7 +7,7 @@ import { reportQueryDto } from "./dto/report-query.dto.js";
 const router = Router();
 
 // Melindungi rute ini dengan middleware token & role Director / Superadmin (Admin Inventory diganti Superadmin atau sesuaikan)
-router.use(verifyToken, requireRole(["Director", "Superadmin"]));
+router.use(verifyToken, requireRole(["Owner", "Superadmin"]));
 
 /**
  * @swagger

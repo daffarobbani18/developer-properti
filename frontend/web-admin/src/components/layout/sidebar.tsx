@@ -54,76 +54,31 @@ const menuItems: MenuGroup[] = [
     items: [{ label: "Dashboard", href: "/", icon: SquaresFour, roles: USER_ROLES }],
   },
   {
-    group: "Operasional",
+    group: "Inventory & Proyek",
+    items: [
+      { label: "Daftar Proyek", href: "/admin/proyek", icon: Buildings, roles: ["inventory", "admin"] },
+      { label: "Tipe Rumah", href: "/admin/tipe-rumah", icon: House, roles: ["inventory", "admin"] },
+      { label: "Kavling & Unit", href: "/admin/kavling-unit", icon: Package, roles: ["inventory", "admin"] },
+      { label: "SPK Borongan", href: "/admin/spk", icon: HardHat, roles: ["inventory", "admin", "supervisor"] },
+      { label: "Verifikasi Progres", href: "/admin/verifikasi-progres", icon: ListChecks, roles: ["inventory", "admin", "supervisor"] },
+      { label: "Site Plan", href: "/admin/site-plan", icon: MapTrifold, roles: ["inventory", "admin"] },
+    ],
+  },
+  {
+    group: "Sales & Marketing",
+    items: [
+      { label: "Leads", href: "/sales/leads", icon: UsersFour, roles: ["sales", "admin"] },
+      { label: "Pipeline", href: "/sales/pipeline", icon: Kanban, roles: ["sales"] },
+      { label: "Unit", href: "/sales/unit", icon: HouseSimple, roles: ["sales"] },
+      { label: "Transaksi", href: "/sales/transaksi", icon: Receipt, roles: ["sales"] },
+      { label: "Aktivitas", href: "/sales/aktivitas", icon: Pulse, roles: ["sales"] },
+    ],
+  },
+  {
+    group: "Finance & Accounting",
     items: [
       {
-        label: "Daftar Proyek",
-        href: "/admin/proyek",
-        icon: Buildings,
-        roles: ["inventory", "admin"],
-      },
-      {
-        label: "Tipe Rumah",
-        href: "/admin/tipe-rumah",
-        icon: House,
-        roles: ["inventory", "admin"],
-      },
-      {
-        label: "Kavling & Unit",
-        href: "/admin/kavling-unit",
-        icon: Package,
-        roles: ["inventory", "admin"],
-      },
-      {
-        label: "SPK Borongan",
-        href: "/admin/spk",
-        icon: HardHat,
-        roles: ["inventory", "admin", "supervisor"],
-      },
-      {
-        label: "Verifikasi Progres",
-        href: "/admin/verifikasi-progres",
-        icon: ListChecks,
-        roles: ["inventory", "admin", "supervisor"],
-      },
-      {
-        label: "Site Plan",
-        href: "/admin/site-plan",
-        icon: MapTrifold,
-        roles: ["inventory", "admin"],
-      },
-      {
-        label: "Leads",
-        href: "/sales/leads",
-        icon: UsersFour,
-        roles: ["sales", "admin"],
-      },
-      {
-        label: "Pipeline",
-        href: "/sales/pipeline",
-        icon: Kanban,
-        roles: ["sales"],
-      },
-      {
-        label: "Unit",
-        href: "/sales/unit",
-        icon: HouseSimple,
-        roles: ["sales"],
-      },
-      {
-        label: "Transaksi",
-        href: "/sales/transaksi",
-        icon: Receipt,
-        roles: ["sales"],
-      },
-      {
-        label: "Aktivitas",
-        href: "/sales/aktivitas",
-        icon: Pulse,
-        roles: ["sales"],
-      },
-      {
-        label: "Finance & Accounting",
+        label: "Keuangan",
         href: "/finance",
         icon: CurrencyDollar,
         roles: ["finance"],
@@ -135,9 +90,13 @@ const menuItems: MenuGroup[] = [
           { label: "RAB & Realisasi", href: "/finance/rab", icon: ListChecks, roles: ["finance"] },
         ],
       },
-
+    ],
+  },
+  {
+    group: "Legal & Purna Jual",
+    items: [
       {
-        label: "Legal & Purna Jual",
+        label: "Legalitas",
         href: "/legal",
         icon: Stamp,
         roles: ["legal"],
@@ -148,12 +107,12 @@ const menuItems: MenuGroup[] = [
           { label: "Masa Retensi & Komplain", href: "/legal/retensi", icon: Wrench, roles: ["legal"] },
         ],
       },
-      {
-        label: "Manajemen Karyawan",
-        href: "/admin/users",
-        icon: UsersThree,
-        roles: ["admin"],
-      },
+    ],
+  },
+  {
+    group: "Sistem & Pengaturan",
+    items: [
+      { label: "Manajemen Karyawan", href: "/admin/users", icon: UsersThree, roles: ["admin"] },
     ],
   },
 ];
@@ -260,7 +219,8 @@ export default function Sidebar({ onClose }: SidebarProps) {
           ...group,
           items,
         };
-      }) as MenuGroup[];
+      })
+      .filter((group) => group.items.length > 0) as MenuGroup[];
   }, [currentRole, isOwner, allowedMenus]);
 
   useEffect(() => {

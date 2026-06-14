@@ -29,32 +29,38 @@ export class ReportingService {
   }
 
   /**
-   * Mengambil statistik Keuangan (Total Pendapatan dari Payment)
+   * Mengambil statistik Keuangan (Total Pendapatan, Pengeluaran, Tagihan Tertunda)
    */
   static async getFinancialStats(startDate?: string, endDate?: string) {
-    const whereClause: any = {
-      status: "Verified",
-    };
+    const paymentWhere: any = { status: "Verified" };
+    const expenseWhere: any = { status: "Sudah Ditransfer" };
+    const invoiceWhere: any = { status: { in: ["Unpaid", "Overdue"] } };
 
     if (startDate || endDate) {
-      whereClause.paymentDate = {};
       if (startDate) {
-        whereClause.paymentDate.gte = new Date(startDate);
+        paymentWhere.paymentDate = { ...paymentWhere.paymentDate, gte: new Date(startDate) };
+        expenseWhere.updatedAt = { ...expenseWhere.updatedAt, gte: new Date(startDate) };
       }
       if (endDate) {
-        whereClause.paymentDate.lte = new Date(endDate);
+        paymentWhere.paymentDate = { ...paymentWhere.paymentDate, lte: new Date(endDate) };
+        expenseWhere.updatedAt = { ...expenseWhere.updatedAt, lte: new Date(endDate) };
       }
     }
 
-    const totalRevenue = await prisma.payment.aggregate({
-      where: whereClause,
-      _sum: {
-        amountPaid: true,
-      },
-    });
+    const [totalRevenue, totalExpense, pendingInvoices] = await Promise.all([
+      prisma.payment.aggregate({ where: paymentWhere, _sum: { amountPaid: true } }),
+      prisma.expense.aggregate({ where: expenseWhere, _sum: { amount: true } }),
+      prisma.invoice.aggregate({ where: invoiceWhere, _sum: { amountDue: true } }),
+    ]);
+
+    const revenue = totalRevenue._sum.amountPaid || 0;
+    const expense = totalExpense._sum.amount || 0;
 
     return {
-      totalRevenue: totalRevenue._sum.amountPaid || 0,
+      totalRevenue: revenue,
+      totalExpense: expense,
+      cashflow: revenue - expense,
+      outstandingInvoices: pendingInvoices._sum.amountDue || 0,
     };
   }
 
@@ -103,5 +109,61 @@ export class ReportingService {
       .map(([month, count]) => ({ month, totalApproved: count }));
 
     return sortedPerformance;
+  }
+
+  /**
+   * Mengambil statistik CRM Leads
+   */
+  static async getLeadsStats() {
+    const stats = await prisma.lead.groupBy({
+      by: ["statusCrm"],
+      _count: { statusCrm: true },
+    });
+
+    let totalLeads = 0;
+    const leadsByStatus: Record<string, number> = {};
+
+    stats.forEach(item => {
+      totalLeads += item._count.statusCrm;
+      leadsByStatus[item.statusCrm] = item._count.statusCrm;
+    });
+
+    return { totalLeads, leadsByStatus };
+  }
+
+  /**
+   * Mengambil statistik Legal & Purna Jual
+   */
+  static async getLegalStats() {
+    const [kprStats, defectStats] = await Promise.all([
+      prisma.kprApplication.groupBy({
+        by: ["status"],
+        _count: { status: true },
+      }),
+      prisma.defectComplaint.count({
+        where: { status: { not: "Selesai" } }
+      })
+    ]);
+
+    const kprPipeline: Record<string, number> = {};
+    kprStats.forEach(item => {
+      kprPipeline[item.status] = item._count.status;
+    });
+
+    return {
+      kprPipeline,
+      activeDefects: defectStats
+    };
+  }
+
+  /**
+   * Mengambil statistik Proyek
+   */
+  static async getProjectStats() {
+    const activeProjects = await prisma.project.count({
+      where: { status: { in: ["perencanaan", "konstruksi", "finishing"] } }
+    });
+
+    return { activeProjects };
   }
 }

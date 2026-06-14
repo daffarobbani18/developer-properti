@@ -31,7 +31,7 @@ const upload = multer({ storage });
 
 // Melindungi rute ini dengan middleware token & role
 // Menambahkan "Supervisor" & "PROJECT_MANAGER" agar Pengawas Lapangan bisa mengakses menu Inspeksi Pra-BAST dari mobile
-router.use(verifyToken, requireRole(["Tim Legal", "Director", "Supervisor", "PROJECT_MANAGER"]));
+router.use(verifyToken, requireRole(["Tim Legal", "Owner", "Supervisor", "PROJECT_MANAGER"]));
 
 /**
  * @swagger

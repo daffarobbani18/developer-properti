@@ -76,7 +76,7 @@ router.post(
 router.get(
   "/",
   verifyToken,
-  requireRole(["Sales", "Finance & Accounting", "Director"]),
+  requireRole(["Sales", "Finance & Accounting", "Owner"]),
   CommissionController.getAllCommissions
 );
 
@@ -112,7 +112,7 @@ router.get(
 router.put(
   "/:id/approve",
   verifyToken,
-  requireRole(["Director"]),
+  requireRole(["Owner"]),
   validate(approveCommissionDto),
   CommissionController.approveCommission
 );

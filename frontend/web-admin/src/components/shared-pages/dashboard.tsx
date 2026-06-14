@@ -17,7 +17,12 @@ import {
   Phone,
   MapPin,
   Warning,
-  CircleNotch
+  CircleNotch,
+  Package,
+  ShieldCheck,
+  Bank,
+  Wrench,
+  CheckCircle,
 } from "@phosphor-icons/react";
 import {
   AreaChart,
@@ -72,20 +77,17 @@ export default function SharedDashboard({ role }: { role: string }) {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        // Login to get token first (as per dummy flow)
-        const loginRes = await fetch("http://localhost:4000/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: "superadmin@erp.com", password: "password123" })
-        });
-        const loginData = await loginRes.json();
-        
-        if (loginData.token) {
-          const res = await fetch("http://localhost:4000/api/reports/dashboard", {
-            headers: { "Authorization": `Bearer ${loginData.token}` }
-          });
-          const data = await res.json();
-          setReportData(data);
+        // Retrieve token from localStorage
+        const authDataStr = localStorage.getItem("simdp_auth");
+        if (authDataStr) {
+          const authData = JSON.parse(authDataStr);
+          if (authData.token) {
+            const res = await fetch("http://localhost:4000/api/reports/dashboard", {
+              headers: { "Authorization": `Bearer ${authData.token}` }
+            });
+            const data = await res.json();
+            setReportData(data);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch report data:", error);
@@ -294,8 +296,12 @@ export default function SharedDashboard({ role }: { role: string }) {
     },
   };
 
-  const dashboard = ROLE_DASHBOARD[role as Role];
+  const dashboard = ROLE_DASHBOARD[role as Role] || ROLE_DASHBOARD["admin"];
   const chartData = dashboard.chartType === "cashflow" ? cashflowChartData : dashboard.chartType === "leads" ? leadsChartData : proyekChartData;
+
+  if (role === "admin" || role === "owner") {
+    return <UniversalExecutiveDashboard reportData={reportData} />;
+  }
 
   return (
     <div className="space-y-6">
@@ -499,6 +505,178 @@ export default function SharedDashboard({ role }: { role: string }) {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UniversalExecutiveDashboard({ reportData }: { reportData: any }) {
+  const inventoryStats = reportData?.inventoryStats || {};
+  const totalUnits = (inventoryStats.Tersedia || 0) + (inventoryStats.Booked || 0) + (inventoryStats.Terjual || 0) + (inventoryStats.Diserahterimakan || 0);
+  const soldUnits = (inventoryStats.Terjual || 0) + (inventoryStats.Diserahterimakan || 0);
+  
+  const financialStats = reportData?.financialStats || {};
+  const cashflow = financialStats.cashflow || 0;
+  const outstandingInvoices = financialStats.outstandingInvoices || 0;
+  
+  const leadsStats = reportData?.leadsStats || { totalLeads: 0, leadsByStatus: {} };
+  const totalLeads = leadsStats.totalLeads;
+  const newLeads = leadsStats.leadsByStatus["New"] || 0;
+  
+  const projectStats = reportData?.projectStats || { activeProjects: 0 };
+  
+  const legalStats = reportData?.legalStats || { kprPipeline: {}, activeDefects: 0 };
+  
+  // Sales chart data
+  const salesPerformance = reportData?.salesPerformance || [];
+  const chartData = salesPerformance.slice(-6).map((sp: any) => {
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+    const [year, month] = sp.month.split('-');
+    return {
+      name: monthNames[parseInt(month) - 1] || sp.month,
+      Konversi: sp.totalApproved
+    };
+  });
+
+  const formatCurrency = (val: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", notation: "compact", maximumFractionDigits: 1 }).format(val);
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Hero */}
+      <section className="module-hero md:p-8" style={{ "--hero-accent": "rgba(245,158,11,0.08)" } as any}>
+        <div className="hero-pattern absolute inset-0 pointer-events-none rounded-2xl opacity-50" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-2">
+            <h1 className="font-[family-name:var(--font-heading)] text-2xl font-normal tracking-tight text-zinc-900 md:text-3xl">
+              Universal Executive Dashboard
+            </h1>
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-zinc-500 leading-relaxed">Command Center lintas seluruh divisi (Real-time).</p>
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 animate-pulse border border-emerald-200">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-ping absolute opacity-75" />
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 relative" />
+                LIVE SYNC
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Top 4 Metrics */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: "Kas Bersih Aktif", value: formatCurrency(cashflow), note: `Pendapatan: ${formatCurrency(financialStats.totalRevenue || 0)}`, icon: CurrencyDollar, iconClass: "icon-emerald" },
+          { label: "Total Unit Terjual", value: soldUnits, note: `Dari ${totalUnits} Total Unit`, icon: Buildings, iconClass: "icon-amber" },
+          { label: "Total Leads CRM", value: totalLeads, note: `${newLeads} Leads Baru`, icon: UsersThree, iconClass: "icon-blue" },
+          { label: "Proyek Berjalan", value: projectStats.activeProjects, note: "Fase Konstruksi & Perencanaan", icon: HardHat, iconClass: "icon-violet" },
+        ].map((stat, idx) => {
+          const Icon = stat.icon;
+          return (
+            <div key={idx} className="stat-card group flex flex-col justify-between gap-4 p-5 rounded-2xl border border-zinc-100 bg-white shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex justify-between items-start">
+                <div className={`icon-wrapper h-12 w-12 shrink-0 ${stat.iconClass}`}>
+                  <Icon weight="duotone" size={24} />
+                </div>
+              </div>
+              <div className="mt-2">
+                <h3 className="text-2xl font-bold text-zinc-900 tracking-tight">{stat.value}</h3>
+                <p className="text-sm font-medium text-zinc-600 mt-1">{stat.label}</p>
+                <p className="text-[11px] text-zinc-400 mt-1">{stat.note}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Chart */}
+      {chartData.length > 0 && (
+        <div className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-bold text-zinc-900">Tren Konversi Penjualan</h3>
+              <p className="text-xs text-zinc-400 mt-0.5">Booking Disetujui (Approved) 6 Bulan Terakhir</p>
+            </div>
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="gradKonversiUni" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#a1a1aa" }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#a1a1aa" }} />
+                <Tooltip content={<ChartTooltip />} />
+                <Area type="monotone" dataKey="Konversi" stroke="#10b981" strokeWidth={2.5} fill="url(#gradKonversiUni)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Grids */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Inventaris & Proyek */}
+        <div className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="icon-wrapper h-10 w-10 icon-blue"><MapPin weight="duotone" size={20} /></div>
+            <h3 className="text-lg font-bold text-zinc-900">Inventaris & Proyek</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-100">
+              <p className="text-xs text-zinc-500 mb-1">Unit Tersedia</p>
+              <p className="text-xl font-bold text-zinc-900">{inventoryStats.Tersedia || 0}</p>
+            </div>
+            <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-100">
+              <p className="text-xs text-zinc-500 mb-1">Sedang Booked</p>
+              <p className="text-xl font-bold text-zinc-900">{inventoryStats.Booked || 0}</p>
+            </div>
+            <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-100">
+              <p className="text-xs text-zinc-500 mb-1">Diserahterimakan</p>
+              <p className="text-xl font-bold text-zinc-900">{inventoryStats.Diserahterimakan || 0}</p>
+            </div>
+            <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-100">
+              <p className="text-xs text-zinc-500 mb-1">Total Unit Terdaftar</p>
+              <p className="text-xl font-bold text-zinc-900">{totalUnits}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Keuangan & Legal */}
+        <div className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="icon-wrapper h-10 w-10 icon-emerald"><Scales weight="duotone" size={20} /></div>
+            <h3 className="text-lg font-bold text-zinc-900">Peringatan Keuangan & Legal</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-red-50 border border-red-100">
+              <div className="flex items-center gap-3">
+                <Warning weight="duotone" className="text-red-500" size={20} />
+                <span className="text-sm font-medium text-red-900">Tagihan Tertunda (Overdue)</span>
+              </div>
+              <span className="font-bold text-red-700">{formatCurrency(outstandingInvoices)}</span>
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 border border-amber-100">
+              <div className="flex items-center gap-3">
+                <Wrench weight="duotone" className="text-amber-500" size={20} />
+                <span className="text-sm font-medium text-amber-900">Komplain Retensi Aktif</span>
+              </div>
+              <span className="font-bold text-amber-700">{legalStats.activeDefects || 0} Tiket</span>
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 border border-blue-100">
+              <div className="flex items-center gap-3">
+                <Bank weight="duotone" className="text-blue-500" size={20} />
+                <span className="text-sm font-medium text-blue-900">KPR Diproses (Kumpul Berkas, BI Checking)</span>
+              </div>
+              <span className="font-bold text-blue-700">
+                {(legalStats.kprPipeline["Kumpul Berkas"] || 0) + (legalStats.kprPipeline["BI Checking"] || 0)} Aplikasi
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
