@@ -713,7 +713,7 @@ export default function TagihanFinancePage() {
                           <td colSpan={6} className="px-4 py-8 text-center text-zinc-500 italic">Belum ada tagihan lanjutan diterbitkan.</td>
                         </tr>
                       ) : (
-                        [...(selectedBooking.invoices || [])].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map(inv => {
+                        [...(selectedBooking.invoices || [])].sort((a, b) => new Date((a as any).createdAt).getTime() - new Date((b as any).createdAt).getTime()).map(inv => {
                           const isOverdue = inv.status === "Unpaid" && new Date(inv.dueDate) < new Date(new Date().setHours(0,0,0,0));
                           
                           return (
