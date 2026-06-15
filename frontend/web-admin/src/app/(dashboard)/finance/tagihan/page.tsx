@@ -54,7 +54,7 @@ export default function TagihanFinancePage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   
   // UI State
-  const [activeTab, setActiveTab] = useState<"pending" | "riwayat" | "piutang">("pending");
+  const [activeTab, setActiveTab] = useState<"pending" | "riwayat" | "piutang">("piutang");
   const [submitting, setSubmitting] = useState(false);
   
   // Modals
@@ -315,11 +315,10 @@ export default function TagihanFinancePage() {
   if (!mounted) return null;
 
   // Filter Data
-  const pendingBookings = bookings.filter(b => b.status === "Menunggu Verifikasi");
-  const historyBookings = bookings.filter(b => b.status !== "Menunggu Verifikasi");
   const approvedBookings = bookings.filter(b => b.status === "Approved");
+  const historyBookings = bookings.filter(b => b.status === "Approved"); // All approved are in history for now, or we can filter fully paid
   
-  const displayedBookings = activeTab === "pending" ? pendingBookings : activeTab === "riwayat" ? historyBookings : approvedBookings;
+  const displayedBookings = activeTab === "riwayat" ? historyBookings : approvedBookings;
 
   return (
     <div className="space-y-8 pb-10">
@@ -337,7 +336,7 @@ export default function TagihanFinancePage() {
       </div>
 
       {/* QUICK STATS - Dengan Efek Glow Ikon Sesuai Request */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         <div className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.6)]">
             <Receipt weight="fill" size={24} />
@@ -345,16 +344,6 @@ export default function TagihanFinancePage() {
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Total Transaksi</p>
             <p className="text-2xl font-black text-zinc-900 mt-1">{bookings.length}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-[0_0_15px_rgba(245,158,11,0.6)]">
-            <ClockCounterClockwise weight="fill" size={24} />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Menunggu Verifikasi</p>
-            <p className="text-2xl font-black text-amber-600 mt-1">{pendingBookings.length}</p>
           </div>
         </div>
 
@@ -387,17 +376,6 @@ export default function TagihanFinancePage() {
       <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
         {/* TABS */}
         <div className="flex items-center gap-1 border-b border-zinc-200 px-2 pt-2 bg-zinc-50/50">
-          <button
-            onClick={() => setActiveTab("pending")}
-            className={`flex items-center gap-2 border-b-2 px-5 py-3.5 text-sm font-bold transition-all ${
-              activeTab === "pending" ? "border-amber-500 text-amber-600 bg-white rounded-t-xl shadow-[0_-2px_10px_rgba(0,0,0,0.02)]" : "border-transparent text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 rounded-t-xl"
-            }`}
-          >
-            <ClockCounterClockwise weight={activeTab === "pending" ? "bold" : "regular"} size={18} />
-            Menunggu Verifikasi
-            <span className="ml-1 rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-xs font-bold">{pendingBookings.length}</span>
-          </button>
-          
           <button
             onClick={() => setActiveTab("piutang")}
             className={`flex items-center gap-2 border-b-2 px-5 py-3.5 text-sm font-bold transition-all ${
@@ -459,7 +437,7 @@ export default function TagihanFinancePage() {
                     const invoices = b.invoices || [];
                     const paidInvoicesTotal = invoices.filter(i => i.status === "Paid").reduce((acc, i) => acc + i.amountDue, 0);
                     const unpaidInvoicesTotal = invoices.filter(i => i.status === "Unpaid").reduce((acc, i) => acc + i.amountDue, 0);
-                    const totalPaid = b.bookingFee + paidInvoicesTotal;
+                    const totalPaid = paidInvoicesTotal;
                     const remainingBalance = Math.max(0, b.unit.totalPrice - totalPaid);
                     const progress = Math.min(100, Math.round((totalPaid / b.unit.totalPrice) * 100));
 
@@ -534,14 +512,7 @@ export default function TagihanFinancePage() {
                               <UserCircle weight="fill" size={16} /> Detail
                             </button>
                             
-                            {activeTab === "pending" ? (
-                              <button
-                                onClick={() => { setSelectedBooking(b); setFinanceNotes(""); setIsVerifyModalOpen(true); }}
-                                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-blue-700 shadow-sm"
-                              >
-                                Verifikasi
-                              </button>
-                            ) : activeTab === "piutang" ? (
+                            {activeTab === "piutang" ? (
                               <button
                                 onClick={() => { setSelectedBooking(b); fetchInvoices(b.id); setIsPiutangModalOpen(true); }}
                                 className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-violet-700 shadow-sm"
@@ -618,7 +589,7 @@ export default function TagihanFinancePage() {
 
       {/* MODAL 2: KELOLA PIUTANG & INVOICE LIST */}
       <Dialog open={isPiutangModalOpen} onOpenChange={setIsPiutangModalOpen}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] sm:max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl flex items-center gap-2">
               <ChartPieSlice className="text-violet-500" weight="fill" /> Kelola Piutang & Cicilan
@@ -630,15 +601,15 @@ export default function TagihanFinancePage() {
             const paidInvoicesTotal = invoices.filter(i => i.status === "Paid").reduce((acc, i) => acc + i.amountDue, 0);
             const allInvoicesTotal = invoices.reduce((acc, i) => acc + i.amountDue, 0);
             
-            const totalPaid = selectedBooking.bookingFee + paidInvoicesTotal;
+            const totalPaid = paidInvoicesTotal;
             const remainingBalance = selectedBooking.unit.totalPrice - totalPaid;
-            const unbilledBalance = selectedBooking.unit.totalPrice - selectedBooking.bookingFee - allInvoicesTotal;
+            const unbilledBalance = selectedBooking.unit.totalPrice - allInvoicesTotal;
 
             return (
               <div className="py-2 space-y-6">
                 {/* Ringkasan Piutang */}
                 <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1">Harga Unit</p>
                       <p className="text-xl font-black text-zinc-900">Rp {selectedBooking.unit.totalPrice.toLocaleString("id-ID")}</p>
@@ -715,8 +686,8 @@ export default function TagihanFinancePage() {
                     })()}
                   </div>
                 
-                <div className="rounded-xl border border-zinc-200 overflow-hidden">
-                  <table className="w-full text-left text-sm">
+                <div className="rounded-xl border border-zinc-200 overflow-x-auto">
+                  <table className="w-full text-left text-sm whitespace-nowrap">
                     <thead className="bg-zinc-50 border-b border-zinc-200 text-xs text-zinc-500 uppercase tracking-wider">
                       <tr>
                         <th className="px-4 py-3 font-bold">No. Tagihan</th>
@@ -902,11 +873,20 @@ export default function TagihanFinancePage() {
             </div>
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2 block">Metode Pembayaran</label>
-              <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} className="w-full border border-zinc-300 rounded-xl px-4 py-2 text-sm">
-                <option>Transfer Bank BCA</option>
-                <option>Transfer Bank Mandiri</option>
-                <option>Tunai / Cash</option>
-              </select>
+              <input 
+                type="text" 
+                list="payment-methods"
+                value={paymentMethod} 
+                onChange={e => setPaymentMethod(e.target.value)} 
+                className="w-full border border-zinc-300 rounded-xl px-4 py-2 text-sm" 
+                placeholder="Ketik metode atau pilih (Cth: Transfer Bank BNI)"
+              />
+              <datalist id="payment-methods">
+                <option value="Transfer Bank BCA" />
+                <option value="Transfer Bank Mandiri" />
+                <option value="Transfer Bank BSI" />
+                <option value="Tunai / Cash" />
+              </datalist>
             </div>
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2 block">No. Referensi (Opsional)</label>

@@ -121,7 +121,7 @@ export class SalesService {
           bookingFee: extractedBookingFee,
           paymentMethod: data.paymentMethod,
           salesNotes: data.salesNotes,
-          status: "Menunggu Verifikasi",
+          status: "Approved",
           kprPlafonSnapshot,
           kprHargaSubsidiSnapshot,
           kprDpPercentageSnapshot,
