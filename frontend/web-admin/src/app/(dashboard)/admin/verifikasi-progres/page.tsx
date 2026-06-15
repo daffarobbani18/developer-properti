@@ -521,9 +521,9 @@ export default function VerifikasiProgresPage() {
                   <ImageIcon className="text-amber-500" size={18} weight="bold" />
                   Foto Bukti Lapangan
                 </h4>
-                {(selectedMilestone.photos?.length > 0) ? (
+                {(selectedMilestone.photos?.length > 0 || selectedMilestone.photoUrls?.length > 0) ? (
                   <div className="flex gap-4 overflow-x-auto pb-2">
-                    {selectedMilestone.photos.map((photo: any, i: number) => {
+                    {(selectedMilestone.photos || selectedMilestone.photoUrls).map((photo: any, i: number) => {
                       const url = typeof photo === 'string' ? photo : photo.url;
                       return (
                         <div 

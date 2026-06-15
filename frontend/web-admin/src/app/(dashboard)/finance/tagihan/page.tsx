@@ -468,9 +468,18 @@ export default function TagihanFinancePage() {
                             </td>
                             <td className="px-6 py-4">
                               <div className="font-bold text-emerald-600">Rp {totalPaid.toLocaleString("id-ID")}</div>
-                              <div className="w-full bg-zinc-200 rounded-full h-1.5 mt-1.5">
+                              <div className="w-full bg-zinc-200 rounded-full h-1.5 mt-1.5 mb-1.5">
                                 <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${progress}%` }}></div>
                               </div>
+                              {remainingBalance === 0 ? (
+                                <div className="mt-1 inline-flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700 shadow-sm whitespace-nowrap">
+                                  <CheckCircle weight="fill" size={12} /> Lunas Sepenuhnya
+                                </div>
+                              ) : invoices.length > 0 && unpaidInvoicesTotal === 0 ? (
+                                <div className="mt-1 inline-flex items-center gap-1 rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-bold text-blue-700 shadow-sm whitespace-nowrap">
+                                  <CheckCircle weight="fill" size={12} /> Uang Muka / Termin Lunas
+                                </div>
+                              ) : null}
                             </td>
                             <td className="px-6 py-4">
                               <div className="font-black text-rose-600">Rp {remainingBalance.toLocaleString("id-ID")}</div>
@@ -704,7 +713,7 @@ export default function TagihanFinancePage() {
                           <td colSpan={6} className="px-4 py-8 text-center text-zinc-500 italic">Belum ada tagihan lanjutan diterbitkan.</td>
                         </tr>
                       ) : (
-                        selectedBooking.invoices?.map(inv => {
+                        [...(selectedBooking.invoices || [])].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map(inv => {
                           const isOverdue = inv.status === "Unpaid" && new Date(inv.dueDate) < new Date(new Date().setHours(0,0,0,0));
                           
                           return (

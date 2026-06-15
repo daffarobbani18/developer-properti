@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { AppState } from "react-native";
+import { AppState, DeviceEventEmitter } from "react-native";
 
 import { login, registerPushToken } from "../services/api";
 import {
@@ -126,6 +126,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
     return () => {
       subscription.remove();
     };
+  }, [auth]);
+
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener("onUnauthorized", async () => {
+      if (auth) {
+        await clearStoredAuth();
+        setAuth(null);
+      }
+    });
+    return () => sub.remove();
   }, [auth]);
 
   const value = useMemo<AuthContextValue>(

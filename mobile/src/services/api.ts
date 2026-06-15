@@ -1,3 +1,4 @@
+import { DeviceEventEmitter } from "react-native";
 import {
   AttendanceItem,
   AttendanceSummary,
@@ -80,8 +81,13 @@ async function requestJson<T>(
     REQUEST_TIMEOUT_MS
   );
 
+  if (response.status === 401) {
+    DeviceEventEmitter.emit("onUnauthorized");
+  }
+
   if (!response.ok) {
-    throw new Error(`API error ${response.status}`);
+    const errText = await response.text().catch(() => "");
+    throw new Error(errText || `API error ${response.status}`);
   }
 
   const text = await response.text();
