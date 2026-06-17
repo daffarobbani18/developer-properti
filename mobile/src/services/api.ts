@@ -135,13 +135,24 @@ function normalizeAuthResponse(payload: unknown): AuthState | null {
     return null;
   }
 
+  let roleStr = String((user as { role: unknown }).role);
+  let finalRole: AuthState["user"]["role"] = "CUSTOMER"; // fallback
+
+  if (roleStr === "Pengawas Lapangan" || roleStr === "SITE_ENGINEER") {
+    finalRole = "SITE_ENGINEER";
+  } else if (roleStr === "Project Manager" || roleStr === "PROJECT_MANAGER") {
+    finalRole = "PROJECT_MANAGER";
+  } else if (roleStr === "Customer" || roleStr === "CUSTOMER") {
+    finalRole = "CUSTOMER";
+  }
+
   return {
     token,
     user: {
       id: String((user as { id: unknown }).id),
       fullName: String((user as { fullName?: unknown }).fullName || (user as { email: unknown }).email),
       email: String((user as { email: unknown }).email),
-      role: (user as { role: AuthState["user"]["role"] }).role,
+      role: finalRole,
     },
   };
 }
