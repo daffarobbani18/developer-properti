@@ -31,7 +31,6 @@ export default async function UnitDetailPage({ params }: { params: Promise<Param
         const backendData = await res.json();
         const priceFmt = `Rp ${backendData.price}`;
         unit = {
-          id: backendData.id,
           name: backendData.name,
           slug: backendData.id,
           description: `Tipe ${backendData.name} adalah hunian eksklusif dengan luas bangunan ${backendData.luasBangunan}m² di atas lahan seluas ${backendData.luasTanah}m². Desain dirancang memaksimalkan pencahayaan dan sirkulasi udara alami.`,
@@ -39,6 +38,7 @@ export default async function UnitDetailPage({ params }: { params: Promise<Param
           price: priceFmt,
           badge: "Tipe Premium",
           status: "Tersedia",
+          shortPriceNote: "Harga perdana",
           images: backendData.imageUrl ? [
             backendData.imageUrl,
             "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80",
@@ -51,9 +51,12 @@ export default async function UnitDetailPage({ params }: { params: Promise<Param
             "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80"
           ],
           bedroom: `${backendData.bedrooms} Kamar Tidur`,
+          garage: "1 Garasi",
           buildingArea: `${backendData.luasBangunan}m²`,
-          surfaceArea: `${backendData.luasTanah}m²`,
+          landArea: `${backendData.luasTanah}m²`,
           facilities: ["Smart Home System", "Keamanan 24 Jam", "Taman Bermain", "Clubhouse"],
+          points: ["Konsep tropis", "Sirkulasi udara baik"],
+          delivery: "Indent 12 bulan",
           specs: [
             { label: "Pondasi", value: "Batu Kali & Foot Plat" },
             { label: "Dinding", value: "Bata Merah Plester" },

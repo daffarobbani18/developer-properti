@@ -1,19 +1,64 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChartLineUp, ArrowUpRight, ArrowDownRight, Wallet, CalendarBlank, ArrowsLeftRight } from "@phosphor-icons/react";
+import { 
+  ChartLineUp, 
+  Wallet, 
+  CalendarBlank, 
+  Money, 
+  Bank, 
+  ChartPieSlice, 
+  ArrowCircleDown, 
+  ArrowCircleUp,
+  Pulse
+} from "@phosphor-icons/react";
 
 export default function CashflowPage() {
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
     setMounted(true);
+    fetchStats();
   }, []);
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+      let token = "";
+      if (authDataStr) {
+        const authData = JSON.parse(authDataStr);
+        token = authData.token;
+      }
+      
+      const res = await fetch("http://localhost:4000/api/reports/dashboard", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      
+      if (res.ok && data.data?.financialStats) {
+        setStats(data.data.financialStats);
+      }
+    } catch (e) {
+      console.error("Failed to fetch cashflow stats", e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!mounted) return null;
 
+  // Nilai default jika data belum ada
+  const totalRevenue = stats?.totalRevenue || 0;
+  const totalExpense = stats?.totalExpense || 0;
+  const cashflow = stats?.cashflow || 0;
+  const outstandingInvoices = stats?.outstandingInvoices || 0;
+  const piutangKpr = stats?.piutangKpr || 0;
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-10">
       {/* HEADER */}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
@@ -33,49 +78,69 @@ export default function CashflowPage() {
         </div>
       </div>
 
-      {/* QUICK STATS */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-        <div className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-            <Wallet weight="duotone" size={24} />
-          </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-zinc-500">Saldo Kas Saat Ini</p>
-            <p className="text-2xl font-black text-zinc-900 mt-1">Rp 1.450.000.000</p>
-          </div>
+      {loading ? (
+        <div className="flex h-64 items-center justify-center">
+          <Pulse className="animate-spin text-zinc-300" size={32} />
         </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {/* TOTAL PENDAPATAN */}
+          <div className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.6)]">
+              <Money weight="fill" size={24} />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Total Pendapatan</p>
+              <p className="text-2xl font-black text-zinc-900 mt-1">Rp {totalRevenue.toLocaleString("id-ID")}</p>
+            </div>
+          </div>
 
-        <div className="flex items-center gap-4 rounded-2xl border border-emerald-100 bg-emerald-50/50 p-5 shadow-sm">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
-            <ArrowDownRight weight="bold" size={24} />
+          {/* TOTAL PENGELUARAN */}
+          <div className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-rose-500 text-white shadow-[0_0_15px_rgba(225,29,72,0.6)]">
+              <Bank weight="fill" size={24} />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Total Pengeluaran</p>
+              <p className="text-2xl font-black text-zinc-900 mt-1">Rp {totalExpense.toLocaleString("id-ID")}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">Uang Masuk (In)</p>
-            <p className="text-2xl font-black text-emerald-700 mt-1">Rp 350.000.000</p>
-          </div>
-        </div>
 
-        <div className="flex items-center gap-4 rounded-2xl border border-rose-100 bg-rose-50/50 p-5 shadow-sm">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
-            <ArrowUpRight weight="bold" size={24} />
+          {/* CASHFLOW (NETTO) */}
+          <div className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-violet-500 text-white shadow-[0_0_15px_rgba(139,92,246,0.6)]">
+              <ChartPieSlice weight="fill" size={24} />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Arus Kas Bersih</p>
+              <p className="text-2xl font-black text-zinc-900 mt-1">Rp {cashflow.toLocaleString("id-ID")}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-rose-700">Uang Keluar (Out)</p>
-            <p className="text-2xl font-black text-rose-700 mt-1">Rp 120.000.000</p>
-          </div>
-        </div>
-      </div>
 
-      {/* PLACEHOLDER KONTEN */}
-      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 p-8 text-center">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 shadow-inner">
-          <ArrowsLeftRight weight="duotone" className="h-8 w-8" />
+          {/* TAGIHAN BELUM DIBAYAR */}
+          <div className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.6)]">
+              <ArrowCircleDown weight="fill" size={24} />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Tagihan Tertunda (Piutang Developer)</p>
+              <p className="text-2xl font-black text-zinc-900 mt-1">Rp {outstandingInvoices.toLocaleString("id-ID")}</p>
+            </div>
+          </div>
+
+          {/* PIUTANG KPR */}
+          <div className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-[0_0_15px_rgba(245,158,11,0.6)]">
+              <ArrowCircleUp weight="fill" size={24} />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Piutang KPR Belum Cair</p>
+              <p className="text-2xl font-black text-zinc-900 mt-1">Rp {piutangKpr.toLocaleString("id-ID")}</p>
+            </div>
+          </div>
+
         </div>
-        <h3 className="mb-2 text-xl font-bold text-zinc-800">Modul Cashflow Segera Hadir</h3>
-        <p className="max-w-md text-sm text-zinc-500">
-          Halaman ini nantinya akan menampilkan grafik arus kas, pencatatan biaya operasional, tagihan kontraktor, serta pemasukan dari pembayaran unit. Saat ini UI sedang dipersiapkan.
-        </p>
-      </div>
+      )}
     </div>
   );
 }
