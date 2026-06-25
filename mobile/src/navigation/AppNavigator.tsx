@@ -1,10 +1,11 @@
 import { NotificationProvider } from '../contexts/NotificationContext';
 import React, { useCallback, useEffect } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { StyleSheet } from "react-native";
 import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import * as SplashScreen from "expo-splash-screen";
 import { c } from "../theme/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -60,15 +61,6 @@ const FIELD_ROUTE_NAMES: FieldRouteName[] = ["Beranda", "FieldNotifikasi", "Unit
 const CUSTOMER_ROUTE_NAMES: CustomerRouteName[] = ["Beranda", "Progres", "Tagihan", "Dokumen", "Bantuan", "PhotoGallery", "TicketDetail", "FaqContact"];
 
 
-
-function BootSplash(): React.JSX.Element {
-  return (
-    <View style={styles.bootWrap}>
-      <ActivityIndicator size="large" color="#f59e0b" />
-      <Text style={styles.bootText}>Memuat sesi aplikasi...</Text>
-    </View>
-  );
-}
 
 function isFieldRouteName(value: string | null | undefined): value is FieldRouteName {
   return Boolean(value && FIELD_ROUTE_NAMES.includes(value as FieldRouteName));
@@ -231,6 +223,14 @@ export function AppNavigator({
    const { auth, isBootstrapping } = useAuth();
    const navigationRef = useNavigationContainerRef();
 
+   // Hide native splash screen once bootstrap completes.
+   // preventAutoHideAsync() is called at module scope in App.tsx.
+   useEffect(() => {
+     if (!isBootstrapping) {
+       void SplashScreen.hideAsync();
+     }
+   }, [isBootstrapping]);
+
    const navigateToPendingRoute = useCallback(() => {
      if (!auth || !pendingRouteName) {
        return;
@@ -248,7 +248,7 @@ export function AppNavigator({
        return;
      }
 
-    if (isFieldRouteName(pendingRouteName)) {
+     if (isFieldRouteName(pendingRouteName)) {
        navigationRef.navigate(pendingRouteName as never);
      }
 
@@ -258,10 +258,6 @@ export function AppNavigator({
    useEffect(() => {
      navigateToPendingRoute();
    }, [navigateToPendingRoute]);
-
-   if (isBootstrapping) {
-     return <BootSplash />;
-   }
 
    if (!auth) {
      return <LoginScreen />;
@@ -284,15 +280,4 @@ export function AppNavigator({
  }
 
  const styles = StyleSheet.create({
-    bootWrap: {
-       flex: 1,
-       alignItems: "center",
-       justifyContent: "center",
-       backgroundColor: "#f8fafc",
-       gap: 12,
-     },
-     bootText: {
-       color: "#475569",
-       fontSize: 14,
-     },
  });

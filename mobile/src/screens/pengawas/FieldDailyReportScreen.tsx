@@ -12,7 +12,6 @@ import {
   EmptyState,
   LabeledInput,
   PrimaryButton,
-  SecondaryButton,
   StatusBanner,
   SkeletonList,
   SlideInView,
@@ -33,7 +32,7 @@ export function FieldDailyReportScreen(): React.JSX.Element {
   const { enqueueAction } = useOfflineQueue(auth);
   const navigation = useNavigation<NativeStackNavigationProp<FieldStackParamList>>();
   const insets = useSafeAreaInsets();
-  const safeTop = Platform.OS === 'android' ? ((StatusBar.currentHeight || 0) > 24 ? StatusBar.currentHeight : 45) : (insets?.top || 20);
+  const safeTop = Platform.OS === 'android' ? ((StatusBar.currentHeight || 0) > 24 ? (StatusBar.currentHeight ?? 45) : 45) : (insets?.top || 20);
 
   const [reports, setReports] = useState<DailyReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,6 +65,8 @@ export function FieldDailyReportScreen(): React.JSX.Element {
 
   // Restore autosaved draft saat modal dibuka jika belum ada draft dari server
   const restoreAutosaveDraft = useCallback(async () => {
+    // Jika server draft sudah ada, AsyncStorage tidak boleh menimpa — server adalah source of truth
+    if (todayDraft) return;
     try {
       const raw = await AsyncStorage.getItem(DRAFT_AUTOSAVE_KEY);
       if (!raw) return;
@@ -79,7 +80,7 @@ export function FieldDailyReportScreen(): React.JSX.Element {
       if (activities === "" && saved.activities) setActivities(saved.activities);
       setModalWeather(saved.weather);
     } catch { /* ignore parse errors */ }
-  }, [todayDate, summary, activities]);
+  }, [todayDate, todayDraft, summary, activities]);
 
   const loadReports = useCallback(async () => {
     if (!auth) return;
@@ -164,36 +165,6 @@ export function FieldDailyReportScreen(): React.JSX.Element {
       setIsSubmitting(false);
     }
   }, [auth, todayDate, summary, activities, modalWeather, clearAutosaveDraft]);
-
-  const renderWeatherSelector = (selected: DailyReport["weather"], onSelect: (w: DailyReport["weather"]) => void) => {
-    const icons = { CERAH: "☀️", MENDUNG: "⛅", HUJAN: "🌧️", BADAI: "⛈️" };
-    return (
-      <View style={styles.weatherSection}>
-        <Text style={styles.inputLabel}>Kondisi Cuaca Hari Ini</Text>
-        <View style={styles.weatherOptionsRow}>
-          {(["CERAH", "MENDUNG", "HUJAN", "BADAI"] as const).map((w) => {
-            const isSelected = selected === w;
-            return (
-              <Pressable
-                key={w}
-                onPress={() => {
-                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  onSelect(w);
-                }}
-                style={[
-                  styles.weatherBtn,
-                  isSelected && styles.weatherBtnSelected
-                ]}
-              >
-                <Text style={styles.weatherEmoji}>{icons[w]}</Text>
-                <Text style={[styles.weatherText, isSelected && styles.weatherTextSelected]}>{w}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-    );
-  };
 
   return (
     <View style={styles.container}>
@@ -352,53 +323,95 @@ export function FieldDailyReportScreen(): React.JSX.Element {
         onShow={() => void restoreAutosaveDraft()}
       >
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.modalContainer}>
-          <SafeAreaView style={{ flex: 1 }} edges={['top']}>
-             <View style={styles.modalHeader}>
-               <Pressable onPress={() => setShowForm(false)} style={styles.closeBtn}>
-                  <Ionicons name="close" size={24} color={c.neutral900} />
-               </Pressable>
-               <Text style={styles.modalTitle}>Tulis Jurnal Harian</Text>
-               <View style={{ width: 44 }} />
-             </View>
+          <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
 
-             <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.modalBodyContent} showsVerticalScrollIndicator={false}>
-                {renderWeatherSelector(modalWeather, (w) => {
-                  setModalWeather(w);
-                  autosaveDraft(summary, activities, w);
+            {/* ── MODAL HERO AREA ── */}
+            <LinearGradient
+              colors={[c.primary600, c.primary, c.primaryDark]}
+              locations={[0, 0.5, 1]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.modalHero}
+            >
+              {/* Close button di atas kiri */}
+              <View style={[styles.modalHeroTopRow, { paddingTop: Math.max(safeTop, 16) }]}>
+                <Pressable onPress={() => setShowForm(false)} style={styles.closeBtn}>
+                  <Ionicons name="close" size={20} color="#ffffff" />
+                </Pressable>
+                <Text style={styles.modalHeroKicker}>JURNAL HARIAN</Text>
+                <View style={{ width: 44 }} />
+              </View>
+
+              {/* Tanggal sebagai hero element */}
+              <Text style={styles.modalHeroDate}>
+                {new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" })}
+              </Text>
+
+              {/* Weather chips — horizontal scrollable */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.modalHeroPillRow}
+                style={styles.modalHeroPillScroll}
+              >
+                {(["CERAH", "MENDUNG", "HUJAN", "BADAI"] as const).map((w) => {
+                  const icons = { CERAH: "☀️", MENDUNG: "⛅", HUJAN: "🌧️", BADAI: "⛈️" };
+                  const isSelected = modalWeather === w;
+                  return (
+                    <Pressable
+                      key={w}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setModalWeather(w);
+                        autosaveDraft(summary, activities, w);
+                      }}
+                      style={[
+                        styles.modalHeroPill,
+                        isSelected && styles.modalHeroPillSelected,
+                      ]}
+                    >
+                      <Text style={styles.modalHeroPillEmoji}>{icons[w]}</Text>
+                      <Text style={[styles.modalHeroPillText, isSelected && styles.modalHeroPillTextSelected]}>{w}</Text>
+                    </Pressable>
+                  );
                 })}
+              </ScrollView>
+            </LinearGradient>
 
-                <View style={styles.inputGroup}>
-                  <LabeledInput
-                    label="Ringkasan Pekerjaan"
-                    value={summary}
-                    onChangeText={(text) => {
-                      setSummary(text);
-                      autosaveDraft(text, activities, modalWeather);
-                    }}
-                    placeholder="Contoh: Pengecoran fondasi blok A selesai..."
-                    multiline
-                    returnKeyType="next"
-                    blurOnSubmit={false}
-                  />
-                </View>
+            {/* ── FORM BODY ── */}
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.modalBodyContent} showsVerticalScrollIndicator={false}>
+              <View style={styles.inputGroup}>
+                <LabeledInput
+                  label="Ringkasan Pekerjaan *"
+                  hint="Wajib diisi sebelum laporan dapat disimpan"
+                  value={summary}
+                  onChangeText={(text) => {
+                    setSummary(text);
+                    autosaveDraft(text, activities, modalWeather);
+                  }}
+                  placeholder="Apa yang dikerjakan hari ini?"
+                  multiline
+                  returnKeyType="next"
+                  blurOnSubmit={false}
+                />
+              </View>
 
-                <View style={styles.inputGroup}>
-                  <LabeledInput
-                    label="Detail Aktivitas (satu baris per aktivitas)"
-                    value={activities}
-                    onChangeText={(text) => {
-                      setActivities(text);
-                      autosaveDraft(summary, text, modalWeather);
-                    }}
-                    placeholder="- Material pasir tiba&#10;- Pemasangan bata unit A1"
-                    multiline
-                    returnKeyType="default"
-                    blurOnSubmit={false}
-                  />
-                </View>
-               
-               <View style={{ height: 40 }} />
-             </ScrollView>
+              <View style={styles.inputGroup}>
+                <LabeledInput
+                  label="Detail Aktivitas"
+                  hint="Tulis satu aktivitas per baris"
+                  value={activities}
+                  onChangeText={(text) => {
+                    setActivities(text);
+                    autosaveDraft(summary, text, modalWeather);
+                  }}
+                  placeholder={"- Material pasir tiba\n- Pemasangan bata unit A1"}
+                  multiline
+                  returnKeyType="default"
+                  blurOnSubmit={false}
+                />
+              </View>
+            </ScrollView>
 
              <View style={styles.modalFooter}>
                 <PrimaryButton
@@ -432,21 +445,6 @@ const styles = StyleSheet.create({
   heroSafeArea: {
     paddingHorizontal: 24,
   },
-  // heroNavRow: title-only row (back button dihapus — ini adalah tab screen)
-  // marginBottom dihapus karena paddingBottom:60 di heroHeader sudah mengurus ruang bawah
-  heroNavRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  iconBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   // heroKicker + heroTitle: CustomerProgressScreen.tsx:300-312 — identik
   heroKicker: { color: "#FBBF24", fontSize: 12, fontWeight: "800", letterSpacing: 1.5, marginBottom: 4 },
   heroTitle: { color: "#ffffff", fontSize: 34, fontWeight: "900", letterSpacing: -1.2 },
@@ -458,20 +456,6 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.75)",
     marginTop: 6,
     letterSpacing: 0.1,
-  },
-  // heroDate: CustomerProgressScreen heroTitle — fontSize:34, fontWeight:"900", letterSpacing:-1.2
-  // Tanggal adalah anchor konteks utama di DailyReport, setara dengan heroTitle di CustomerProgress
-  heroDate: {
-    fontSize: 32,
-    fontWeight: "900",
-    color: c.neutral900,
-    letterSpacing: -1,
-  },
-  heroSubtitle: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: c.neutral500,
-    marginTop: 4,
   },
   // overlapContainer: sekarang dapat menggunakan marginTop:-40 karena subHeaderRow dihapus.
   // Referensi: CustomerHomeScreen.tsx:347-351 — marginTop:-40, paddingHorizontal:24, zIndex:10
@@ -711,71 +695,83 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#ffffff",
   },
-  modalHeader: {
+
+  // ── Modal Hero Area ──
+  modalHero: {
+    paddingBottom: 28,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: "hidden",
+  },
+  modalHeroTopRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: c.neutral100,
+    paddingBottom: 16,
   },
+  modalHeroKicker: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "rgba(255,255,255,0.7)",
+    letterSpacing: 1.5,
+  },
+  modalHeroDate: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#ffffff",
+    letterSpacing: -0.8,
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  modalHeroPillScroll: {
+    alignSelf: "flex-start",
+  },
+  modalHeroPillRow: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    paddingBottom: 4,
+    gap: 8,
+  },
+  modalHeroPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderWidth: 1.5,
+    borderColor: "transparent",
+  },
+  modalHeroPillSelected: {
+    backgroundColor: "rgba(255,255,255,0.95)",
+    borderColor: "#ffffff",
+  },
+  modalHeroPillEmoji: {
+    fontSize: 14,
+  },
+  modalHeroPillText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "rgba(255,255,255,0.85)",
+  },
+  modalHeroPillTextSelected: {
+    color: c.primaryDark,
+  },
+
   closeBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: c.neutral100,
+    backgroundColor: "rgba(255,255,255,0.2)",
     alignItems: "center",
     justifyContent: "center",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: c.neutral900,
   },
   modalBodyContent: {
     paddingHorizontal: 24,
     paddingTop: 24,
-    paddingBottom: 40,
-  },
-  weatherSection: {
-    marginBottom: 24,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: c.neutral700,
-    marginBottom: 12,
-  },
-  weatherOptionsRow: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  weatherBtn: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-    borderRadius: 16,
-    backgroundColor: c.neutral50,
-    borderWidth: 2,
-    borderColor: "transparent",
-  },
-  weatherBtnSelected: {
-    backgroundColor: c.primaryLight,
-    borderColor: c.primary,
-  },
-  weatherEmoji: {
-    fontSize: 24,
-    marginBottom: 8,
-  },
-  weatherText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: c.neutral500,
-  },
-  weatherTextSelected: {
-    color: c.primaryDark,
+    paddingBottom: 24,
   },
   inputGroup: {
     marginBottom: 24,

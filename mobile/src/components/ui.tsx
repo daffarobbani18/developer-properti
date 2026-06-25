@@ -310,7 +310,13 @@ export function PrimaryButton({
            pressed && !disabled && !loading && styles.buttonPressed,
          ]}
        >
-         {loading ? <ActivityIndicator color="#ffffff" /> : <Text style={styles.primaryButtonText}>{label}</Text>}
+          {loading ? (
+            <ActivityIndicator color="#ffffff" />
+          ) : (
+            <Text style={[styles.primaryButtonText, disabled && styles.primaryButtonTextDisabled]}>
+              {label}
+            </Text>
+          )}
        </Pressable>
      </Animated.View>
    );
@@ -784,6 +790,9 @@ badgeDanger: {
     fontSize: 15,
     letterSpacing: 0.5,
   },
+  primaryButtonTextDisabled: {
+    color: c.neutral600,
+  },
   secondaryButton: {
     borderRadius: 14,
     minHeight: 52,
@@ -830,9 +839,10 @@ badgeDanger: {
     transform: [{ scale: 0.97 }],
   },
   buttonDisabled: {
-    opacity: 0.6,
-    backgroundColor: c.neutral200,
-    borderColor: "transparent",
+    opacity: 1,
+    backgroundColor: c.neutral300,
+    borderColor: c.neutral300,
+    borderWidth: 0,
   },
   inputWrap: {
     gap: 6,
