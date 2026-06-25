@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 
 export const createLegalDocDto = z.object({
   body: z.object({
@@ -12,7 +12,7 @@ export const createLegalDocDto = z.object({
 export const scheduleBastDto = z.object({
   body: z.object({
     bookingId: z.string().uuid("bookingId harus berupa UUID"),
-    handoverDate: z.string().datetime("Tanggal serah terima tidak valid"),
+    handoverDate: z.string().min(1, "Tanggal serah terima tidak valid"),
     remarks: z.string().optional(),
   }),
 });
