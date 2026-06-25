@@ -35,6 +35,7 @@ const DOC_TYPES = [
 export default function PipelineKprPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [kprSettings, setKprSettings] = useState<any>(null);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
   
@@ -93,9 +94,30 @@ export default function PipelineKprPage() {
     }
   };
 
+  const fetchSettings = async () => {
+    try {
+      const authDataStr = localStorage.getItem("simdp_auth") || sessionStorage.getItem("simdp_auth");
+      let token = "";
+      if (authDataStr) {
+        const authData = JSON.parse(authDataStr);
+        token = authData.token;
+      }
+      const res = await fetch("http://localhost:4000/api/settings/kpr", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setKprSettings(data.data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     setMounted(true);
     fetchKpr();
+    fetchSettings();
   }, []);
 
   const handleOpenModal = (booking: any) => {
@@ -110,7 +132,7 @@ export default function PipelineKprPage() {
       status: booking.kprApplication?.status || "Kumpul Berkas",
       bankName: booking.kprApplication?.bankName || "",
       plafondPengajuan: booking.kprApplication?.plafondPengajuan || sisaTagihan,
-      plafondDisetujui: booking.kprApplication?.plafondDisetujui || 0,
+      plafondDisetujui: booking.kprApplication?.plafondDisetujui || kprSettings?.kprMaxPlafon || 157700000,
       notes: booking.kprApplication?.notes || ""
     });
     setActiveTab("info");
