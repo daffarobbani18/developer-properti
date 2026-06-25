@@ -1,4 +1,5 @@
 import { prisma } from "../../core/config/prisma.js";
+import bcrypt from "bcrypt";
 
 export class SalesService {
   /**
@@ -155,6 +156,25 @@ export class SalesService {
             },
           });
           index++;
+        }
+      }
+
+      // 6. Cek apakah Lead memiliki email, jika ya, buatkan akun User untuk akses aplikasi mobile.
+      const lead = await tx.lead.findUnique({ where: { id: data.leadId } });
+      if (lead && lead.email) {
+        const existingUser = await tx.user.findUnique({ where: { email: lead.email } });
+        if (!existingUser) {
+          const customerRole = await tx.role.findFirst({ where: { name: "Customer" } });
+          if (customerRole) {
+            const passwordHash = await bcrypt.hash("password123", 10);
+            await tx.user.create({
+              data: {
+                email: lead.email,
+                password: passwordHash,
+                roleId: customerRole.id,
+              }
+            });
+          }
         }
       }
 

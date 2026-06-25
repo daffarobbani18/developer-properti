@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { getOverview, getProgress, getBilling, submitPaymentProof, getDocuments, getSupportData, createTicket } from "./customer.controller.js";
+import { getOverview, getUnits, getProgress, getBilling, submitPaymentProof, getDocuments, getSupportData, createTicket } from "./customer.controller.js";
 
 const router = Router();
 
 router.get("/overview", getOverview);
+router.get("/units", getUnits);
 router.get("/progress", getProgress);
 router.get("/billing", getBilling);
 router.post("/payments", submitPaymentProof);

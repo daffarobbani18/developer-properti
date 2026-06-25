@@ -19,8 +19,8 @@ import {
    StatusBanner,
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
-import { getCustomerProgressData } from "../../services/api";
-import { Milestone } from "../../types";
+import { getCustomerProgressData, getCustomerUnitsData } from "../../services/api";
+import { Milestone, Unit } from "../../types";
 import { formatDate, inferBannerTone } from "../../utils/format";
 import type { CustomerStackParamList } from "../../navigation/types";
 import { c } from "../../theme/colors";
@@ -38,14 +38,28 @@ export function CustomerProgressScreen(): React.JSX.Element {
   const safeTop = Platform.OS === 'android' ? ((StatusBar.currentHeight || 0) > 24 ? StatusBar.currentHeight : 45) : (insets?.top || 20);
 
   const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     if (!auth) return;
-    const data = await getCustomerProgressData(auth);
-    setMilestones(data);
-  }, [auth]);
+    
+    try {
+      const unitsData = await getCustomerUnitsData(auth);
+      setUnits(unitsData);
+
+      if (selectedUnit) {
+        const milestonesData = await getCustomerProgressData(auth, selectedUnit.id);
+        setMilestones(milestonesData);
+      } else {
+        setMilestones([]);
+      }
+    } catch (e) {
+      throw e;
+    }
+  }, [auth, selectedUnit]);
 
   useFocusEffect(
     useCallback(() => {
@@ -226,43 +240,86 @@ export function CustomerProgressScreen(): React.JSX.Element {
           </View>
         </LinearGradient>
 
-        {/* PROGRESS METRICS PANEL (Overlapping) */}
-        <View style={styles.overlapContainer}>
-          <SlideInView direction="up" delay={0} duration={500}>
-            <View style={styles.statsCard}>
-               <View style={styles.statsMainRow}>
-                 <View style={styles.statsMainCol}>
-                   <Text style={styles.statsMainValue}>{overallProgress}%</Text>
-                   <Text style={styles.statsMainLabel}>Penyelesaian Proyek</Text>
-                 </View>
-                 <View style={styles.statsDivider} />
-                 <View style={styles.statsSubColGroup}>
-                   <View style={styles.statsSubItem}>
-                     <View style={styles.statsSubItemLeft}>
-                       <View style={[styles.statsDot, { backgroundColor: c.success.text }]} />
-                       <Text style={styles.statsSubLabel}>Selesai</Text>
-                     </View>
-                     <Text style={styles.statsSubValue}>{stats.done}</Text>
+        {/* METRICS OR UNIT SELECTION */}
+        {selectedUnit ? (
+          <>
+            <View style={styles.overlapContainer}>
+              <SlideInView direction="up" delay={0} duration={500}>
+                <View style={styles.statsCard}>
+                   <View style={[styles.statsMainRow, { marginBottom: 16 }]}>
+                     <Pressable 
+                       style={styles.backButton} 
+                       onPress={() => setSelectedUnit(null)}
+                     >
+                       <Ionicons name="arrow-back" size={20} color={c.neutral600} />
+                       <Text style={styles.backButtonText}>Daftar Unit</Text>
+                     </Pressable>
                    </View>
-                   <View style={styles.statsSubItem}>
-                     <View style={styles.statsSubItemLeft}>
-                       <View style={[styles.statsDot, { backgroundColor: c.warning.text }]} />
-                       <Text style={styles.statsSubLabel}>Dikerjakan</Text>
+                   <View style={styles.statsMainRow}>
+                     <View style={styles.statsMainCol}>
+                       <Text style={styles.statsMainValue}>{overallProgress}%</Text>
+                       <Text style={styles.statsMainLabel}>Penyelesaian: {selectedUnit.code}</Text>
                      </View>
-                     <Text style={styles.statsSubValue}>{stats.active}</Text>
+                     <View style={styles.statsDivider} />
+                     <View style={styles.statsSubColGroup}>
+                       <View style={styles.statsSubItem}>
+                         <View style={styles.statsSubItemLeft}>
+                           <View style={[styles.statsDot, { backgroundColor: c.success.text }]} />
+                           <Text style={styles.statsSubLabel}>Selesai</Text>
+                         </View>
+                         <Text style={styles.statsSubValue}>{stats.done}</Text>
+                       </View>
+                       <View style={styles.statsSubItem}>
+                         <View style={styles.statsSubItemLeft}>
+                           <View style={[styles.statsDot, { backgroundColor: c.warning.text }]} />
+                           <Text style={styles.statsSubLabel}>Dikerjakan</Text>
+                         </View>
+                         <Text style={styles.statsSubValue}>{stats.active}</Text>
+                       </View>
+                     </View>
                    </View>
-                 </View>
-               </View>
 
-               <View style={styles.progressBarTrack}>
-                 <View style={[styles.progressBarFill, { width: `${overallProgress}%` }]} />
-               </View>
+                   <View style={styles.progressBarTrack}>
+                     <View style={[styles.progressBarFill, { width: `${overallProgress}%` }]} />
+                   </View>
+                </View>
+              </SlideInView>
             </View>
-          </SlideInView>
-        </View>
 
-        {/* TIMELINE SECTION */}
-        {renderTimeline()}
+            {/* TIMELINE SECTION */}
+            {renderTimeline()}
+          </>
+        ) : (
+          <View style={styles.overlapContainer}>
+            {isLoading ? (
+               <SkeletonList count={2} />
+            ) : units.length === 0 ? (
+               <EmptyState message="Anda belum memiliki unit." />
+            ) : (
+               units.map((unit, index) => (
+                 <SlideInView key={unit.id} direction="up" delay={index * 100} duration={400}>
+                   <Pressable
+                     style={({pressed}) => [styles.unitCard, pressed && styles.pressed]}
+                     onPress={() => {
+                       void Haptics.selectionAsync();
+                       setSelectedUnit(unit);
+                     }}
+                   >
+                     <View style={styles.unitCardHeader}>
+                       <Text style={styles.unitCardTitle}>{unit.code}</Text>
+                       <Badge label={unit.status} tone={unit.status === 'Siap Huni' ? 'success' : 'neutral'} />
+                     </View>
+                     <Text style={styles.unitCardSubtitle}>{unit.typeName}</Text>
+                     <View style={styles.progressBarTrack}>
+                       <View style={[styles.progressBarFill, { width: `${unit.progress}%` }]} />
+                     </View>
+                     <Text style={styles.unitCardProgressText}>{unit.progress}% Selesai</Text>
+                   </Pressable>
+                 </SlideInView>
+               ))
+            )}
+          </View>
+        )}
 
       </ScrollView>
     </View>
@@ -573,4 +630,55 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.96 }],
     opacity: 0.9,
   },
+  unitCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: c.neutral900,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.05,
+    shadowRadius: 16,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: c.neutral100,
+  },
+  unitCardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  unitCardTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: c.neutral900,
+  },
+  unitCardSubtitle: {
+    fontSize: 14,
+    color: c.neutral500,
+    marginBottom: 16,
+  },
+  unitCardProgressText: {
+    fontSize: 13,
+    color: c.neutral700,
+    fontWeight: "600",
+    marginTop: 8,
+    textAlign: "right",
+  },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: c.neutral100,
+    borderRadius: 12,
+    alignSelf: "flex-start",
+  },
+  backButtonText: {
+    marginLeft: 6,
+    fontSize: 14,
+    fontWeight: "600",
+    color: c.neutral700,
+  }
 });

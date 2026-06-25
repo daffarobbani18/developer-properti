@@ -25,15 +25,75 @@ async function getCustomerBooking(userEmail: string) {
   return booking;
 }
 
-export const getOverview = async (req: Request, res: Response): Promise<void> => {
+// Helper to get ALL bookings for a logged in user based on email
+async function getCustomerBookingsList(userEmail: string) {
+  const lead = await prisma.lead.findFirst({
+    where: { email: userEmail },
+  });
+  if (!lead) return [];
+
+  const bookings = await prisma.booking.findMany({
+    where: { leadId: lead.id },
+    include: {
+      unit: {
+        include: {
+          project: true,
+          propertyType: true,
+        },
+      },
+      invoices: true,
+      legalDocuments: true,
+      defects: true,
+    },
+  });
+  return bookings;
+}
+
+export const getUnits = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = (req as any).user;
-    if (!user || !user.email) {
+    const decoded = (req as any).user;
+    if (!decoded || !decoded.userId) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
+    const dbUser = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    if (!dbUser || !dbUser.email) {
+      res.status(401).json({ error: "User email not found" });
+      return;
+    }
 
-    const booking = await getCustomerBooking(user.email);
+    const bookings = await getCustomerBookingsList(dbUser.email);
+    const units = bookings.map(b => ({
+      id: b.unit.id,
+      projectId: b.unit.project.id,
+      code: b.unit.nomor || b.unit.nomorUnit || "TBD",
+      typeName: b.unit.propertyType.name,
+      status: b.unit.status,
+      progress: b.unit.progress,
+    }));
+
+    res.json({ data: units });
+  } catch (error: any) {
+    console.error("getUnits Error:", error);
+    res.status(500).json({ error: "Gagal mengambil daftar unit" });
+  }
+};
+
+export const getOverview = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const decoded = (req as any).user;
+    if (!decoded || !decoded.userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    
+    const dbUser = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    if (!dbUser || !dbUser.email) {
+      res.status(401).json({ error: "User email not found" });
+      return;
+    }
+
+    const booking = await getCustomerBooking(dbUser.email);
     if (!booking) {
       res.status(404).json({ error: "Booking tidak ditemukan untuk customer ini" });
       return;
@@ -94,15 +154,37 @@ export const getOverview = async (req: Request, res: Response): Promise<void> =>
 
 export const getProgress = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = (req as any).user;
-    const booking = await getCustomerBooking(user.email);
-    if (!booking) {
+    const decoded = (req as any).user;
+    if (!decoded || !decoded.userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    const dbUser = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    if (!dbUser || !dbUser.email) {
+      res.status(401).json({ error: "User email not found" });
+      return;
+    }
+    const unitId = req.query.unitId as string | undefined;
+
+    const bookings = await getCustomerBookingsList(dbUser.email);
+    if (bookings.length === 0) {
       res.status(404).json({ error: "Booking tidak ditemukan" });
       return;
     }
 
+    let targetBooking = bookings[0];
+    if (unitId) {
+      const found = bookings.find(b => b.unit.id === unitId);
+      if (found) {
+        targetBooking = found;
+      } else {
+        res.status(404).json({ error: "Unit tidak ditemukan atau bukan milik Anda" });
+        return;
+      }
+    }
+
     const milestones = await prisma.milestone.findMany({
-      where: { unitId: booking.unit.id },
+      where: { unitId: targetBooking.unit.id },
       orderBy: { orderNo: "asc" },
       include: { logs: true }
     });
@@ -144,8 +226,17 @@ export const getProgress = async (req: Request, res: Response): Promise<void> =>
 
 export const getBilling = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = (req as any).user;
-    const booking = await getCustomerBooking(user.email);
+    const decoded = (req as any).user;
+    if (!decoded || !decoded.userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    const dbUser = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    if (!dbUser || !dbUser.email) {
+      res.status(401).json({ error: "User email not found" });
+      return;
+    }
+    const booking = await getCustomerBooking(dbUser.email);
     if (!booking) {
       res.status(404).json({ error: "Booking tidak ditemukan" });
       return;
@@ -242,8 +333,17 @@ export const submitPaymentProof = async (req: Request, res: Response): Promise<v
 
 export const getDocuments = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = (req as any).user;
-    const booking = await getCustomerBooking(user.email);
+    const decoded = (req as any).user;
+    if (!decoded || !decoded.userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    const dbUser = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    if (!dbUser || !dbUser.email) {
+      res.status(401).json({ error: "User email not found" });
+      return;
+    }
+    const booking = await getCustomerBooking(dbUser.email);
     if (!booking) {
       res.status(404).json({ error: "Booking tidak ditemukan" });
       return;
@@ -266,8 +366,17 @@ export const getDocuments = async (req: Request, res: Response): Promise<void> =
 
 export const getSupportData = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = (req as any).user;
-    const booking = await getCustomerBooking(user.email);
+    const decoded = (req as any).user;
+    if (!decoded || !decoded.userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    const dbUser = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    if (!dbUser || !dbUser.email) {
+      res.status(401).json({ error: "User email not found" });
+      return;
+    }
+    const booking = await getCustomerBooking(dbUser.email);
     if (!booking) {
       res.status(404).json({ error: "Booking tidak ditemukan" });
       return;
@@ -297,8 +406,17 @@ export const getSupportData = async (req: Request, res: Response): Promise<void>
 
 export const createTicket = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = (req as any).user;
-    const booking = await getCustomerBooking(user.email);
+    const decoded = (req as any).user;
+    if (!decoded || !decoded.userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    const dbUser = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    if (!dbUser || !dbUser.email) {
+      res.status(401).json({ error: "User email not found" });
+      return;
+    }
+    const booking = await getCustomerBooking(dbUser.email);
     if (!booking) {
       res.status(404).json({ error: "Booking tidak ditemukan" });
       return;

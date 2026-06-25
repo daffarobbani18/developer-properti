@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { Dimensions, Image, StyleSheet, Text, View, FlatList, TouchableOpacity , StatusBar } from "react-native";
-import { useFocusEffect, useRoute } from "@react-navigation/native";
+import { useFocusEffect, useRoute, useNavigation } from "@react-navigation/native";
 
 import { Card, EmptyState, ScreenShell, StatusBanner } from "../../components/ui";
 import { inferBannerTone } from "../../utils/format";
@@ -21,6 +21,7 @@ type RouteParams = {
 export function PhotoGalleryScreen(): React.JSX.Element {
   const { auth } = useAuth();
   const route = useRoute();
+  const navigation = useNavigation();
   const { photos: passedPhotos, initialIndex = 0, title, milestoneName } = (route.params as RouteParams) || {};
 
   const [milestones, setMilestones] = useState<Milestone[]>([]);
@@ -68,7 +69,11 @@ const loadPhotos = useCallback(async () => {
 
   if (isLoading) {
     return (
-      <ScreenShell title={title || "Galeri Foto"} subtitle="Dokumentasi progres pembangunan">
+      <ScreenShell 
+        title={title || "Galeri Foto"} 
+        subtitle="Dokumentasi progres pembangunan"
+        onBack={() => navigation.goBack()}
+      >
         <Card>
           <Text style={styles.loadingText}>Memuat foto progres...</Text>
         </Card>
@@ -78,7 +83,11 @@ const loadPhotos = useCallback(async () => {
 
   if (displayPhotos.length === 0) {
     return (
-      <ScreenShell title={title || "Galeri Foto"} subtitle="Dokumentasi progres pembangunan">
+      <ScreenShell 
+        title={title || "Galeri Foto"} 
+        subtitle="Dokumentasi progres pembangunan"
+        onBack={() => navigation.goBack()}
+      >
         <EmptyState message="Belum ada foto progres yang tersedia." />
       </ScreenShell>
     );
@@ -102,7 +111,11 @@ const loadPhotos = useCallback(async () => {
   );
 
   return (
-    <ScreenShell title={title || "Galeri Foto"} subtitle="Dokumentasi progres pembangunan">
+    <ScreenShell 
+      title={title || "Galeri Foto"} 
+      subtitle="Dokumentasi progres pembangunan"
+      onBack={() => navigation.goBack()}
+    >
       {errorMessage ? (
         <StatusBanner message={errorMessage} tone={inferBannerTone(errorMessage)} />
       ) : null}

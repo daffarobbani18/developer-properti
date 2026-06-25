@@ -261,6 +261,38 @@ export async function getUnitMilestones(auth: AuthState | null, unitId: string):
     return getMilestones(unitId);
   }
 }
+
+export async function uploadImage(auth: AuthState | null, uri: string): Promise<string> {
+  const session = ensureAuth(auth);
+  
+  if (!uri.startsWith("file://") && !uri.startsWith("blob:")) {
+    return uri; // Already a remote URL
+  }
+
+  const formData = new FormData();
+  const filename = uri.split('/').pop() || "photo.jpg";
+  const match = /\.(\w+)$/.exec(filename);
+  const type = match ? `image/${match[1]}` : `image/jpeg`;
+  
+  formData.append("image", { uri, name: filename, type } as any);
+
+  const response = await fetch(`${API_BASE_URL}/api/upload`, {
+    method: "POST",
+    headers: { 
+      Authorization: `Bearer ${session.token}`,
+      // Do not set Content-Type, fetch will set it with the boundary automatically
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to upload image");
+  }
+
+  const data = await response.json();
+  return `${API_BASE_URL}${data.imageUrl}`;
+}
+
 export async function submitMilestoneUpdate(auth: AuthState | null, payload: {
   milestoneId: string;
   status: Milestone["status"];
@@ -269,13 +301,32 @@ export async function submitMilestoneUpdate(auth: AuthState | null, payload: {
   photoUrls?: string[];
 }): Promise<Milestone> {
   const session = ensureAuth(auth);
+  
+  // Upload any local photos first
+  let finalPhotoUrls: string[] = [];
+  if (payload.photoUrls && payload.photoUrls.length > 0) {
+    finalPhotoUrls = await Promise.all(
+      payload.photoUrls.map(uri => uploadImage(auth, uri))
+    );
+  }
+  let finalPhotoUrl = payload.photoUrl;
+  if (finalPhotoUrl) {
+    finalPhotoUrl = await uploadImage(auth, finalPhotoUrl);
+  }
+
+  const finalPayload = {
+    ...payload,
+    photoUrl: finalPhotoUrl,
+    photoUrls: finalPhotoUrls.length > 0 ? finalPhotoUrls : undefined
+  };
+
   try {
     const response = await requestJson<Milestone | {
       data: Milestone;
     }>(`/mobile/field/milestones/${payload.milestoneId}`, {
       method: "PATCH",
       token: session.token,
-      body: JSON.stringify(payload)
+      body: JSON.stringify(finalPayload)
     });
     return unwrapData(response);
   } catch {
@@ -376,12 +427,30 @@ export async function getCustomerOverviewData(auth: AuthState | null): Promise<C
     return data;
   }
 }
-export async function getCustomerProgressData(auth: AuthState | null): Promise<Milestone[]> {
+export async function getCustomerUnitsData(auth: AuthState | null): Promise<Unit[]> {
   const session = ensureAuth(auth);
   try {
+    const response = await requestJson<Unit[] | {
+      data: Unit[];
+    }>("/mobile/customer/units", {
+      token: session.token
+    });
+    return unwrapData(response);
+  } catch {
+    return []; // mock or empty array
+  }
+}
+
+export async function getCustomerProgressData(auth: AuthState | null, unitId?: string): Promise<Milestone[]> {
+  const session = ensureAuth(auth);
+  try {
+    let url = "/mobile/customer/progress";
+    if (unitId) {
+      url += `?unitId=${encodeURIComponent(unitId)}`;
+    }
     const response = await requestJson<Milestone[] | {
       data: Milestone[];
-    }>("/mobile/customer/progress", {
+    }>(url, {
       token: session.token
     });
     return unwrapData(response);
