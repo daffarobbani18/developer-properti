@@ -29,7 +29,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Melindungi semua rute di file ini dengan middleware token & role
-router.use(verifyToken, requireRole(["Pengawas Lapangan", "Project Manager", "Admin Inventory"]));
+router.use(verifyToken, requireRole(["Pengawas Lapangan", "Project Manager", "Admin Inventory", "Admin"]));
 
 /**
  * @swagger

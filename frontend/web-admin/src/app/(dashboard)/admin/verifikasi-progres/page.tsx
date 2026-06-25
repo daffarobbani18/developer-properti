@@ -471,9 +471,9 @@ export default function VerifikasiProgresPage() {
 
       {/* Detail Modal */}
       {selectedMilestone && mounted && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4 overflow-y-auto">
-          <div className="w-full max-w-2xl rounded-3xl bg-white shadow-2xl relative my-8">
-            <div className="flex items-center justify-between border-b border-zinc-100 p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
+          <div className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl bg-white shadow-2xl relative">
+            <div className="flex-none flex items-center justify-between border-b border-zinc-100 p-6">
               <div>
                 <h3 className="text-xl font-bold text-zinc-900">Verifikasi Laporan Progres</h3>
                 <p className="text-sm text-zinc-500">Unit Blok {selectedUnit?.blok} No {selectedUnit?.nomor}</p>
@@ -486,7 +486,7 @@ export default function VerifikasiProgresPage() {
               </button>
             </div>
             
-            <div className="p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
               <div className="grid grid-cols-2 gap-4 rounded-xl bg-zinc-50 p-4 border border-zinc-100">
                 <div>
                   <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Kategori Pekerjaan</div>
@@ -525,15 +525,17 @@ export default function VerifikasiProgresPage() {
                   <div className="flex gap-4 overflow-x-auto pb-2">
                     {(selectedMilestone.photos || selectedMilestone.photoUrls).map((photo: any, i: number) => {
                       const url = typeof photo === 'string' ? photo : photo.url;
+                      const isFullUrl = url.startsWith('http') || url.startsWith('data:') || url.startsWith('blob:');
+                      const finalUrl = isFullUrl ? url : `http://localhost:4000${url.startsWith('/') ? '' : '/'}${url}`;
                       return (
                         <div 
                           key={i} 
                           className="relative h-32 w-32 shrink-0 overflow-hidden rounded-xl border border-zinc-200 cursor-pointer hover:opacity-80 transition-opacity"
-                          onClick={() => setSelectedImage(url.startsWith('http') ? url : `http://localhost:4000${url}`)}
+                          onClick={() => setSelectedImage(finalUrl)}
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img 
-                            src={url.startsWith('http') ? url : `http://localhost:4000${url}`} 
+                            src={finalUrl} 
                             alt="Progress" 
                             className="h-full w-full object-cover"
                           />
@@ -543,20 +545,24 @@ export default function VerifikasiProgresPage() {
                   </div>
                 ) : selectedMilestone.logs?.[0]?.photoUrls?.length > 0 ? (
                   <div className="flex gap-4 overflow-x-auto pb-2">
-                    {selectedMilestone.logs[0].photoUrls.map((url: string, i: number) => (
-                      <div 
-                        key={i} 
-                        className="relative h-32 w-32 shrink-0 overflow-hidden rounded-xl border border-zinc-200 cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={() => setSelectedImage(url.startsWith('http') ? url : `http://localhost:4000${url}`)}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img 
-                          src={url.startsWith('http') ? url : `http://localhost:4000${url}`} 
-                          alt="Progress" 
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    ))}
+                    {selectedMilestone.logs[0].photoUrls.map((url: string, i: number) => {
+                      const isFullUrl = url.startsWith('http') || url.startsWith('data:') || url.startsWith('blob:');
+                      const finalUrl = isFullUrl ? url : `http://localhost:4000${url.startsWith('/') ? '' : '/'}${url}`;
+                      return (
+                        <div 
+                          key={i} 
+                          className="relative h-32 w-32 shrink-0 overflow-hidden rounded-xl border border-zinc-200 cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => setSelectedImage(finalUrl)}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img 
+                            src={finalUrl} 
+                            alt="Progress" 
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="rounded-xl border border-dashed border-zinc-300 p-6 flex flex-col items-center justify-center bg-zinc-50">
@@ -584,7 +590,7 @@ export default function VerifikasiProgresPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-zinc-100 p-6 bg-zinc-50 rounded-b-3xl">
+            <div className="flex-none flex items-center justify-end gap-3 border-t border-zinc-100 p-6 bg-zinc-50 rounded-b-3xl">
               <button
                 disabled={verifying}
                 onClick={() => {

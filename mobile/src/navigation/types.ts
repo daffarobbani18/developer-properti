@@ -2,7 +2,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { MilestonePhoto, Milestone } from "../types";
 
 export type FieldStackParamList = {
-  Beranda: undefined;
+  Beranda: { screen: string; params?: any } | undefined;
   FieldNotifikasi: undefined;
   UpdateHistory: { milestoneId: string; milestoneName: string };
   UnitDetail: { unitId: string; unitName: string };
@@ -16,7 +16,7 @@ export type FieldStackParamList = {
 };
 
 export type CustomerStackParamList = {
-  Beranda: undefined;
+  Beranda: { screen: string; params?: any } | undefined;
   Progres: undefined;
   Tagihan: undefined;
   Dokumen: undefined;

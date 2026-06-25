@@ -268,7 +268,8 @@ export function FieldMilestonesScreen(): React.JSX.Element {
 
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setBanner(`Disimpan offline. Antrean tersimpan.`);
-      closeModal();
+      setIsModalVisible(false);
+      setSelectedMilestoneId(null);
       return;
     }
 
@@ -285,7 +286,8 @@ export function FieldMilestonesScreen(): React.JSX.Element {
 
       await loadMilestones();
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      closeModal();
+      setIsModalVisible(false);
+      setSelectedMilestoneId(null);
     } catch (error) {
       setBanner(error instanceof Error ? error.message : "Gagal mengupdate progres");
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -455,7 +457,7 @@ export function FieldMilestonesScreen(): React.JSX.Element {
            ) : (
              <View style={styles.timelineContainer}>
                 {milestones.map((item, index) => {
-                  const isCompleted = item.status === "COMPLETED";
+                  const isCompleted = item.status === "COMPLETED" || item.status === "WAITING_APPROVAL";
                   const isActive = item.status === "IN_PROGRESS";
                   const isPending = item.status === "PENDING";
                   const isFirst = index === 0;
@@ -490,7 +492,8 @@ export function FieldMilestonesScreen(): React.JSX.Element {
                            void Haptics.selectionAsync();
                            openMilestoneModal(item);
                          }}
-                         style={({pressed}) => [styles.workflowCard, pressed && styles.pressed, isActive && styles.workflowCardActive]}
+                         disabled={isCompleted}
+                         style={({pressed}) => [styles.workflowCard, pressed && styles.pressed, isActive && styles.workflowCardActive, isCompleted && { opacity: 0.85 }]}
                        >
                           {/* Badge SEDANG DIKERJAKAN: Referensi CustomerHomeScreen.ticketStatusText
                               Uppercase, warning color, langsung terlihat saat scanning list.
@@ -505,7 +508,7 @@ export function FieldMilestonesScreen(): React.JSX.Element {
                             <Text style={styles.workflowTitle}>{item.orderNo}. {item.name}</Text>
                             <View style={[styles.statusBadge, isCompleted && styles.statusBadgeCompleted, isActive && styles.statusBadgeActive]}>
                                <Text style={[styles.statusBadgeText, isCompleted && styles.statusBadgeTextCompleted, isActive && styles.statusBadgeTextActive]}>
-                                 {item.status === "COMPLETED" ? "Selesai" : item.status === "IN_PROGRESS" ? "Dikerjakan" : "Menunggu"}
+                                 {formatMilestoneStatusLabel(item.status)}
                                </Text>
                             </View>
                           </View>

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authenticate } from "../../core/middlewares/auth.middleware.js";
 import { getFieldProjects, getProjectOptions, getProjectDetail, getFieldUnits, getUnitMilestones, updateMilestone } from "./mobile.controller.js";
+import customerRoutes from "./customer/customer.routes.js";
 
 const router = Router();
 
@@ -11,5 +12,8 @@ router.get("/field/projects/:id", authenticate, getProjectDetail);
 router.get("/field/units", authenticate, getFieldUnits);
 router.get("/field/units/:unitId/milestones", authenticate, getUnitMilestones);
 router.patch("/field/milestones/:milestoneId", authenticate, updateMilestone);
+
+// Endpoint untuk Customer
+router.use("/customer", authenticate, customerRoutes);
 
 export default router;

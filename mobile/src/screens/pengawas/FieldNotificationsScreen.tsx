@@ -37,9 +37,9 @@ export function FieldNotificationsScreen(): React.JSX.Element {
 
     // Navigation Mapping
     if (item.data?.route === "milestone_update" || item.type === "milestone_update") {
-      navigation.navigate("FieldMilestones");
+      navigation.navigate("Beranda", { screen: "FieldMilestones" });
     } else if (item.data?.route === "deadline_alert" || item.type === "deadline_alert" || item.title.toLowerCase().includes('deadline') || item.title.toLowerCase().includes('defect')) {
-      navigation.navigate("InspectionUnits");
+      navigation.navigate("Beranda", { screen: "InspectionUnits" });
     } else {
       navigation.navigate("Beranda");
     }

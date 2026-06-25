@@ -143,7 +143,14 @@ export default function KavlingUnitPage() {
   const plannedTotalUnits = selectedProjectData?.totalUnits || 0;
 
   const projectUnits = units.filter(u => u.projectId === selectedProject);
-  const filteredUnits = projectUnits.filter(u => statusFilter === "Semua" ? true : u.statusPenjualan === statusFilter);
+  const filteredUnits = projectUnits.filter(u => {
+    if (statusFilter === "Semua") return true;
+    if (statusFilter === "Booked") {
+      const s = u.statusPenjualan?.toUpperCase();
+      return s === "BOOKED" || s === "PENDING_BOOKING";
+    }
+    return u.statusPenjualan === statusFilter;
+  });
   const blocks = Array.from(new Set(filteredUnits.map(u => u.blok))).sort();
 
   const projectPropertyTypes = propertyTypes.filter(t => t.projectId === selectedProject);
@@ -153,12 +160,11 @@ export default function KavlingUnitPage() {
   const soldCount = projectUnits.filter(u => u.statusPenjualan === "Terjual").length;
 
   const getStatusColor = (status: string) => {
-    switch(status) {
-      case "Tersedia": return "bg-emerald-50 text-emerald-600 border-emerald-200 ring-emerald-500 hover:bg-emerald-100 hover:border-emerald-300";
-      case "Booked": return "bg-amber-50 text-amber-600 border-amber-200 ring-amber-500 hover:bg-amber-100 hover:border-amber-300";
-      case "Terjual": return "bg-rose-50 text-rose-600 border-rose-200 ring-rose-500 hover:bg-rose-100 hover:border-rose-300";
-      default: return "bg-zinc-50 text-zinc-600 border-zinc-200 ring-zinc-500";
-    }
+    const s = status.toUpperCase();
+    if (s === "TERSEDIA") return "bg-emerald-50 text-emerald-600 border-emerald-200 ring-emerald-500 hover:bg-emerald-100 hover:border-emerald-300";
+    if (s === "BOOKED" || s === "PENDING_BOOKING") return "bg-amber-50 text-amber-600 border-amber-200 ring-amber-500 hover:bg-amber-100 hover:border-amber-300";
+    if (s === "TERJUAL" || s === "DISERAHTERIMAKAN") return "bg-rose-50 text-rose-600 border-rose-200 ring-rose-500 hover:bg-rose-100 hover:border-rose-300";
+    return "bg-zinc-50 text-zinc-600 border-zinc-200 ring-zinc-500";
   };
 
   const handleUnitClick = (unit: any) => {
@@ -227,7 +233,10 @@ export default function KavlingUnitPage() {
         unitId: selectedUnit.id,
         paymentMethod: bookingForm.paymentMethod,
         salesNotes: bookingForm.salesNotes,
-        termins: bookingForm.termins
+        termins: bookingForm.termins.map(t => ({
+          ...t,
+          dueDate: t.triggerType === "PROGRESS" ? null : (t.dueDate || null)
+        }))
       };
       
       const res = await fetch("http://localhost:4000/api/sales/bookings", {

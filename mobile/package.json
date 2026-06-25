@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "eslint . --ext .ts,.tsx"
+    "lint": "eslint . --ext .ts,.tsx",
+    "postinstall": "node scripts/fix-image-viewing-web.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",

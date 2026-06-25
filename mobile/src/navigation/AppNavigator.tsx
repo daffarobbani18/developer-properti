@@ -75,11 +75,12 @@ const FieldTab = createBottomTabNavigator<FieldStackParamList>();
 
 function FieldTabNavigator(): React.JSX.Element {
   const insets = useSafeAreaInsets();
-  const tabBarHeight = 60 + insets.bottom;
+  const tabBarHeight = 65 + insets.bottom;
   return (
     <FieldTab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
+        tabBarLabelPosition: "below-icon",
         tabBarIcon: ({ focused, color, size }) => {
           let iconName = "home";
           if (route.name === "Beranda") iconName = focused ? "grid" : "grid-outline";
@@ -98,7 +99,7 @@ function FieldTabNavigator(): React.JSX.Element {
           borderTopWidth: 1,
           height: tabBarHeight,
           paddingTop: 8,
-          paddingBottom: insets.bottom || 8,
+          paddingBottom: Math.max(insets.bottom, 12),
           elevation: 8,
           shadowColor: c.neutral900,
           shadowOffset: { width: 0, height: -4 },
@@ -111,8 +112,8 @@ function FieldTabNavigator(): React.JSX.Element {
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: "700",
-          marginTop: 0,
-          marginBottom: 0,
+          marginTop: 4,
+          marginBottom: 4,
           letterSpacing: 0.1,
         },
       })}
@@ -149,11 +150,12 @@ const CustomerTab = createBottomTabNavigator<CustomerStackParamList>();
 
 function CustomerTabNavigator(): React.JSX.Element {
   const insets = useSafeAreaInsets();
-  const tabBarHeight = 60 + insets.bottom;
+  const tabBarHeight = 65 + insets.bottom;
   return (
     <CustomerTab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
+        tabBarLabelPosition: "below-icon",
         tabBarIcon: ({ focused, color, size }) => {
           let iconName = "home";
           if (route.name === "Beranda") iconName = focused ? "home" : "home-outline";
@@ -171,7 +173,7 @@ function CustomerTabNavigator(): React.JSX.Element {
           borderTopWidth: 1,
           height: tabBarHeight,
           paddingTop: 8,
-          paddingBottom: insets.bottom || 8,
+          paddingBottom: Math.max(insets.bottom, 12),
           elevation: 8,
           shadowColor: c.neutral900,
           shadowOffset: { width: 0, height: -4 },
@@ -184,8 +186,8 @@ function CustomerTabNavigator(): React.JSX.Element {
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: "700",
-          marginTop: 0,
-          marginBottom: 0,
+          marginTop: 4,
+          marginBottom: 4,
           letterSpacing: 0.1,
         },
       })}

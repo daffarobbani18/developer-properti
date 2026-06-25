@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, HardHat, Receipt, Building, MagnifyingGlass } from "@phosphor-icons/react";
+import { Plus, HardHat, Receipt, Building, MagnifyingGlass, Printer } from "@phosphor-icons/react";
 
 const formatRupiah = (number: number) =>
   new Intl.NumberFormat("id-ID", {
@@ -131,6 +131,7 @@ export default function SpkIndexPage() {
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider">Nama Kontraktor</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider">Jumlah Unit</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-right">Total Harga</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
@@ -157,6 +158,20 @@ export default function SpkIndexPage() {
                     </td>
                     <td className="px-6 py-4 text-right font-bold text-emerald-600">
                       {formatRupiah(spk.totalPrice)}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => {
+                          const sessionAuth = sessionStorage.getItem("simdp_auth");
+                          if (sessionAuth && !localStorage.getItem("simdp_auth")) {
+                            localStorage.setItem("temp_auth", sessionAuth);
+                          }
+                          window.open(`/print/spk/${spk.id}`, "_blank");
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-200"
+                      >
+                        <Printer size={16} /> Cetak
+                      </button>
                     </td>
                   </tr>
                 ))}

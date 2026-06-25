@@ -49,6 +49,7 @@ export async function capturePhoto(options?: { maxSizeBytes?: number }): Promise
     mediaTypes: ["images"],
     allowsEditing: false,
     quality: DEFAULT_IMAGE_QUALITY,
+    base64: true,
     exif: false,
   });
 
@@ -56,8 +57,9 @@ export async function capturePhoto(options?: { maxSizeBytes?: number }): Promise
     return null;
   }
 
-  const uri = result.assets[0].uri;
-  await validateFileSize(uri, maxSize);
+  const asset = result.assets[0];
+  const uri = asset.base64 ? `data:${asset.mimeType || 'image/jpeg'};base64,${asset.base64}` : asset.uri;
+  await validateFileSize(asset.uri, maxSize);
 
   return uri;
 }
@@ -74,6 +76,7 @@ export async function pickImages(options?: PickImageOptions): Promise<string[]> 
     allowsMultipleSelection: selectionLimit > 1,
     selectionLimit,
     quality: DEFAULT_IMAGE_QUALITY,
+    base64: true,
     exif: false,
   });
 
@@ -85,7 +88,8 @@ export async function pickImages(options?: PickImageOptions): Promise<string[]> 
   for (const asset of result.assets) {
     try {
       await validateFileSize(asset.uri, maxSize);
-      validUris.push(asset.uri);
+      const uri = asset.base64 ? `data:${asset.mimeType || 'image/jpeg'};base64,${asset.base64}` : asset.uri;
+      validUris.push(uri);
     } catch (error) {
       if (error instanceof Error) {
         throw error;

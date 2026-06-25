@@ -315,9 +315,12 @@ export function FieldUnitsScreen(): React.JSX.Element {
                       <Pressable
                         onPress={() => {
                           void Haptics.selectionAsync();
-                          navigation.navigate("FieldMilestones", {
-                            projectId: selectedProjectId,
-                            unitId: unit.id,
+                          navigation.navigate("Beranda", {
+                            screen: "FieldMilestones",
+                            params: {
+                              projectId: selectedProjectId,
+                              unitId: unit.id,
+                            }
                           });
                         }}
                         style={({ pressed }) => [

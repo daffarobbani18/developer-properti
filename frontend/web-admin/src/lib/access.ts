@@ -15,8 +15,8 @@ export const ROLE_HOME: Record<UserRole, string> = {
 };
 
 export const ROLE_ALLOWED_PREFIXES: Record<UserRole, string[]> = {
-  admin: ["/admin"],
-  inventory: ["/admin"],
+  admin: ["/admin", "/print"],
+  inventory: ["/admin", "/print"],
   sales: ["/sales"],
   finance: ["/finance"],
   legal: ["/legal"],
