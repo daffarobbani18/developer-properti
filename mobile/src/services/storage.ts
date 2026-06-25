@@ -111,3 +111,18 @@ export async function getBiometricCredential(): Promise<{ credentialId: string; 
 export async function clearBiometricCredential(): Promise<void> {
   await AsyncStorage.removeItem(BIOMETRIC_CRED_KEY);
 }
+
+const ONBOARDING_COMPLETED_KEY = "simdp-onboarding-completed";
+
+export async function getOnboardingCompleted(): Promise<boolean> {
+  const raw = await AsyncStorage.getItem(ONBOARDING_COMPLETED_KEY);
+  return raw === "true";
+}
+
+export async function setOnboardingCompleted(): Promise<void> {
+  await AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, "true");
+}
+
+export async function clearOnboardingCompleted(): Promise<void> {
+  await AsyncStorage.removeItem(ONBOARDING_COMPLETED_KEY);
+}

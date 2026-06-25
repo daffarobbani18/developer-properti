@@ -15,8 +15,6 @@ import { useAuth } from "../../hooks/useAuth";
 import { clearBiometricCredential, getBiometricCredential, getStoredAuth, setBiometricCredential } from "../../services/storage";
 import { registerBiometricCredential } from "../../services/api";
 import { AuthState } from "../../types";
-import { DEV_ACCOUNTS } from "../../config/devAccounts";
-import * as Haptics from "expo-haptics";
 import { c } from "../../theme/colors";
 
 export function LoginScreen(): React.JSX.Element {
@@ -76,14 +74,6 @@ export function LoginScreen(): React.JSX.Element {
     }
   };
 
-  const handleQuickLogin = (role: 'CUSTOMER' | 'SITE_ENGINEER') => {
-    if (!__DEV__) return;
-    
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const account = DEV_ACCOUNTS[role];
-    setEmail(account.email);
-    setPassword(account.password);
-  };
 
   const handleBiometricSignIn = async (): Promise<void> => {
     if (!storedAuth) {
@@ -156,7 +146,7 @@ export function LoginScreen(): React.JSX.Element {
             secureTextEntry
             value={password}
             onChangeText={setPassword}
-            hint="Gunakan akun demo atau akun backend Anda"
+            hint="Masukkan password akun Anda"
           />
 
           {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
@@ -189,26 +179,6 @@ export function LoginScreen(): React.JSX.Element {
             <SecondaryButton label="Nonaktifkan Login Biometrik" onPress={handleDisableBiometric} />
           ) : null}
         </View>
-      {__DEV__ && (
-          <View style={styles.demoCard}>
-            <Text style={styles.demoTitle}>Developer Mode</Text>
-            <Text style={styles.demoHint}>
-              Quick Login. Hanya tampil pada environment development.
-            </Text>
-            <View style={{ gap: 8 }}>
-              <SecondaryButton 
-                label="Quick Login Customer" 
-                onPress={() => handleQuickLogin('CUSTOMER')} 
-                disabled={isSubmitting} 
-              />
-              <SecondaryButton 
-                label="Quick Login Site Engineer" 
-                onPress={() => handleQuickLogin('SITE_ENGINEER')} 
-                disabled={isSubmitting} 
-              />
-            </View>
-          </View>
-        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -294,50 +264,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: c.danger.border,
-  },
-  demoCard: {
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#bfd9dc",
-    backgroundColor: "#f7fcfd",
-    padding: 14,
-    gap: 10,
-  },
-  demoTitle: {
-    color: "#183843",
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  demoHint: {
-    color: "#456068",
-    fontSize: 12,
-    lineHeight: 19,
-  },
-  credentialRowWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  credentialPill: {
-    borderWidth: 1,
-    borderColor: "#97bbc0",
-    borderRadius: 12,
-    backgroundColor: "#ffffff",
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    minWidth: "48%",
-  },
-  credentialPressed: {
-    opacity: 0.8,
-  },
-  credentialRole: {
-    color: "#174857",
-    fontSize: 11,
-    fontWeight: "800",
-  },
-  credentialEmail: {
-    color: "#345c66",
-    fontSize: 12,
-    marginTop: 2,
   },
 });
