@@ -34,7 +34,6 @@ export type MobilePushRouteName =
   | "Beranda"
   | "Milestone"
   | "Unit"
-  | "Kendala"
   | "Notifikasi"
   | "UnitDetail"
   | "UpdateHistory"
@@ -59,9 +58,6 @@ const ROUTE_ALIAS_MAP: Record<string, MobilePushRouteName> = {
   units: "Unit",
   "unit-detail": "UnitDetail",
   "update-history": "UpdateHistory",
-  issue: "Kendala",
-  issues: "Kendala",
-  kendala: "Kendala",
   notification: "Notifikasi",
   notifications: "Notifikasi",
   notifikasi: "Notifikasi",
@@ -151,9 +147,6 @@ function inferRouteFromType(type: string): MobilePushRouteName | null {
 
   if (normalizedType.includes("milestone")) {
     return "Milestone";
-  }
-  if (normalizedType.includes("issue") || normalizedType.includes("kendala")) {
-    return "Kendala";
   }
   if (normalizedType.includes("notif")) {
     return "Notifikasi";

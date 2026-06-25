@@ -1,453 +1,546 @@
+import { useNotifications } from "../../contexts/NotificationContext";
 import React, { useCallback, useState } from "react";
-import { Pressable, StyleSheet, Text, View, Dimensions } from "react-native";
+import {
+  Pressable, StyleSheet, Text, View, ScrollView,
+  RefreshControl, Platform, StatusBar,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 
-import {
-  Badge,
-  Card,
-  EmptyState,
-  SecondaryButton,
-  ScreenShell,
-  TextButton,
-  SectionTitle,
-  SkeletonList,
-  StatusBanner,
-  SlideInView,
-  AnimatedProgressBar,
-  CountUpNumber,
-} from "../../components/ui";
+import { SkeletonList, StatusBanner, SlideInView } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { useOfflineQueue } from "../../hooks/useOfflineQueue";
-import { getFieldProjects, getRoleNotifications } from "../../services/api";
-import { ProjectSummary } from "../../types";
+import { getFieldProjects, getFieldDailyReports, getInspectionBookings } from "../../services/api";
+import { ProjectSummary, DailyReport } from "../../types";
 import { formatErrorMessage, inferBannerTone } from "../../utils/format";
-import type { PengawasStackParamList } from "../../navigation/types";
+import type { FieldStackParamList } from "../../navigation/types";
+import { c } from "../../theme/colors";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 11) return "Selamat pagi,";
+  if (hour < 15) return "Selamat siang,";
+  if (hour < 18) return "Selamat sore,";
+  return "Selamat malam,";
+}
 
 export function FieldHomeScreen(): React.JSX.Element {
   const { auth, signOut } = useAuth();
-  const navigation = useNavigation<NativeStackNavigationProp<PengawasStackParamList>>();
+  const insets = useSafeAreaInsets();
+  const safeTop = Platform.OS === "android"
+    ? ((StatusBar.currentHeight || 0) > 24 ? StatusBar.currentHeight : 45)
+    : (insets?.top || 20);
+  const navigation = useNavigation<NativeStackNavigationProp<FieldStackParamList>>();
   const { queueCount, isSyncing } = useOfflineQueue(auth);
 
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [todayReport, setTodayReport] = useState<DailyReport | null | undefined>(undefined);
+  const [pendingInspections, setPendingInspections] = useState<number | null>(null);
+  const { unreadCount, criticalCount, notifications } = useNotifications();
   const [banner, setBanner] = useState<string | null>(null);
 
+  const actionableCount = notifications.filter((n) => !n.isResolved).length;
+  const todayDate = new Date().toISOString().split("T")[0];
+
   const loadData = useCallback(async () => {
-    if (!auth) {
-      return;
-    }
-
-    const [projectData, notifications] = await Promise.all([
+    if (!auth) return;
+    const [projectData, reports, inspections] = await Promise.all([
       getFieldProjects(auth),
-      getRoleNotifications(auth),
+      getFieldDailyReports(auth, { includeDraft: true }),
+      getInspectionBookings(auth).catch(() => []),
     ]);
-
     setProjects(projectData);
-    setUnreadCount(notifications.filter((item) => !item.isRead).length);
-  }, [auth]);
-
-  const goToTab = useCallback(
-    (tabName: "FieldMilestone" | "FieldUnit" | "FieldKendala" | "FieldNotifikasi" | "InspectionUnits") => {
-      navigation.navigate(tabName as never);
-    },
-    [navigation]
-  );
+    const today = reports.find((r) => r.date === todayDate);
+    setTodayReport(today ?? null);
+    const siapInspeksi = inspections.filter(
+      (b: any) => b.unit?.progress === 100 || b.unit?.statusPembangunan === "Siap Huni"
+    );
+    setPendingInspections(siapInspeksi.length);
+  }, [auth, todayDate]);
 
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
-
       (async () => {
         setIsLoading(true);
         try {
           await loadData();
-          if (!cancelled) {
-            setBanner(null);
-          }
+          if (!cancelled) setBanner(null);
         } catch (error) {
-          if (!cancelled) {
-            setBanner(formatErrorMessage(error));
-          }
+          if (!cancelled) setBanner(formatErrorMessage(error));
         } finally {
-          if (!cancelled) {
-            setIsLoading(false);
-          }
+          if (!cancelled) setIsLoading(false);
         }
       })();
-
-      return () => {
-        cancelled = true;
-      };
+      return () => { cancelled = true; };
     }, [loadData])
   );
 
   return (
-    <ScreenShell
-      title="Dashboard Lapangan"
-      subtitle={auth ? `${auth.user.fullName} • ${auth.user.role}` : ""}
-      rightAction={<TextButton label="Keluar" onPress={() => void signOut()} />}
-    >
-      <SlideInView direction="up" delay={50} duration={400}>
-        <View style={styles.highlightRow}>
-          <View style={[styles.highlightCard, { backgroundColor: "#0f172a" }]}>
-            <View style={[styles.highlightIconBg, { backgroundColor: "#f59e0b", shadowColor: "#f59e0b", shadowOpacity: 0.6, shadowRadius: 6, elevation: 6 }]}>
-              <Ionicons name="sync" size={20} color="#ffffff" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.highlightLabelInverse}>Queue Offline</Text>
-              <Text style={styles.highlightValueInverse}>{isSyncing ? "..." : queueCount}</Text>
-            </View>
-            <View style={styles.highlightBadge}>
-              <Text style={styles.highlightBadgeText}>
-                {isSyncing ? "Sinkron..." : queueCount > 0 ? "Pending" : "Aman"}
-              </Text>
+    <View style={styles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 80 }}
+        refreshControl={
+          <RefreshControl refreshing={isLoading} onRefresh={() => void loadData()} tintColor="#ffffff" />
+        }
+      >
+        {/* ── HERO HEADER ── */}
+        <LinearGradient
+          colors={[c.primary600, c.primary, c.primaryDark]}
+          locations={[0, 0.4, 1]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heroHeader}
+        >
+          <LinearGradient
+            colors={["rgba(255,255,255,0.06)", "rgba(255,255,255,0)"]}
+            style={StyleSheet.absoluteFillObject}
+            pointerEvents="none"
+          />
+          <View style={[styles.heroSafeArea, { paddingTop: (safeTop || 45) + 16 }]}>
+            <View style={styles.heroTopRow}>
+              <View style={{ flex: 1, paddingRight: 16 }}>
+                <Text style={styles.heroGreeting}>{getGreeting()}</Text>
+                <Text style={styles.heroName} numberOfLines={1} adjustsFontSizeToFit>
+                  {auth?.user.fullName}
+                </Text>
+              </View>
+              <View style={styles.heroActions}>
+                <Pressable
+                  onPress={() => navigation.navigate("FieldNotifikasi" as never)}
+                  style={({ pressed }) => [styles.actionBtn, pressed && styles.pressed]}
+                >
+                  <Ionicons name="notifications-outline" size={22} color="#ffffff" />
+                  {actionableCount > 0 && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>
+                        {actionableCount > 99 ? "99+" : actionableCount}
+                      </Text>
+                    </View>
+                  )}
+                </Pressable>
+                <Pressable
+                  onPress={() => void signOut()}
+                  style={({ pressed }) => [styles.actionBtn, pressed && styles.pressed]}
+                >
+                  <Ionicons name="log-out-outline" size={22} color="#ffffff" />
+                </Pressable>
+              </View>
             </View>
           </View>
+        </LinearGradient>
 
-          <View style={[styles.highlightCard, { backgroundColor: "#ea580c" }]}>
-            <View style={[styles.highlightIconBg, { backgroundColor: "#f97316", shadowColor: "#f97316", shadowOpacity: 0.6, shadowRadius: 6, elevation: 6 }]}>
-              <Ionicons name="notifications" size={20} color="#ffffff" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.highlightLabelInverse}>Notifikasi</Text>
-              <Text style={styles.highlightValueInverse}>{unreadCount}</Text>
-            </View>
-            <View style={[styles.highlightBadge, { backgroundColor: "rgba(255,255,255,0.2)" }]}>
-              <Text style={styles.highlightBadgeText}>
-                {unreadCount > 0 ? "Baru" : "Kosong"}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </SlideInView>
-
-      <SlideInView direction="up" delay={150} duration={400}>
-        <SectionTitle title="Aksi Cepat" caption="Akses fitur operasional utama" />
-        <View style={styles.quickActionGrid}>
-          <Pressable
-            onPress={() => goToTab("FieldMilestone")}
-            style={({ pressed }) => [styles.quickActionBtn, pressed && styles.quickActionBtnPressed]}
-          >
-            <View style={[styles.iconCircle, { backgroundColor: "#0284c7", shadowColor: "#0284c7", shadowOpacity: 0.6, shadowRadius: 8, elevation: 6 }]}>
-              <Ionicons name="construct" size={22} color="#ffffff" />
-            </View>
-            <Text style={styles.quickActionTitle}>Update Progres</Text>
-            <Text style={styles.quickActionCaption}>Lapor milestone</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => goToTab("InspectionUnits")}
-            style={({ pressed }) => [styles.quickActionBtn, pressed && styles.quickActionBtnPressed]}
-          >
-            <View style={[styles.iconCircle, { backgroundColor: "#10b981", shadowColor: "#10b981", shadowOpacity: 0.6, shadowRadius: 8, elevation: 6 }]}>
-              <Ionicons name="checkmark-done-circle" size={22} color="#ffffff" />
-            </View>
-            <Text style={styles.quickActionTitle}>Inspeksi Pra-BAST</Text>
-            <Text style={styles.quickActionCaption}>Cek & lapor defect</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => goToTab("FieldUnit")}
-            style={({ pressed }) => [styles.quickActionBtn, pressed && styles.quickActionBtnPressed]}
-          >
-            <View style={[styles.iconCircle, { backgroundColor: "#9333ea", shadowColor: "#9333ea", shadowOpacity: 0.6, shadowRadius: 8, elevation: 6 }]}>
-              <Ionicons name="home" size={22} color="#ffffff" />
-            </View>
-            <Text style={styles.quickActionTitle}>Daftar Unit</Text>
-            <Text style={styles.quickActionCaption}>Lihat status unit</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => goToTab("FieldKendala")}
-            style={({ pressed }) => [styles.quickActionBtn, pressed && styles.quickActionBtnPressed]}
-          >
-            <View style={[styles.iconCircle, { backgroundColor: "#ea580c", shadowColor: "#ea580c", shadowOpacity: 0.6, shadowRadius: 8, elevation: 6 }]}>
-              <Ionicons name="warning" size={22} color="#ffffff" />
-            </View>
-            <Text style={styles.quickActionTitle}>Lapor Kendala</Text>
-            <Text style={styles.quickActionCaption}>Buat isu baru</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => goToTab("FieldNotifikasi")}
-            style={({ pressed }) => [styles.quickActionBtn, pressed && styles.quickActionBtnPressed]}
-          >
-            <View style={[styles.iconCircle, { backgroundColor: "#16a34a", shadowColor: "#16a34a", shadowOpacity: 0.6, shadowRadius: 8, elevation: 6 }]}>
-              <Ionicons name="mail-unread" size={22} color="#ffffff" />
-            </View>
-            <Text style={styles.quickActionTitle}>Notifikasi</Text>
-            <Text style={styles.quickActionCaption}>Cek info terbaru</Text>
-          </Pressable>
-        </View>
-      </SlideInView>
-
-      {banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
-
-      <SlideInView direction="up" delay={250} duration={400}>
-        <View style={styles.projectSectionHeader}>
-          <SectionTitle title="Proyek Aktif" caption="Pantau progres keseluruhan" />
-          <Pressable
-            onPress={() => {
-              void (async () => {
-                setIsLoading(true);
-                setBanner(null);
-                try {
-                  await loadData();
-                } catch (error) {
-                  setBanner(formatErrorMessage(error));
-                } finally {
-                  setIsLoading(false);
-                }
-              })();
-            }}
-            style={({ pressed }) => [pressed && { opacity: 0.6 }]}
-          >
-            <Ionicons name="refresh" size={20} color="#64748b" style={{ padding: 4 }} />
-          </Pressable>
-        </View>
-
-        {isLoading ? (
-          <SkeletonList count={3} />
-        ) : projects.length === 0 ? (
-          <EmptyState message="Belum ada proyek yang terdaftar untuk akun ini." />
-        ) : (
-          <View style={styles.projectListWrap}>
-            {projects.map((project) => (
+        {/* ── OVERLAP GLASS CARD ── */}
+        <View style={styles.overlapContainer}>
+          <SlideInView direction="up" delay={50} duration={500}>
+            <View style={styles.glassCard}>
+              {/* Primary: tugas aktif */}
               <Pressable
-                key={project.id}
-                onPress={() =>
-                  (navigation as any).navigate("FieldUnits", {
-                    projectId: project.id,
-                  })
-                }
+                onPress={() => navigation.navigate("FieldNotifikasi" as never)}
+                style={styles.statsMainCol}
+              >
+                <Text style={styles.statsMainValue}>{actionableCount}</Text>
+                <Text style={styles.statsMainLabel}>Tugas Aktif</Text>
+              </Pressable>
+
+              <View style={styles.statsDivider} />
+
+              {/* Secondary: 2 baris */}
+              <View style={styles.statsSubGroup}>
+                <View style={styles.statsSubItem}>
+                  <View style={styles.statsSubItemLeft}>
+                    <View style={[styles.statsDot, {
+                      backgroundColor: isSyncing
+                        ? c.warning.text
+                        : queueCount > 0 ? c.warning.text : c.success.text,
+                    }]} />
+                    <Text style={styles.statsSubLabel}>Antrean Offline</Text>
+                  </View>
+                  <Text style={styles.statsSubValue}>{isSyncing ? "..." : queueCount}</Text>
+                </View>
+                <View style={styles.statsSubItem}>
+                  <View style={styles.statsSubItemLeft}>
+                    <View style={[styles.statsDot, {
+                      backgroundColor: pendingInspections !== null && pendingInspections > 0
+                        ? c.info.text : c.neutral300,
+                    }]} />
+                    <Text style={styles.statsSubLabel}>Unit Inspeksi</Text>
+                  </View>
+                  <Text style={styles.statsSubValue}>
+                    {pendingInspections === null ? "..." : pendingInspections}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </SlideInView>
+        </View>
+
+        <View style={styles.contentPad}>
+          {banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
+
+          {/* ── LAPORAN HARI INI ── */}
+          {todayReport !== undefined && (
+            <SlideInView direction="up" delay={80} duration={400}>
+              <Pressable
+                onPress={() => {
+                  if (todayReport === null || todayReport.isDraft) {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    navigation.navigate("FieldDailyReport" as never);
+                  }
+                }}
                 style={({ pressed }) => [
-                  styles.projectCard,
-                  pressed && styles.projectCardPressed,
+                  styles.reportCard,
+                  (todayReport === null || todayReport.isDraft) && { borderLeftWidth: 4, borderLeftColor: c.warning.text },
+                  (todayReport === null || todayReport.isDraft) && pressed && styles.pressed,
                 ]}
               >
-                <View style={styles.projectCardHeader}>
-                  <View style={[styles.projectIconWrap, { backgroundColor: "#0f172a", shadowColor: "#0f172a", shadowOpacity: 0.6, shadowRadius: 8, elevation: 6 }]}>
-                    <Ionicons name="business" size={22} color="#ffffff" />
+                <View style={styles.reportCardHeader}>
+                  <View
+                    style={[
+                      styles.reportIconWrap,
+                      {
+                        backgroundColor:
+                          todayReport === null
+                            ? c.warning.bg
+                            : todayReport.isDraft
+                            ? c.warning.bg
+                            : c.success.bg,
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name={
+                        todayReport === null
+                          ? "document-outline"
+                          : todayReport.isDraft
+                          ? "create-outline"
+                          : "checkmark-circle"
+                      }
+                      size={22}
+                      color={
+                        todayReport === null
+                          ? c.warning.text
+                          : todayReport.isDraft
+                          ? c.warning.text
+                          : c.success.text
+                      }
+                    />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.projectName}>{project.name}</Text>
-                    <Text style={styles.projectMeta}>{project.totalUnits} Unit Dipantau</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color="#cbd5e1" />
-                </View>
-
-                <View style={styles.projectProgressWrap}>
-                  <View style={styles.progressHeader}>
-                    <Text style={styles.progressLabel}>Progres Rata-rata</Text>
-                    <Text style={styles.progressPercentage}>{project.progress}%</Text>
-                  </View>
-                  <AnimatedProgressBar 
-                    progress={project.progress} 
-                    height={6} 
-                    color="#f59e0b" 
-                  />
-                </View>
-
-                {project.milestoneDeadlineAlerts > 0 && (
-                  <View style={styles.alertBanner}>
-                    <Ionicons name="alert-circle" size={16} color="#dc2626" />
-                    <Text style={styles.alertText}>
-                      Terdapat {project.milestoneDeadlineAlerts} deadline mendesak!
+                    <Text style={styles.reportCardLabel}>Laporan Harian</Text>
+                    <Text style={styles.reportCardStatus}>
+                      {todayReport === null
+                        ? "Belum dibuat hari ini"
+                        : todayReport.isDraft
+                        ? "Draft — belum dikirim"
+                        : "Sudah terkirim ✓"}
                     </Text>
                   </View>
-                )}
+                  {(todayReport === null || todayReport.isDraft) && (
+                    <View style={styles.reportCtaBadge}>
+                      <Text style={styles.reportCtaText}>
+                        {todayReport === null ? "Buat" : "Edit"}
+                      </Text>
+                      <Ionicons name="arrow-forward" size={13} color={c.primaryDark} />
+                    </View>
+                  )}
+                </View>
               </Pressable>
-            ))}
-          </View>
-        )}
-      </SlideInView>
-    </ScreenShell>
+            </SlideInView>
+          )}
+
+          {/* ── PROYEK AKTIF ── */}
+          <SlideInView direction="up" delay={150} duration={400} style={{ marginTop: 24 }}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionTitle}>Proyek Aktif</Text>
+              {!isLoading && projects.length > 0 && (
+                <Text style={styles.sectionCount}>{projects.length} proyek</Text>
+              )}
+            </View>
+
+            {isLoading ? (
+              <SkeletonList count={2} />
+            ) : projects.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="business-outline" size={48} color={c.neutral300} style={{ marginBottom: 12 }} />
+                <Text style={styles.emptyText}>Tidak ada proyek aktif</Text>
+              </View>
+            ) : (
+              <View style={styles.projectList}>
+                {projects.map((proj) => (
+                  <Pressable
+                    key={proj.id}
+                    style={({ pressed }) => [styles.projectCard, pressed && styles.pressed]}
+                    onPress={() => navigation.navigate("FieldUnits", { projectId: proj.id })}
+                  >
+                    <View style={styles.projectCardTop}>
+                      <View
+                        style={[
+                          styles.projectIconWrap,
+                          { backgroundColor: proj.milestoneDeadlineAlerts > 0 ? c.warning.bg : "rgba(56,189,248,0.1)" },
+                        ]}
+                      >
+                        <Ionicons
+                          name="business"
+                          size={22}
+                          color={proj.milestoneDeadlineAlerts > 0 ? c.warning.text : c.primaryDark}
+                        />
+                      </View>
+
+                      <View style={{ flex: 1, marginLeft: 16, marginRight: 8 }}>
+                        <Text style={styles.projectName}>{proj.name}</Text>
+                        {proj.milestoneDeadlineAlerts > 0 ? (
+                          <View style={styles.alertRow}>
+                            <View style={[styles.statsDot, { backgroundColor: c.warning.text }]} />
+                            <Text style={styles.alertText}>
+                              {proj.milestoneDeadlineAlerts} milestone mendekati deadline
+                            </Text>
+                          </View>
+                        ) : (
+                          <Text style={styles.projectMeta}>{proj.totalUnits} Unit Total</Text>
+                        )}
+                      </View>
+                      <Ionicons name="chevron-forward" size={16} color={c.neutral400} />
+                    </View>
+
+                    {/* Progress bar */}
+                    <View style={styles.progressWrap}>
+                      <View style={styles.progressHeader}>
+                        <Text style={styles.progressLabel}>Penyelesaian Fisik</Text>
+                        <Text style={styles.progressPct}>{proj.progress}%</Text>
+                      </View>
+                      <View style={styles.progressTrack}>
+                        <LinearGradient
+                          colors={[c.primaryLight, c.primary]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 0 }}
+                          style={[styles.progressFill, { width: `${Math.max(4, proj.progress)}%` }]}
+                        />
+                      </View>
+                    </View>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          </SlideInView>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  highlightRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-    marginBottom: 8,
-  },
-  highlightCard: {
-    flex: 1,
-    minWidth: (SCREEN_WIDTH - 44) / 2,
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
+  container: { flex: 1, backgroundColor: c.neutral50 },
+
+  // ── Hero ──
+  heroHeader: {
+    minHeight: 240,
+    paddingBottom: 60,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
     overflow: "hidden",
   },
-  highlightIconBg: {
-    backgroundColor: "#ccfbf1",
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-  },
-  highlightLabelInverse: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 12,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  highlightValueInverse: {
-    color: "#ffffff",
-    fontSize: 28,
-    fontWeight: "800",
-  },
-  highlightBadge: {
-    position: "absolute",
-    top: 16,
-    right: 16,
-    backgroundColor: "rgba(255,255,255,0.25)",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  highlightBadgeText: {
-    color: "#ffffff",
-    fontSize: 10,
-    fontWeight: "700",
-  },
-  quickActionGrid: {
+  heroSafeArea: { paddingHorizontal: 24 },
+  heroTopRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginTop: 24,
+  },
+  heroGreeting: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 18,
+    fontWeight: "600",
+    letterSpacing: 0.1,
+    marginBottom: 6,
+  },
+  heroName: {
+    color: "#ffffff",
+    fontSize: 30,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+    lineHeight: 36,
+  },
+  heroActions: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
-    marginBottom: 8,
+    marginTop: 4,
   },
-  quickActionBtn: {
-    width: (SCREEN_WIDTH - 44) / 2,
-    minHeight: 120,
-    borderRadius: 16,
-    backgroundColor: "#ffffff",
-    padding: 16,
-    justifyContent: "flex-end",
-    shadowColor: "#94a3b8",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  quickActionBtnPressed: {
-    transform: [{ scale: 0.98 }],
-    opacity: 0.9,
-  },
-  iconCircle: {
+  actionBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.15)",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: "auto",
   },
-  quickActionTitle: {
-    color: "#0f172a",
-    fontSize: 14,
-    fontWeight: "700",
-    marginBottom: 2,
+  badge: {
+    position: "absolute",
+    top: 6,
+    right: 8,
+    backgroundColor: c.danger.text,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
   },
-  quickActionCaption: {
-    color: "#64748b",
-    fontSize: 12,
-    fontWeight: "500",
+  badgeText: { color: "#ffffff", fontSize: 9, fontWeight: "bold" },
+  pressed: { opacity: 0.8, transform: [{ scale: 0.96 }] },
+
+  // ── Glass Card ──
+  overlapContainer: { marginTop: -40, paddingHorizontal: 24, zIndex: 10 },
+  glassCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: c.primaryDark,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.1,
+    shadowRadius: 32,
+    elevation: 10,
   },
-  projectSectionHeader: {
+  statsMainCol: { flex: 1, alignItems: "flex-start" },
+  statsMainValue: {
+    fontSize: 34,
+    fontWeight: "900",
+    color: c.primary600,
+    letterSpacing: -1.5,
+    lineHeight: 38,
+  },
+  statsMainLabel: { fontSize: 14, fontWeight: "600", color: c.neutral500, marginTop: 4 },
+  statsDivider: {
+    width: 1,
+    height: 44,
+    backgroundColor: c.neutral200,
+    marginHorizontal: 20,
+  },
+  statsSubGroup: { flex: 1, gap: 12 },
+  statsSubItem: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  statsSubItemLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
+  statsDot: { width: 8, height: 8, borderRadius: 4 },
+  statsSubLabel: { fontSize: 13, fontWeight: "600", color: c.neutral500 },
+  statsSubValue: { fontSize: 18, fontWeight: "800", color: c.neutral900 },
+
+  // ── Content ──
+  contentPad: { paddingHorizontal: 24, marginTop: 24 },
+
+  // ── Report Card ──
+  reportCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: c.neutral900,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.05,
+    shadowRadius: 16,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: c.neutral100,
+  },
+  reportCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+  reportIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  reportCardLabel: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: c.neutral900,
+    marginBottom: 3,
+  },
+  reportCardStatus: { fontSize: 13, fontWeight: "600", color: c.neutral500 },
+  reportCtaBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(14,165,233,0.12)",
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 22,
+  },
+  reportCtaText: { fontSize: 13, fontWeight: "800", color: c.primaryDark },
+
+  // ── Section ──
+  sectionHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 16,
   },
-  projectListWrap: {
-    gap: 16,
-  },
+  sectionTitle: { fontSize: 18, fontWeight: "800", color: c.neutral900, letterSpacing: -1 },
+  sectionCount: { fontSize: 13, fontWeight: "600", color: c.neutral400 },
+
+  // ── Project Cards ──
+  projectList: { gap: 14 },
   projectCard: {
     backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: "#94a3b8",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: c.neutral900,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
     shadowRadius: 12,
-    elevation: 3,
+    elevation: 2,
     borderWidth: 1,
-    borderColor: "#f1f5f9",
+    borderColor: c.neutral100,
   },
-  projectCardPressed: {
-    transform: [{ scale: 0.99 }],
-    backgroundColor: "#f8fafc",
-  },
-  projectCardHeader: {
+  projectCardTop: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
     marginBottom: 16,
   },
   projectIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: "#f0fdfa",
+    width: 46,
+    height: 46,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
   projectName: {
-    color: "#0f172a",
-    fontSize: 16,
-    fontWeight: "700",
-    marginBottom: 2,
+    fontSize: 15,
+    fontWeight: "800",
+    color: c.neutral900,
+    marginBottom: 4,
   },
-  projectMeta: {
-    color: "#64748b",
-    fontSize: 13,
-    fontWeight: "500",
-  },
-  projectProgressWrap: {
-    backgroundColor: "#f8fafc",
-    padding: 12,
-    borderRadius: 12,
-  },
+  alertRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  alertText: { fontSize: 12, fontWeight: "700", color: c.warning.text },
+  projectMeta: { fontSize: 12, fontWeight: "500", color: c.neutral500 },
+  progressWrap: {},
   progressHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 8,
   },
-  progressLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#475569",
+  progressLabel: { fontSize: 13, fontWeight: "600", color: c.neutral600 },
+  progressPct: { fontSize: 15, fontWeight: "900", color: c.neutral900, letterSpacing: -0.3 },
+  progressTrack: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: c.neutral100,
+    overflow: "hidden",
   },
-  progressPercentage: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#d97706",
-  },
-  alertBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fef2f2",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginTop: 12,
-    gap: 6,
-  },
-  alertText: {
-    color: "#b91c1c",
-    fontSize: 12,
-    fontWeight: "600",
-  },
+  progressFill: { height: "100%", borderRadius: 4 },
+
+  // ── Empty ──
+  emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 60 },
+  emptyText: { color: c.neutral400, fontSize: 15, fontWeight: "500" },
 });

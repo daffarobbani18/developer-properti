@@ -9,9 +9,12 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
+  RefreshControl,
+  StatusBar,
+  Platform } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { getProjectDetail } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
 import {
   AnimatedProgressBar,
@@ -21,13 +24,14 @@ import {
   EmptyState,
   FadeInView,
   IconButton,
-  ScreenShell,
   SectionTitle,
   Skeleton,
   SkeletonList,
   SlideInView,
   StatusBanner,
 } from "../../components/ui";
+import { LinearGradient } from "expo-linear-gradient";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { c } from "../../theme/colors";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -545,28 +549,17 @@ export function ProjectDetailScreen(): React.JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<PropertyTypeDetail | null>(null);
 
+  const insets = useSafeAreaInsets();
+  const safeTop = Platform.OS === 'android' ? ((StatusBar.currentHeight || 0) > 24 ? StatusBar.currentHeight : 45) : (insets?.top || 20);
+
   const loadProject = useCallback(async () => {
     if (!auth) return;
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/mobile/field/projects/${projectId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${auth.token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Server error ${response.status}`);
-      }
-
-      const json = await response.json();
-      setProject(json.data);
+      const data = await getProjectDetail(auth, projectId);
+      setProject(data);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Gagal memuat detail proyek"
@@ -582,43 +575,168 @@ export function ProjectDetailScreen(): React.JSX.Element {
 
   if (isLoading) {
     return (
-      <ScreenShell title={projectName || "Detail Proyek"}>
-        <Skeleton width="100%" height={180} borderRadius={12} />
-        <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
-          <Skeleton width="48%" height={80} borderRadius={8} />
-          <Skeleton width="48%" height={80} borderRadius={8} />
-        </View>
-        <SkeletonList count={3} />
-      </ScreenShell>
+      <View style={s.container}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 60 }}
+          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={loadProject} tintColor="#ffffff" />}
+        >
+          {/* HERO HEADER */}
+          <LinearGradient 
+            colors={[c.primary600, c.primary, c.primaryDark]} 
+            locations={[0, 0.4, 1]}
+            start={{ x: 0, y: 0 }} 
+            end={{ x: 1, y: 1 }} 
+            style={s.heroHeader}
+          >
+            <LinearGradient 
+               colors={['rgba(255,255,255,0.06)', 'rgba(255,255,255,0)']} 
+               style={StyleSheet.absoluteFillObject} 
+               pointerEvents="none" 
+            />
+            <View style={[s.heroSafeArea, { paddingTop: (safeTop || 45) + 16 }]}>
+              <View style={s.heroTopRow}>
+                <Pressable onPress={() => navigation.goBack()} style={({ pressed }) => [s.iconBtn, pressed && s.pressed]}>
+                  <Ionicons name="arrow-back" size={24} color="#ffffff" />
+                </Pressable>
+                <Text style={s.heroHeaderTitle}>{projectName || "Detail Proyek"}</Text>
+                <View style={{ width: 44 }} />
+              </View>
+            </View>
+          </LinearGradient>
+
+          <View style={s.contentPad}>
+            <Skeleton width="100%" height={180} borderRadius={12} />
+            <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
+              <Skeleton width="48%" height={80} borderRadius={8} />
+              <Skeleton width="48%" height={80} borderRadius={8} />
+            </View>
+            <SkeletonList count={3} />
+          </View>
+        </ScrollView>
+      </View>
     );
   }
 
   if (error || !project) {
     return (
-      <ScreenShell title={projectName || "Detail Proyek"}>
-        <StatusBanner
-          message={error || "Data proyek tidak ditemukan"}
-          tone="danger"
-        />
-        <EmptyState
-          message="Gagal memuat data proyek"
-          actionLabel="Coba Lagi"
-          onAction={loadProject}
-        />
-      </ScreenShell>
+      <View style={s.container}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 60 }}
+          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={loadProject} tintColor="#ffffff" />}
+        >
+          {/* HERO HEADER */}
+          <LinearGradient 
+            colors={[c.primary600, c.primary, c.primaryDark]} 
+            locations={[0, 0.4, 1]}
+            start={{ x: 0, y: 0 }} 
+            end={{ x: 1, y: 1 }} 
+            style={s.heroHeader}
+          >
+            <LinearGradient 
+               colors={['rgba(255,255,255,0.06)', 'rgba(255,255,255,0)']} 
+               style={StyleSheet.absoluteFillObject} 
+               pointerEvents="none" 
+            />
+            <View style={[s.heroSafeArea, { paddingTop: (safeTop || 45) + 16 }]}>
+              <View style={s.heroTopRow}>
+                <Pressable onPress={() => navigation.goBack()} style={({ pressed }) => [s.iconBtn, pressed && s.pressed]}>
+                  <Ionicons name="arrow-back" size={24} color="#ffffff" />
+                </Pressable>
+                <Text style={s.heroHeaderTitle}>{projectName || "Detail Proyek"}</Text>
+                <View style={{ width: 44 }} />
+              </View>
+            </View>
+          </LinearGradient>
+
+          <View style={s.contentPad}>
+            <StatusBanner
+              message={error || "Data proyek tidak ditemukan"}
+              tone="danger"
+            />
+            <EmptyState
+              message="Gagal memuat data proyek"
+              actionLabel="Coba Lagi"
+              onAction={loadProject}
+            />
+          </View>
+        </ScrollView>
+      </View>
     );
   }
 
   return (
-    <>
-      <ScreenShell title="" subtitle="">
-        <HeroSection project={project} />
-        <StatsRow summary={project.statusSummary} progress={project.overallProgress} />
-        <InfoSection project={project} />
-        <PropertyTypesSection types={project.propertyTypes} onSelect={setSelectedType} />
-        <SitePlanSection sitePlan={project.sitePlan} />
-        <BlocksSection blocks={project.blocks} />
-      </ScreenShell>
+    <View style={s.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 60 }}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={loadProject} tintColor="#ffffff" />}
+      >
+        {/* HERO HEADER */}
+        <LinearGradient 
+          colors={[c.primary600, c.primary, c.primaryDark]} 
+          locations={[0, 0.4, 1]}
+          start={{ x: 0, y: 0 }} 
+          end={{ x: 1, y: 1 }} 
+          style={s.heroHeader}
+        >
+          <LinearGradient 
+             colors={['rgba(255,255,255,0.06)', 'rgba(255,255,255,0)']} 
+             style={StyleSheet.absoluteFillObject} 
+             pointerEvents="none" 
+          />
+          <View style={[s.heroSafeArea, { paddingTop: (safeTop || 45) + 16 }]}>
+            <View style={s.heroTopRow}>
+              <Pressable onPress={() => navigation.goBack()} style={({ pressed }) => [s.iconBtn, pressed && s.pressed]}>
+                <Ionicons name="arrow-back" size={24} color="#ffffff" />
+              </Pressable>
+              <Text style={s.heroHeaderTitle}>{project.name}</Text>
+              <View style={{ width: 44 }} />
+            </View>
+          </View>
+        </LinearGradient>
+
+        {/* PROJECT IMAGE CARD (Overlapping) */}
+        <View style={s.overlapContainer}>
+          <SlideInView direction="up" delay={50} duration={500}>
+            {project.imageUrl ? (
+              <View style={s.projectImageCard}>
+                <Image
+                  source={{ uri: getImageUrl(project.imageUrl) }}
+                  style={s.projectImage}
+                  resizeMode="cover"
+                />
+                <View style={s.projectImageOverlay}>
+                  <View style={s.projectStatusRow}>
+                    <View style={s.projectStatusPill}>
+                      <Text style={s.projectStatusText}>
+                        {getProjectStatusLabel(project.status)}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={s.projectLocationRow}>
+                    <Ionicons name="location-outline" size={14} color="#e2e8f0" />
+                    <Text style={s.projectLocation}>{project.location}</Text>
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <View style={s.projectImagePlaceholder}>
+                <Ionicons name="business" size={48} color="#94a3b8" />
+              </View>
+            )}
+          </SlideInView>
+        </View>
+
+        <View style={s.contentPad}>
+          <StatsRow summary={project.statusSummary} progress={project.overallProgress} />
+          <InfoSection project={project} />
+          <PropertyTypesSection types={project.propertyTypes} onSelect={setSelectedType} />
+          <SitePlanSection sitePlan={project.sitePlan} />
+          <BlocksSection blocks={project.blocks} />
+        </View>
+      </ScrollView>
 
       <Modal visible={!!selectedType} animationType="slide" transparent={true} onRequestClose={() => setSelectedType(null)}>
         <View style={s.modalOverlay}>
@@ -686,7 +804,7 @@ export function ProjectDetailScreen(): React.JSX.Element {
           </View>
         </View>
       </Modal>
-    </>
+    </View>
   );
 }
 
@@ -978,7 +1096,7 @@ const s = StyleSheet.create({
     gap: 4,
     shadowColor: "#0f172a",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
+    shadowOpacity: 0.04,
     shadowRadius: 2,
     elevation: 1,
   },
@@ -1145,6 +1263,114 @@ const s = StyleSheet.create({
     fontSize: 12,
     color: "#1a6d78",
     fontWeight: "700",
+  },
+
+  // Standard Header Styles
+  container: {
+    flex: 1,
+    backgroundColor: c.neutral50,
+  },
+  heroHeader: {
+    minHeight: 240,
+    paddingBottom: 60,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: "hidden",
+  },
+  heroSafeArea: {
+    paddingHorizontal: 24,
+  },
+  heroTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  iconBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  heroHeaderTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#ffffff",
+  },
+  overlapContainer: {
+    marginTop: -40,
+    paddingHorizontal: 24,
+    zIndex: 10,
+  },
+  contentPad: {
+    paddingHorizontal: 24,
+    marginTop: 32,
+  },
+  projectImageCard: {
+    borderRadius: 24,
+    overflow: "hidden",
+    shadowColor: c.primaryDark,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.1,
+    shadowRadius: 32,
+    elevation: 10,
+  },
+  projectImage: {
+    width: "100%",
+    height: 200,
+  },
+  projectImageOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: "rgba(15, 23, 42, 0.65)",
+  },
+  projectStatusRow: {
+    flexDirection: "row",
+    marginBottom: 6,
+  },
+  projectStatusPill: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  projectStatusText: {
+    color: "#ffffff",
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  projectLocationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  projectLocation: {
+    color: "#e2e8f0",
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  projectImagePlaceholder: {
+    width: "100%",
+    height: 200,
+    backgroundColor: "#e2e8f0",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 24,
+    shadowColor: c.primaryDark,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.1,
+    shadowRadius: 32,
+    elevation: 10,
+  },
+  pressed: {
+    opacity: 0.8,
+    transform: [{ scale: 0.96 }],
   },
 });
 

@@ -9,9 +9,11 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#e5f1f0"
+      "backgroundColor": "#0F172A"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.simdp.mobile",
@@ -20,7 +22,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#e5f1f0"
+        "backgroundColor": "#0F172A"
       },
       "package": "com.simdp.mobile",
       "versionCode": 1
@@ -33,6 +35,10 @@
       "eas": {
         "projectId": "simdp-mobile-project"
       }
-    }
+    },
+    "plugins": [
+      "expo-splash-screen",
+      "@sentry/react-native"
+    ]
   }
 }

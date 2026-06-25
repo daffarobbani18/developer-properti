@@ -6,21 +6,23 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
+StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as LocalAuthentication from "expo-local-authentication";
 
 import { LabeledInput, PrimaryButton, SecondaryButton } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
-import { demoCredentials } from "../../services/mock-data";
 import { clearBiometricCredential, getBiometricCredential, getStoredAuth, setBiometricCredential } from "../../services/storage";
 import { registerBiometricCredential } from "../../services/api";
 import { AuthState } from "../../types";
+import { DEV_ACCOUNTS } from "../../config/devAccounts";
+import * as Haptics from "expo-haptics";
+import { c } from "../../theme/colors";
 
 export function LoginScreen(): React.JSX.Element {
   const { signIn, setSession, auth } = useAuth();
-  const [email, setEmail] = useState(demoCredentials[0]?.email ?? "");
-  const [password, setPassword] = useState(demoCredentials[0]?.password ?? "");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showBiometricSetup, setShowBiometricSetup] = useState(false);
@@ -61,12 +63,6 @@ export function LoginScreen(): React.JSX.Element {
     };
   }, []);
 
-  const demoHint = useMemo(
-    () =>
-      demoCredentials.map((item) => `${item.role}: ${item.email} / ${item.password}`).join("\n"),
-    []
-  );
-
   const handleSignIn = async (): Promise<void> => {
     setIsSubmitting(true);
     setErrorMessage(null);
@@ -78,6 +74,15 @@ export function LoginScreen(): React.JSX.Element {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleQuickLogin = (role: 'CUSTOMER' | 'SITE_ENGINEER') => {
+    if (!__DEV__) return;
+    
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const account = DEV_ACCOUNTS[role];
+    setEmail(account.email);
+    setPassword(account.password);
   };
 
   const handleBiometricSignIn = async (): Promise<void> => {
@@ -183,30 +188,27 @@ export function LoginScreen(): React.JSX.Element {
           {savedBiometricCred ? (
             <SecondaryButton label="Nonaktifkan Login Biometrik" onPress={handleDisableBiometric} />
           ) : null}
-
-          {/* [DEV-ONLY] Demo credentials block - will not appear in production build */}
-          {__DEV__ ? (
-            <View style={styles.demoCard}>
-              <Text style={styles.demoTitle}>Akun Demo</Text>
-              <Text style={styles.demoHint}>{demoHint}</Text>
-              <View style={styles.credentialRowWrap}>
-                {demoCredentials.map((item) => (
-                  <Pressable
-                    key={item.email}
-                    onPress={() => {
-                      setEmail(item.email);
-                      setPassword(item.password);
-                    }}
-                    style={({ pressed }) => [styles.credentialPill, pressed && styles.credentialPressed]}
-                  >
-                    <Text style={styles.credentialRole}>{item.role}</Text>
-                    <Text style={styles.credentialEmail}>{item.email}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-          ) : null}
         </View>
+      {__DEV__ && (
+          <View style={styles.demoCard}>
+            <Text style={styles.demoTitle}>Developer Mode</Text>
+            <Text style={styles.demoHint}>
+              Quick Login. Hanya tampil pada environment development.
+            </Text>
+            <View style={{ gap: 8 }}>
+              <SecondaryButton 
+                label="Quick Login Customer" 
+                onPress={() => handleQuickLogin('CUSTOMER')} 
+                disabled={isSubmitting} 
+              />
+              <SecondaryButton 
+                label="Quick Login Site Engineer" 
+                onPress={() => handleQuickLogin('SITE_ENGINEER')} 
+                disabled={isSubmitting} 
+              />
+            </View>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -215,48 +217,60 @@ export function LoginScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#e5f1f0",
+    backgroundColor: c.neutral50,
   },
   content: {
     padding: 16,
     gap: 14,
   },
   heroCard: {
-    borderRadius: 18,
-    backgroundColor: "#154b57",
-    padding: 16,
-    gap: 8,
+    borderRadius: 24,
+    backgroundColor: c.primaryDark,
+    padding: 24,
+    gap: 12,
+    shadowColor: c.primaryDark,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 8,
   },
   heroKicker: {
-    color: "#98d8e2",
-    fontSize: 12,
-    fontWeight: "700",
+    color: c.accent,
+    fontSize: 13,
+    fontWeight: "800",
     textTransform: "uppercase",
-    letterSpacing: 0.7,
+    letterSpacing: 1.2,
   },
   heroTitle: {
     color: "#ffffff",
-    fontSize: 24,
-    fontWeight: "800",
-    lineHeight: 29,
+    fontSize: 28,
+    fontWeight: "900",
+    lineHeight: 34,
+    letterSpacing: -0.5,
   },
   heroSubtitle: {
-    color: "#d7edf0",
-    fontSize: 13,
-    lineHeight: 20,
+    color: c.neutral300,
+    fontSize: 14,
+    lineHeight: 22,
   },
   formCard: {
-    borderRadius: 16,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: "#bfd9dc",
+    borderColor: "rgba(226, 232, 240, 0.8)",
     backgroundColor: "#ffffff",
-    padding: 14,
-    gap: 10,
+    padding: 20,
+    gap: 16,
+    shadowColor: c.neutral900,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 16,
+    elevation: 4,
   },
   formTitle: {
-    color: "#183843",
-    fontSize: 18,
+    color: c.neutral900,
+    fontSize: 20,
     fontWeight: "800",
+    marginBottom: 4,
   },
   biometricSetupRow: {
     flexDirection: "row",
@@ -268,13 +282,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   biometricText: {
-    color: "#4e6870",
-    fontSize: 13,
+    color: c.neutral600,
+    fontSize: 14,
   },
   errorText: {
-    color: "#a41f26",
-    fontSize: 13,
+    color: c.danger.text,
+    fontSize: 14,
     fontWeight: "600",
+    backgroundColor: c.danger.bg,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: c.danger.border,
   },
   demoCard: {
     borderRadius: 16,

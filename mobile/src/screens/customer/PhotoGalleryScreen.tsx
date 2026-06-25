@@ -1,8 +1,10 @@
 import React, { useCallback, useState } from "react";
-import { Dimensions, Image, StyleSheet, Text, View, FlatList, TouchableOpacity } from "react-native";
+import { Dimensions, Image, StyleSheet, Text, View, FlatList, TouchableOpacity , StatusBar } from "react-native";
 import { useFocusEffect, useRoute } from "@react-navigation/native";
 
-import { Card, EmptyState, ScreenShell } from "../../components/ui";
+import { Card, EmptyState, ScreenShell, StatusBanner } from "../../components/ui";
+import { inferBannerTone } from "../../utils/format";
+import ImageViewing from "react-native-image-viewing";
 import { useAuth } from "../../hooks/useAuth";
 import { getCustomerProgressData } from "../../services/api";
 import { Milestone, MilestonePhoto } from "../../types";
@@ -24,6 +26,8 @@ export function PhotoGalleryScreen(): React.JSX.Element {
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [isLoading, setIsLoading] = useState(!passedPhotos);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isViewerVisible, setIsViewerVisible] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
 
 const loadPhotos = useCallback(async () => {
     if (!auth) {
@@ -80,8 +84,15 @@ const loadPhotos = useCallback(async () => {
     );
   }
 
-  const renderPhotoItem = ({ item }: { item: MilestonePhoto }) => (
-    <TouchableOpacity style={styles.photoSlide} activeOpacity={0.9}>
+  const renderPhotoItem = ({ item, index }: { item: MilestonePhoto; index: number }) => (
+    <TouchableOpacity 
+      style={styles.photoSlide} 
+      activeOpacity={0.9} 
+      onPress={() => {
+        setViewerIndex(index);
+        setIsViewerVisible(true);
+      }}
+    >
       <Image source={{ uri: item.url }} style={styles.photoFull} resizeMode="contain" />
       <View style={styles.photoOverlay}>
         <Text style={styles.photoCaption}>{item.caption}</Text>
@@ -93,9 +104,7 @@ const loadPhotos = useCallback(async () => {
   return (
     <ScreenShell title={title || "Galeri Foto"} subtitle="Dokumentasi progres pembangunan">
       {errorMessage ? (
-        <Card>
-          <Text style={styles.errorText}>{errorMessage}</Text>
-        </Card>
+        <StatusBanner message={errorMessage} tone={inferBannerTone(errorMessage)} />
       ) : null}
 
       <FlatList
@@ -107,6 +116,15 @@ const loadPhotos = useCallback(async () => {
         showsHorizontalScrollIndicator={false}
         style={styles.galleryList}
         initialScrollIndex={initialIndex}
+      />
+
+      <ImageViewing
+        images={displayPhotos.map(p => ({ uri: p.url }))}
+        imageIndex={viewerIndex}
+        visible={isViewerVisible}
+        onRequestClose={() => setIsViewerVisible(false)}
+        swipeToCloseEnabled={true}
+        doubleTapToZoomEnabled={true}
       />
     </ScreenShell>
   );
@@ -146,7 +164,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
   photoCaption: {
     color: "#ffffff",

@@ -7,6 +7,23 @@ export function formatCurrency(value: number): string {
   return formatted.replace(/\s/g, "");
 }
 
+/**
+ * Format tanggal panjang dengan hari: "Rabu, 25 Juni 2026"
+ * Digunakan untuk header utama yang perlu konteks hari.
+ */
+export function formatDateFull(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return new Intl.DateTimeFormat("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
 export function formatDate(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
@@ -68,50 +85,8 @@ export function formatUnitStatusLabel(
   return status;
 }
 
-export function formatAttendanceStatusLabel(
-  status: "HADIR" | "TERLAMBAT" | "IZIN" | "SAKIT" | "ALPHA"
-): string {
-  if (status === "HADIR") {
-    return "Hadir";
-  }
-  if (status === "TERLAMBAT") {
-    return "Terlambat";
-  }
-  if (status === "IZIN") {
-    return "Izin";
-  }
-  if (status === "SAKIT") {
-    return "Sakit";
-  }
-  return "Tanpa Keterangan";
-}
 
-export function formatIssueStatusLabel(
-  status: "BARU" | "SEDANG_DITANGANI" | "SELESAI"
-): string {
-  if (status === "BARU") {
-    return "Baru";
-  }
-  if (status === "SEDANG_DITANGANI") {
-    return "Sedang Ditangani";
-  }
-  return "Selesai";
-}
 
-export function formatIssueUrgencyLabel(
-  urgency: "RENDAH" | "SEDANG" | "TINGGI" | "KRITIS"
-): string {
-  if (urgency === "RENDAH") {
-    return "Rendah";
-  }
-  if (urgency === "SEDANG") {
-    return "Sedang";
-  }
-  if (urgency === "TINGGI") {
-    return "Tinggi";
-  }
-  return "Kritis";
-}
 
 export function formatInvoiceStatusLabel(
   status: "BELUM_BAYAR" | "JATUH_TEMPO" | "TERLAMBAT" | "MENUNGGU_VERIFIKASI" | "LUNAS"
@@ -139,18 +114,21 @@ export function formatPaymentStatusLabel(status: "DIKONFIRMASI" | "MENUNGGU_VERI
 }
 
 export function formatTicketStatusLabel(
-  status: "BARU" | "SEDANG_DITANGANI" | "SELESAI" | "DITUTUP"
+  status: string
 ): string {
-  if (status === "BARU") {
-    return "Baru";
+  if (status === "DIPROSES" || status === "SEDANG_DITANGANI") {
+    return "Diproses";
   }
-  if (status === "SEDANG_DITANGANI") {
-    return "Sedang Ditangani";
+  if (status === "MENUNGGU_TINDAKAN_CUSTOMER") {
+    return "Menunggu Anda";
   }
   if (status === "SELESAI") {
     return "Selesai";
   }
-  return "Ditutup";
+  if (status === "DITUTUP") {
+    return "Ditutup";
+  }
+  return "Baru";
 }
 
 export function formatDocumentStatusLabel(

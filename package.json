@@ -12,5 +12,8 @@
     "install:backend": "npm --prefix backend install",
     "install:mobile": "npm --prefix mobile install",
     "install:all": "npm run install:web-admin && npm run install:web-public && npm run install:backend && npm run install:mobile"
+  },
+  "dependencies": {
+    "ts-morph": "^28.0.0"
   }
 }

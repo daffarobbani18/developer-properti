@@ -1,52 +1,89 @@
-import React, { useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useState, useEffect, useRef } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View, KeyboardAvoidingView, Platform, Modal , StatusBar } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import { Ionicons } from "@expo/vector-icons";
 
 import {
   Badge,
-  Card,
   EmptyState,
   LabeledInput,
   PrimaryButton,
-  SecondaryButton,
-  ScreenShell,
-  SectionTitle,
   StatusBanner,
   SkeletonList,
-  TextButton,
+  SlideInView,
 } from "../../components/ui";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "../../hooks/useAuth";
 import { getFieldDailyReports, submitDailyReport } from "../../services/api";
+import { useOfflineQueue } from "../../hooks/useOfflineQueue";
 import { DailyReport } from "../../types";
-import { colors } from "../../theme/colors";
+import { c } from "../../theme/colors";
+import type { FieldStackParamList } from "../../navigation/types";
+import { formatDate, formatDateFull } from "../../utils/format";
+
+const DRAFT_AUTOSAVE_KEY = "simdp-daily-report-draft";
 
 export function FieldDailyReportScreen(): React.JSX.Element {
   const { auth } = useAuth();
+  const { enqueueAction } = useOfflineQueue(auth);
+  const navigation = useNavigation<NativeStackNavigationProp<FieldStackParamList>>();
+  const insets = useSafeAreaInsets();
+  const safeTop = Platform.OS === 'android' ? ((StatusBar.currentHeight || 0) > 24 ? (StatusBar.currentHeight ?? 45) : 45) : (insets?.top || 20);
+
   const [reports, setReports] = useState<DailyReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [todayDraft, setTodayDraft] = useState<DailyReport | null>(null);
 
-const todayDate = new Date().toISOString().split("T")[0];
+  const todayDate = new Date().toISOString().split("T")[0];
   const currentMonth = new Date().toISOString().slice(0, 7);
 
   const [summary, setSummary] = useState("");
   const [activities, setActivities] = useState("");
-  const [issues, setIssues] = useState("");
-  const [weather, setWeather] = useState<DailyReport["weather"]>("CERAH");
   const [modalWeather, setModalWeather] = useState<DailyReport["weather"]>("CERAH");
-  const [modalWorkerCount, setModalWorkerCount] = useState("");
-  const [modalObstacles, setModalObstacles] = useState("");
-  const [modalPlan, setModalPlan] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Autosave draft ke AsyncStorage dengan debounce 2 detik
+  // Mencegah kehilangan input saat app crash atau OS kill
+  const autosaveDraft = useCallback((s: string, a: string, w: DailyReport["weather"]) => {
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    autosaveTimerRef.current = setTimeout(() => {
+      void AsyncStorage.setItem(DRAFT_AUTOSAVE_KEY, JSON.stringify({
+        date: todayDate,
+        summary: s,
+        activities: a,
+        weather: w,
+      }));
+    }, 2000);
+  }, [todayDate]);
+
+  // Restore autosaved draft saat modal dibuka jika belum ada draft dari server
+  const restoreAutosaveDraft = useCallback(async () => {
+    // Jika server draft sudah ada, AsyncStorage tidak boleh menimpa — server adalah source of truth
+    if (todayDraft) return;
+    try {
+      const raw = await AsyncStorage.getItem(DRAFT_AUTOSAVE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as { date: string; summary: string; activities: string; weather: DailyReport["weather"] };
+      if (saved.date !== todayDate) {
+        // Draft dari hari lain — hapus dan abaikan
+        void AsyncStorage.removeItem(DRAFT_AUTOSAVE_KEY);
+        return;
+      }
+      if (summary === "" && saved.summary) setSummary(saved.summary);
+      if (activities === "" && saved.activities) setActivities(saved.activities);
+      setModalWeather(saved.weather);
+    } catch { /* ignore parse errors */ }
+  }, [todayDate, todayDraft, summary, activities]);
 
   const loadReports = useCallback(async () => {
-    if (!auth) {
-      return;
-    }
-
+    if (!auth) return;
     setErrorMessage(null);
     try {
       const data = await getFieldDailyReports(auth, { month: currentMonth, includeDraft: true });
@@ -58,8 +95,7 @@ const todayDate = new Date().toISOString().split("T")[0];
       if (draft) {
         setSummary(draft.summary);
         setActivities(draft.activities.join("\n"));
-        setIssues(draft.issues.join("\n"));
-        setWeather(draft.weather);
+        setModalWeather(draft.weather);
       }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Gagal memuat laporan harian");
@@ -69,466 +105,685 @@ const todayDate = new Date().toISOString().split("T")[0];
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
-
       (async () => {
         setIsLoading(true);
         try {
           await loadReports();
         } finally {
-          if (!cancelled) {
-            setIsLoading(false);
-          }
+          if (!cancelled) setIsLoading(false);
         }
       })();
-
-      return () => {
-        cancelled = true;
-      };
+      return () => { cancelled = true; };
     }, [loadReports])
   );
 
-  const handleSaveDraft = useCallback(async () => {
-    if (!auth) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    setErrorMessage(null);
-
-    try {
-      const newReport = await submitDailyReport(auth, {
-        date: todayDate,
-        summary,
-        activities: activities.split("\n").filter((a) => a.trim()),
-        issues: issues.split("\n").filter((i) => i.trim()),
-        weather,
-        photoUrls: todayDraft?.photoUrls ?? [],
-        isDraft: true,
-      });
-
-      setTodayDraft(newReport);
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Gagal menyimpan draft");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [auth, todayDate, summary, activities, issues, weather, todayDraft]);
-
-  const handleSubmitReport = useCallback(async () => {
-    if (!auth) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    setErrorMessage(null);
-
-    try {
-      const newReport = await submitDailyReport(auth, {
-        date: todayDate,
-        summary,
-        activities: activities.split("\n").filter((a) => a.trim()),
-        issues: issues.split("\n").filter((i) => i.trim()),
-        weather,
-        photoUrls: todayDraft?.photoUrls ?? [],
-        isDraft: false,
-      });
-
-      setTodayDraft(newReport);
-      setReports((prev) => [newReport, ...prev.filter((r) => r.id !== newReport.id)]);
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Gagal mengirim laporan");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [auth, todayDate, summary, activities, issues, weather, todayDraft]);
-
-  const weatherOptions: DailyReport["weather"][] = ["CERAH", "MENDUNG", "HUJAN", "BADAI"];
+  // Bersihkan autosave draft setelah submit berhasil
+  const clearAutosaveDraft = useCallback(() => {
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    void AsyncStorage.removeItem(DRAFT_AUTOSAVE_KEY);
+  }, []);
 
   const handleModalSubmit = useCallback(async () => {
-    if (!auth || !summary.trim()) {
-      return;
-    }
+    if (!auth || !summary.trim()) return;
 
     setIsSubmitting(true);
     setErrorMessage(null);
 
     try {
-      const newReport = await submitDailyReport(auth, {
+      const payload = {
         date: todayDate,
         summary,
         activities: activities.split("\n").filter((a) => a.trim()),
-        issues: issues.split("\n").filter((i) => i.trim()),
+        issues: [],
         weather: modalWeather,
         photoUrls: [],
         isDraft: false,
-      });
+      };
+      
+      let newReport: any;
+      let isOfflineFallback = false;
+      try {
+        newReport = await submitDailyReport(auth, payload);
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } catch (e) {
+        await enqueueAction("DAILY_REPORT", payload);
+        // Fallback optimistic update — mark as draft so UI reflects pending state
+        newReport = { ...payload, id: "draft-" + Date.now(), isDraft: true };
+        isOfflineFallback = true;
+      }
 
+      clearAutosaveDraft();
       setTodayDraft(newReport);
       setReports((prev) => [newReport, ...prev.filter((r) => r.id !== newReport.id)]);
       setShowForm(false);
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      if (isOfflineFallback) {
+        setErrorMessage("Laporan tersimpan di antrean offline dan akan dikirim saat koneksi tersedia.");
+      }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Gagal menyimpan laporan");
     } finally {
       setIsSubmitting(false);
     }
-  }, [auth, todayDate, summary, activities, issues, modalWeather]);
-
-  const renderWeatherSelector = (selected: DailyReport["weather"], onSelect: (w: DailyReport["weather"]) => void) => {
-    const icons = { CERAH: "☀️", MENDUNG: "⛅", HUJAN: "🌧️", BADAI: "⛈️" };
-    return (
-      <View style={styles.weatherSection}>
-        <Text style={styles.weatherLabel}>KONDISI CUACA</Text>
-        <View style={styles.weatherOptions}>
-          {(["CERAH", "MENDUNG", "HUJAN"] as const).map((w) => (
-            <Pressable
-              key={w}
-              onPress={() => onSelect(w)}
-              style={{
-                flex: 1,
-                paddingVertical: 10,
-                borderRadius: 12,
-                borderWidth: 1.5,
-                borderColor: selected === w ? colors.primary : "#97bbc0",
-                backgroundColor: selected === w ? colors.primary + "15" : "transparent",
-                alignItems: "center",
-                gap: 4,
-              }}
-            >
-              <Text style={{ fontSize: 20 }}>{icons[w]}</Text>
-              <Text style={{ fontSize: 12, color: selected === w ? colors.primary : "#547078" }}>
-                {w}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
-    );
-  };
+  }, [auth, todayDate, summary, activities, modalWeather, clearAutosaveDraft]);
 
   return (
-    <ScreenShell title="Laporan Harian" subtitle="Catat aktivitas kerja di lokasi proyek">
-      {errorMessage ? <StatusBanner message={errorMessage} tone="danger" /> : null}
-
-      <Card>
-        <SectionTitle title="Laporan Hari Ini" caption={todayDate} />
-
-        {isLoading ? (
-          <SkeletonList count={3} />
-        ) : (
-          <View style={styles.formWrap}>
-            <LabeledInput
-              label="Ringkasan Pekerjaan"
-              placeholder="Contoh: Progres pondasi mencapai 50%"
-              value={summary}
-              onChangeText={setSummary}
-              multiline
-              numberOfLines={3}
-            />
-
-            <LabeledInput
-              label="Aktivitas (pisahkan baris baru)"
-              placeholder="1. Pemeriksaan pondasi&#10;2. Quality check beton"
-              value={activities}
-              onChangeText={setActivities}
-              multiline
-              numberOfLines={4}
-            />
-
-            <LabeledInput
-              label="Masalah/Kendala (opsional)"
-              placeholder="Contoh: Material terlambat"
-              value={issues}
-              onChangeText={setIssues}
-              multiline
-              numberOfLines={3}
-            />
-
-            <View style={styles.weatherSection}>
-              <Text style={styles.weatherLabel}>Cuaca Hari Ini</Text>
-              <View style={styles.weatherOptions}>
-                {weatherOptions.map((option) => (
-                  <Pressable
-                    key={option}
-                    onPress={() => setWeather(option)}
-                    style={({ pressed }) => [
-                      styles.weatherOption,
-                      weather === option && styles.weatherOptionActive,
-                      pressed && styles.weatherOptionPressed,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.weatherText,
-                        weather === option && styles.weatherTextActive,
-                      ]}
-                    >
-                      {option}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.buttonRow}>
-              <SecondaryButton
-                label="Simpan Draft"
-                onPress={() => void handleSaveDraft()}
-                disabled={isSubmitting || !summary.trim()}
-              />
-              <PrimaryButton
-                label={todayDraft && !todayDraft.isDraft ? "Laporan Terkirim" : "Kirim Laporan"}
-                onPress={() => void handleSubmitReport()}
-                disabled={isSubmitting || !summary.trim() || Boolean(todayDraft && !todayDraft.isDraft)}
-              />
-            </View>
-          </View>
-        )}
-      </Card>
-
-      <Card>
-        <SectionTitle title="Riwayat Laporan" caption="3 laporan terakhir" />
-
-        {isLoading ? (
-          <SkeletonList count={2} />
-        ) : reports.length === 0 ? (
-          <EmptyState message="Belum ada laporan harian" />
-        ) : (
-          <View style={styles.reportsList}>
-            {reports.slice(0, 3).map((report) => (
-              <View key={report.id} style={styles.reportItem}>
-                <View style={styles.reportHeader}>
-                  <Text style={styles.reportDate}>{report.date}</Text>
-                  {report.isDraft && <Badge label="Draft" tone="warning" />}
-                </View>
-                <Text style={styles.reportSummary} numberOfLines={2}>
-                  {report.summary}
-                </Text>
-                <Text style={styles.reportMeta}>
-                  {report.activities.length} aktivitas • Cuaca: {report.weather}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
-      </Card>
-
-      {/* Floating Action Button */}
-      <Pressable
-        onPress={() => setShowForm(true)}
-        style={({ pressed }) => [
-          styles.fab,
-          pressed && { opacity: 0.8 },
-        ]}
-      >
-        <Text style={styles.fabIcon}>+</Text>
-      </Pressable>
-
-      {/* Modal Form */}
-      {showForm && (
-        <View style={styles.modalOverlay}>
-          <Pressable
-            style={styles.modalBackdrop}
-            onPress={() => setShowForm(false)}
+    <View style={styles.container}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+        {/* HEADER */}
+        <LinearGradient 
+          colors={[c.primary600, c.primary, c.primaryDark]} 
+          locations={[0, 0.4, 1]}
+          start={{ x: 0, y: 0 }} 
+          end={{ x: 1, y: 1 }} 
+          style={styles.heroHeader}
+        >
+          {/* Subtle Top Inner Shadow/Reflection */}
+          <LinearGradient 
+             colors={['rgba(255,255,255,0.06)', 'rgba(255,255,255,0)']} 
+             style={StyleSheet.absoluteFillObject} 
+             pointerEvents="none" 
           />
-          <View style={styles.modalContent}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={styles.modalTitle}>Buat Laporan Harian</Text>
+          <View style={[styles.heroSafeArea, { paddingTop: (safeTop || 45) + 16 }]}>
+            {/* Referensi: CustomerProgressScreen.tsx:221-225 — spacer + kicker + title
+                Tanggal dipindahkan ke dalam header (di bawah heroTitle) untuk
+                menghilangkan subHeaderRow sebagai layer terpisah.
+                Struktur: kicker → title → tanggal — identik dengan Customer sub-screens */}
+            <View style={{ height: 20 }} />
+            <View>
+              <Text style={styles.heroKicker}>CATATAN LAPANGAN</Text>
+              <Text style={styles.heroTitle}>Laporan Harian</Text>
+              <Text style={styles.heroDateInHeader}>{formatDateFull(todayDate)}</Text>
+            </View>
+          </View>
+        </LinearGradient>
 
-              <Text style={styles.modalDateLabel}>TANGGAL</Text>
-              <Text style={styles.modalDateValue}>
-                {new Date().toLocaleDateString("id-ID", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
+        
+        <View style={styles.overlapContainer}>
+          {/* TODAY REPORT PANEL */}
+          <SlideInView direction="up" delay={50} duration={400}>
+             {errorMessage ? <StatusBanner message={errorMessage} tone="danger" /> : null}
+             <View style={[styles.journalCard, errorMessage && { marginTop: 16 }]}>
+               <View style={styles.journalHeader}>
+                  <Text style={styles.journalTitle}>Jurnal Hari Ini</Text>
+                  {isLoading ? null : (
+                     <Badge 
+                       label={todayDraft ? (todayDraft.isDraft ? "Draft" : "Terkirim") : "Belum Ada"} 
+                       tone={todayDraft ? (todayDraft.isDraft ? "warning" : "success") : "neutral"} 
+                     />
+                  )}
+               </View>
+
+               {isLoading ? (
+                 <SkeletonList count={1} />
+               ) : todayDraft ? (
+                 <View style={styles.journalContent}>
+                    <View style={styles.weatherRow}>
+                      <Text style={styles.weatherValue}>
+                        {{ CERAH: "☀️ Cerah", MENDUNG: "⛅ Mendung", HUJAN: "🌧️ Hujan", BADAI: "⛈️ Badai" }[todayDraft.weather] ?? todayDraft.weather}
+                      </Text>
+                    </View>
+                   <Text style={styles.summaryValue}>{todayDraft.summary}</Text>
+                   {todayDraft.activities.length > 0 && (
+                     <View style={styles.activitiesTag}>
+                        <Text style={styles.activitiesTagText}>{todayDraft.activities.length} aktivitas tercatat</Text>
+                     </View>
+                   )}
+                    {todayDraft.isDraft ? (
+                       <Pressable style={({pressed}) => [styles.editBtn, pressed && styles.pressed]} onPress={() => setShowForm(true)}>
+                         <Ionicons name="create-outline" size={18} color="#ffffff" />
+                         <Text style={styles.editBtnText}>Edit Jurnal</Text>
+                       </Pressable>
+                    ) : (
+                      <View style={styles.submittedRow}>
+                        <Ionicons name="checkmark-circle" size={16} color={c.success.text} />
+                        <Text style={styles.submittedText}>Laporan sudah terkirim dan tidak dapat diubah</Text>
+                      </View>
+                    )}
+                 </View>
+                ) : (
+                  /* Empty state: pola CustomerSupportScreen — Referensi CustomerSupportScreen.tsx:308-317 */
+                  <View style={styles.emptyJournal}>
+                    <View style={styles.emptyJournalIconWrap}>
+                      <Ionicons name="create-outline" size={28} color={c.warning.text} />
+                    </View>
+                    <Text style={styles.emptyJournalTitle}>Laporan belum dibuat</Text>
+                    <Text style={styles.emptyJournalDesc}>Catat aktivitas lapangan hari ini agar perkembangan proyek dapat dipantau dengan akurat.</Text>
+                    <Pressable style={({pressed}) => [styles.addBtn, pressed && styles.pressed]} onPress={() => setShowForm(true)}>
+                       <Ionicons name="add" size={20} color="#ffffff" />
+                       <Text style={styles.addBtnText}>Buat Laporan Sekarang</Text>
+                    </Pressable>
+                  </View>
+                )}
+             </View>
+          </SlideInView>
+        </View>
+
+        <View style={styles.contentPad}>
+          {/* RECENT REPORTS */}
+          <SlideInView direction="up" delay={150} duration={400}>
+            {(() => {
+              const history = reports.filter((r) => r.date !== todayDate);
+              return (
+                <>
+                  <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionTitle}>Riwayat Jurnal</Text>
+                    {!isLoading && history.length > 0 && (
+                      <Text style={styles.sectionCount}>{history.length} laporan</Text>
+                    )}
+                  </View>
+                  {isLoading ? (
+                    <SkeletonList count={3} />
+                  ) : history.length === 0 ? (
+                    <EmptyState message="Belum ada riwayat laporan bulan ini." />
+                  ) : (
+                    <View style={styles.historyList}>
+                      {history.slice(0, 7).map((r, index, arr) => (
+                        <View key={r.id}>
+                          <View style={styles.historyItem}>
+                            {/* Left: weather icon */}
+                            <View style={styles.historyIconWrap}>
+                              <Text style={styles.historyWeatherEmoji}>
+                                {{ CERAH: "☀️", MENDUNG: "⛅", HUJAN: "🌧️", BADAI: "⛈️" }[r.weather] ?? "📋"}
+                              </Text>
+                            </View>
+                            {/* Center */}
+                            <View style={styles.historyCenter}>
+                              <Text style={styles.historyDate}>{formatDate(r.date)}</Text>
+                              <Text style={styles.historySummary} numberOfLines={2}>{r.summary}</Text>
+                              {r.activities.length > 0 && (
+                                <Text style={styles.historyActivitiesCount}>
+                                  {r.activities.length} aktivitas
+                                </Text>
+                              )}
+                            </View>
+                            {/* Right: draft badge */}
+                            {r.isDraft && (
+                              <View style={styles.historyDraftBadge}>
+                                <Text style={styles.historyDraftText}>Draft</Text>
+                              </View>
+                            )}
+                          </View>
+                          {index < arr.length - 1 && <View style={styles.historyDivider} />}
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </>
+              );
+            })()}
+          </SlideInView>
+        </View>
+      </ScrollView>
+
+      {/* CREATE REPORT MODAL */}
+      <Modal
+        visible={showForm}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onShow={() => void restoreAutosaveDraft()}
+      >
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.modalContainer}>
+          <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
+
+            {/* ── MODAL HERO AREA ── */}
+            <LinearGradient
+              colors={[c.primary600, c.primary, c.primaryDark]}
+              locations={[0, 0.5, 1]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.modalHero}
+            >
+              {/* Close button di atas kiri */}
+              <View style={[styles.modalHeroTopRow, { paddingTop: Math.max(safeTop, 16) }]}>
+                <Pressable onPress={() => setShowForm(false)} style={styles.closeBtn}>
+                  <Ionicons name="close" size={20} color="#ffffff" />
+                </Pressable>
+                <Text style={styles.modalHeroKicker}>JURNAL HARIAN</Text>
+                <View style={{ width: 44 }} />
+              </View>
+
+              {/* Tanggal sebagai hero element */}
+              <Text style={styles.modalHeroDate}>
+                {new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" })}
               </Text>
 
-              {renderWeatherSelector(modalWeather, setModalWeather)}
+              {/* Weather chips — horizontal scrollable */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.modalHeroPillRow}
+                style={styles.modalHeroPillScroll}
+              >
+                {(["CERAH", "MENDUNG", "HUJAN", "BADAI"] as const).map((w) => {
+                  const icons = { CERAH: "☀️", MENDUNG: "⛅", HUJAN: "🌧️", BADAI: "⛈️" };
+                  const isSelected = modalWeather === w;
+                  return (
+                    <Pressable
+                      key={w}
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setModalWeather(w);
+                        autosaveDraft(summary, activities, w);
+                      }}
+                      style={[
+                        styles.modalHeroPill,
+                        isSelected && styles.modalHeroPillSelected,
+                      ]}
+                    >
+                      <Text style={styles.modalHeroPillEmoji}>{icons[w]}</Text>
+                      <Text style={[styles.modalHeroPillText, isSelected && styles.modalHeroPillTextSelected]}>{w}</Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </LinearGradient>
 
-              <LabeledInput
-                label="Jumlah Pekerja"
-                value={modalWorkerCount}
-                onChangeText={setModalWorkerCount}
-                keyboardType="number-pad"
-                placeholder="Contoh: 12"
-              />
+            {/* ── FORM BODY ── */}
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.modalBodyContent} showsVerticalScrollIndicator={false}>
+              <View style={styles.inputGroup}>
+                <LabeledInput
+                  label="Ringkasan Pekerjaan *"
+                  hint="Wajib diisi sebelum laporan dapat disimpan"
+                  value={summary}
+                  onChangeText={(text) => {
+                    setSummary(text);
+                    autosaveDraft(text, activities, modalWeather);
+                  }}
+                  placeholder="Apa yang dikerjakan hari ini?"
+                  multiline
+                  returnKeyType="next"
+                  blurOnSubmit={false}
+                />
+              </View>
 
-              <LabeledInput
-                label="Pekerjaan Hari Ini *"
-                value={summary}
-                onChangeText={setSummary}
-                placeholder="Deskripsikan pekerjaan yang telah dilakukan..."
-                multiline
-                numberOfLines={4}
-              />
-
-              <LabeledInput
-                label="Kendala (jika ada)"
-                value={issues}
-                onChangeText={setIssues}
-                placeholder="Kendala yang dihadapi hari ini..."
-                multiline
-                numberOfLines={3}
-              />
-
-              <LabeledInput
-                label="Rencana Besok"
-                value={activities}
-                onChangeText={setActivities}
-                placeholder="Rencana pekerjaan untuk besok..."
-                multiline
-                numberOfLines={3}
-              />
-
-              <PrimaryButton
-                label="Simpan Laporan"
-                onPress={() => void handleModalSubmit()}
-                loading={isSubmitting}
-              />
-              <View style={{ marginTop: 12 }}>
-                <TextButton label="Batal" onPress={() => setShowForm(false)} />
+              <View style={styles.inputGroup}>
+                <LabeledInput
+                  label="Detail Aktivitas"
+                  hint="Tulis satu aktivitas per baris"
+                  value={activities}
+                  onChangeText={(text) => {
+                    setActivities(text);
+                    autosaveDraft(summary, text, modalWeather);
+                  }}
+                  placeholder={"- Material pasir tiba\n- Pemasangan bata unit A1"}
+                  multiline
+                  returnKeyType="default"
+                  blurOnSubmit={false}
+                />
               </View>
             </ScrollView>
-          </View>
-        </View>
-      )}
-    </ScreenShell>
+
+             <View style={styles.modalFooter}>
+                <PrimaryButton
+                  label={isSubmitting ? "Menyimpan..." : "Simpan Laporan"}
+                  onPress={() => void handleModalSubmit()}
+                  disabled={isSubmitting || summary.trim().length === 0}
+                />
+             </View>
+          </SafeAreaView>
+        </KeyboardAvoidingView>
+      </Modal>
+
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  formWrap: {
-    gap: 12,
+  container: {
+    flex: 1,
+    backgroundColor: c.neutral50,
   },
-  weatherSection: {
-    gap: 8,
+  // heroHeader: referensi CustomerHomeScreen.tsx:286-292
+  heroHeader: {
+    minHeight: 240,
+    paddingBottom: 60,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: "hidden",
   },
-  weatherLabel: {
-    color: "#1b4a55",
-    fontSize: 12,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.4,
+  // heroSafeArea: referensi CustomerHomeScreen.tsx:295-297
+  heroSafeArea: {
+    paddingHorizontal: 24,
   },
-  weatherOptions: {
-    flexDirection: "row",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  weatherOption: {
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "#97bbc0",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: "#f8fcfc",
-  },
-  weatherOptionActive: {
-    borderColor: "#1e6f78",
-    backgroundColor: "#ddf2f4",
-  },
-  weatherOptionPressed: {
-    opacity: 0.8,
-  },
-  weatherText: {
-    color: "#36606a",
-    fontSize: 12,
+  // heroKicker + heroTitle: CustomerProgressScreen.tsx:300-312 — identik
+  heroKicker: { color: "#FBBF24", fontSize: 12, fontWeight: "800", letterSpacing: 1.5, marginBottom: 4 },
+  heroTitle: { color: "#ffffff", fontSize: 34, fontWeight: "900", letterSpacing: -1.2 },
+  // heroDateInHeader: tanggal di dalam hero, di bawah heroTitle
+  // Warna rgba(255,255,255,0.75) mengikuti heroGreeting CustomerHomeScreen
+  heroDateInHeader: {
+    fontSize: 14,
     fontWeight: "600",
+    color: "rgba(255,255,255,0.75)",
+    marginTop: 6,
+    letterSpacing: 0.1,
   },
-  weatherTextActive: {
-    color: "#134d57",
-    fontWeight: "800",
+  // overlapContainer: sekarang dapat menggunakan marginTop:-40 karena subHeaderRow dihapus.
+  // Referensi: CustomerHomeScreen.tsx:347-351 — marginTop:-40, paddingHorizontal:24, zIndex:10
+  overlapContainer: {
+    paddingHorizontal: 24,
+    marginTop: -40,
+    zIndex: 10,
   },
-  buttonRow: {
-    flexDirection: "row",
-    gap: 12,
+  // contentPad: referensi CustomerHomeScreen.tsx:419-422
+  contentPad: {
+    paddingHorizontal: 24,
+    marginTop: 32,
   },
-  reportsList: {
-    gap: 12,
+  // journalCard: referensi CustomerHomeScreen activeTicketCard/invoiceCard — shadow identik
+  journalCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: c.neutral900,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: c.neutral100,
   },
-  reportItem: {
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5ecee",
-  },
-  reportHeader: {
+  journalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 4,
+    marginBottom: 16,
   },
-  reportDate: {
-    color: "#123d47",
+  journalTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: c.neutral900,
+  },
+  journalContent: {
+    gap: 12,
+  },
+  weatherRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  weatherValue: {
     fontSize: 13,
     fontWeight: "600",
+    color: c.neutral600,
   },
-  reportSummary: {
-    color: "#3a5f67",
+  summaryValue: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: c.neutral900,
+  },
+  activitiesTag: {
+    alignSelf: "flex-start",
+    backgroundColor: c.neutral100,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  activitiesTagText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: c.neutral600,
+  },
+  // editBtn: CustomerBillingScreen submitBtn pattern — backgroundColor:c.primary, borderRadius:16
+  // c.primaryLight (#334155) sebagai background menghasilkan teks gelap di background gelap.
+  // Customer menggunakan c.primary sebagai CTA background dengan teks putih — kontras jelas.
+  editBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    backgroundColor: c.accent,
+    borderRadius: 16,
+    gap: 8,
+    marginTop: 16,
+  },
+  editBtnText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#ffffff",
+  },
+
+  submittedRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: c.neutral100,
+  },
+  submittedText: {
     fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 4,
+    fontWeight: "500",
+    color: c.success.text,
+    flex: 1,
   },
-  reportMeta: {
-    color: "#547078",
-    fontSize: 11,
+  // emptyJournal: CustomerSupportScreen.emptyStateWrap pattern
+  // borderStyle dashed + padding generous + centered — Referensi: CustomerSupportScreen.tsx:773-781
+  emptyJournal: {
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 16,
   },
-  fab: {
-    position: "absolute",
-    bottom: 24,
-    right: 24,
+  // emptyJournalIconWrap: CustomerSupportScreen.emptyStateIconWrap
+  // Warning bg karena kondisi ini memerlukan tindakan
+  emptyJournalIconWrap: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.primary,
+    backgroundColor: c.warning.bg,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    elevation: 8,
+    marginBottom: 6,
   },
-  fabIcon: {
-    color: "#fff",
-    fontSize: 28,
-    lineHeight: 32,
+  // emptyJournalTitle: CustomerSupportScreen.emptyStateTitle
+  emptyJournalTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: c.neutral900,
+    marginTop: 12,
+    marginBottom: 6,
   },
-  modalOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "flex-end",
+  // emptyJournalDesc: CustomerSupportScreen.emptyStateDesc
+  emptyJournalDesc: {
+    fontSize: 13,
+    color: c.neutral500,
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: 16,
   },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+  // addBtn: CustomerSupportScreen.emptyStateBtn — borderRadius:99, paddingH:28, paddingV:14
+  addBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: c.accent,
+    paddingHorizontal: 24,
+    paddingVertical: 13,
+    borderRadius: 99,
+    gap: 8,
   },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: "85%",
+  addBtnText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#ffffff",
   },
-  modalTitle: {
+  sectionHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  sectionTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#123d47",
-    marginBottom: 20,
+    color: c.neutral900,
+    letterSpacing: -0.5,
   },
-  modalDateLabel: {
+  sectionCount: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#547078",
-    marginBottom: 4,
-    textTransform: "uppercase",
+    color: c.neutral400,
   },
-  modalDateValue: {
-    fontSize: 15,
-    color: "#123d47",
+  // historyList: single card container dengan divider — pola CustomerBillingScreen cleanList
+  historyList: {
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    overflow: "hidden",
+    shadowColor: c.neutral900,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: c.neutral100,
+  },
+  historyItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 14,
+  },
+  historyIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: c.neutral50,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: c.neutral100,
+  },
+  historyWeatherEmoji: { fontSize: 20 },
+  historyCenter: { flex: 1 },
+  historyDate: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: c.neutral400,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 3,
+  },
+  historySummary: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: c.neutral900,
+    lineHeight: 20,
+  },
+  historyActivitiesCount: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: c.neutral400,
+    marginTop: 4,
+  },
+  historyDraftBadge: {
+    backgroundColor: c.warning.bg,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  historyDraftText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: c.warning.text,
+  },
+  historyDivider: {
+    height: 1,
+    backgroundColor: c.neutral100,
+    marginHorizontal: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
+
+  // ── Modal Hero Area ──
+  modalHero: {
+    paddingBottom: 28,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: "hidden",
+  },
+  modalHeroTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  modalHeroKicker: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "rgba(255,255,255,0.7)",
+    letterSpacing: 1.5,
+  },
+  modalHeroDate: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#ffffff",
+    letterSpacing: -0.8,
+    paddingHorizontal: 20,
     marginBottom: 16,
+  },
+  modalHeroPillScroll: {
+    alignSelf: "flex-start",
+  },
+  modalHeroPillRow: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    paddingBottom: 4,
+    gap: 8,
+  },
+  modalHeroPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderWidth: 1.5,
+    borderColor: "transparent",
+  },
+  modalHeroPillSelected: {
+    backgroundColor: "rgba(255,255,255,0.95)",
+    borderColor: "#ffffff",
+  },
+  modalHeroPillEmoji: {
+    fontSize: 14,
+  },
+  modalHeroPillText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "rgba(255,255,255,0.85)",
+  },
+  modalHeroPillTextSelected: {
+    color: c.primaryDark,
+  },
+
+  closeBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalBodyContent: {
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 24,
+  },
+  inputGroup: {
+    marginBottom: 24,
+  },
+  modalFooter: {
+    padding: 24,
+    borderTopWidth: 1,
+    borderTopColor: c.neutral100,
+    backgroundColor: "#ffffff",
+  },
+  pressed: {
+    transform: [{ scale: 0.96 }],
+    opacity: 0.9,
   },
 });
