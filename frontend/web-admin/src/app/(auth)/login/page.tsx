@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CheckCircle, Eye, EyeSlash, Lock, Envelope, ShieldWarning, Code } from "@phosphor-icons/react";
+import { ROLE_HOME } from "@/lib/access";
 
 type UserRole = "admin" | "inventory" | "sales" | "finance" | "legal";
 
@@ -56,9 +57,20 @@ export default function App() {
       }
 
       setLoginState("success");
+      const mapRole = (dbRole: string): UserRole => {
+        const roleStr = dbRole.toLowerCase();
+        if (roleStr.includes("superadmin")) return "admin";
+        if (roleStr.includes("inventory")) return "inventory";
+        if (roleStr.includes("sales")) return "sales";
+        if (roleStr.includes("finance")) return "finance";
+        if (roleStr.includes("legal")) return "legal";
+        if (roleStr.includes("project") || roleStr.includes("pengawas") || roleStr.includes("supervisor")) return "supervisor";
+        if (roleStr.includes("owner")) return "owner";
+        return "admin";
+      };
 
-      const resolvedRole = data.user.role.toLowerCase() === "superadmin" ? "admin" : data.user.role.toLowerCase() as UserRole;
-      const targetRoute = getRoleRedirect(email) || "/admin/dashboard";
+      const resolvedRole = mapRole(data.user.role);
+      const targetRoute = ROLE_HOME[resolvedRole] || "/admin/dashboard";
 
       setTimeout(() => {
         const authPayload = JSON.stringify({

@@ -6,8 +6,8 @@ import { createPropertyTypeDto, createUnitDto, bulkCreateUnitDto } from "./dto/i
 
 const router = Router();
 
-// Melindungi semua rute di file ini dengan middleware token & role
-router.use(verifyToken, requireRole(["Admin Inventory"]));
+// Hapus perlindungan global, pasang middleware per rute
+const requireInventory = requireRole(["Admin Inventory"]);
 
 /**
  * @swagger
@@ -52,7 +52,7 @@ router.use(verifyToken, requireRole(["Admin Inventory"]));
  *       403:
  *         description: Forbidden (Bukan Admin Inventory)
  */
-router.post("/types", validate(createPropertyTypeDto), InventoryController.createType);
+router.post("/types", verifyToken, requireInventory, validate(createPropertyTypeDto), InventoryController.createType);
 
 /**
  * @swagger
@@ -66,7 +66,7 @@ router.post("/types", validate(createPropertyTypeDto), InventoryController.creat
  *       200:
  *         description: Berhasil mengambil data tipe properti
  */
-router.get("/types", InventoryController.getAllTypes);
+router.get("/types", verifyToken, InventoryController.getAllTypes);
 
 /**
  * @swagger
@@ -96,8 +96,8 @@ router.get("/types", InventoryController.getAllTypes);
  *       200:
  *         description: Tipe properti berhasil dihapus
  */
-router.put("/types/:id", InventoryController.updateType);
-router.delete("/types/:id", InventoryController.deleteType);
+router.put("/types/:id", verifyToken, requireInventory, InventoryController.updateType);
+router.delete("/types/:id", verifyToken, requireInventory, InventoryController.deleteType);
 
 /**
  * @swagger
@@ -145,8 +145,8 @@ router.delete("/types/:id", InventoryController.deleteType);
  *       400:
  *         description: Duplikasi blok dan nomor di kawasan yang sama, atau input tidak valid
  */
-router.post("/units", validate(createUnitDto), InventoryController.createUnit);
-router.post("/units/bulk", validate(bulkCreateUnitDto), InventoryController.bulkCreateUnits);
+router.post("/units", verifyToken, requireInventory, validate(createUnitDto), InventoryController.createUnit);
+router.post("/units/bulk", verifyToken, requireInventory, validate(bulkCreateUnitDto), InventoryController.bulkCreateUnits);
 
 /**
  * @swagger
@@ -171,7 +171,7 @@ router.post("/units/bulk", validate(bulkCreateUnitDto), InventoryController.bulk
  *       200:
  *         description: Berhasil mengambil data unit kavling
  */
-router.get("/units", InventoryController.getAllUnits);
+router.get("/units", verifyToken, InventoryController.getAllUnits);
 
 /**
  * @swagger
@@ -197,7 +197,7 @@ router.get("/units", InventoryController.getAllUnits);
  *       200:
  *         description: Berhasil diupdate
  */
-router.put("/units/:id", InventoryController.updateUnit);
+router.put("/units/:id", verifyToken, requireInventory, InventoryController.updateUnit);
 
 /**
  * @swagger
@@ -217,6 +217,6 @@ router.put("/units/:id", InventoryController.updateUnit);
  *       200:
  *         description: Berhasil dihapus
  */
-router.delete("/units/:id", InventoryController.deleteUnit);
+router.delete("/units/:id", verifyToken, requireInventory, InventoryController.deleteUnit);
 
 export default router;
