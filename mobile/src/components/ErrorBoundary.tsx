@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import * as Sentry from "@sentry/react-native";
 
 import { SecondaryButton } from "./ui";
 
@@ -25,6 +26,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
+    Sentry.captureException(error, { extra: errorInfo as any });
   }
 
   handleRestart = (): void => {

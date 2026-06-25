@@ -94,7 +94,10 @@ export type NotificationItem = {
    body: string;
    isRead: boolean;
    createdAt: string;
-   type?: "issue_update" | "milestone_update" | "deadline_alert" | "payment_confirmed" | "document_ready";
+   type?: "issue_update" | "milestone_update" | "deadline_alert" | "payment_confirmed" | "document_ready" | "system";
+   severity?: "info" | "warning" | "critical";
+   actionType?: string;
+   isResolved?: boolean;
    data?: {
      route?: string;
      unitId?: string;
@@ -141,10 +144,11 @@ export type TicketItem = {
   category: "Progres" | "Kualitas Bangunan" | "Dokumen" | "Tagihan" | "Lainnya";
   subject: string;
   description: string;
-  status: "BARU" | "SEDANG_DITANGANI" | "SELESAI" | "DITUTUP";
+  status: "BARU" | "DIPROSES" | "SEDANG_DITANGANI" | "MENUNGGU_TINDAKAN_CUSTOMER" | "SELESAI" | "DITUTUP";
   photoUrls?: string[];
   createdAt: string;
   replies?: TicketReply[];
+  hasUnreadReplies?: boolean;
 };
 
 export type TicketReply = {
@@ -167,18 +171,13 @@ export type CustomerOverview = {
   unit: Unit;
   nextInvoice?: InvoiceItem;
   unreadNotifications: number;
+  activeTickets?: TicketItem[];
 };
 
 export type PendingQueueItem = {
   id: string;
-  type: "MILESTONE_UPDATE";
-  payload: {
-    milestoneId: string;
-    status: Milestone["status"];
-    note?: string;
-    photoUrl?: string;
-    photoUrls?: string[];
-  };
+  type: "MILESTONE_UPDATE" | "DAILY_REPORT";
+  payload: any;
   createdAt: string;
 };
 

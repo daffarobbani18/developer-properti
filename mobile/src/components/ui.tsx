@@ -19,6 +19,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNetInfo } from "@react-native-community/netinfo";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { c } from "../theme/colors";
 
 type ScreenShellProps = PropsWithChildren<{
@@ -67,7 +68,12 @@ export function ScreenShell({
   if (noScroll) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.headerRow}>
+        <LinearGradient colors={[c.primary600, c.primary, c.primaryDark]} locations={[0, 0.4, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.headerRow}>
+          <LinearGradient 
+             colors={['rgba(255,255,255,0.06)', 'rgba(255,255,255,0)']} 
+             style={StyleSheet.absoluteFillObject} 
+             pointerEvents="none" 
+          />
           <View style={styles.headerLeftContainer}>
             {onBack ? (
               <IconButton icon="arrow-back" onPress={onBack} size={22} />
@@ -78,7 +84,7 @@ export function ScreenShell({
             </View>
           </View>
           {rightAction ? <View>{rightAction}</View> : null}
-        </View>
+        </LinearGradient>
         <View style={{ flex: 1 }}>{content}</View>
       </SafeAreaView>
     );
@@ -86,18 +92,23 @@ export function ScreenShell({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.headerRow}>
-        <View style={styles.headerLeftContainer}>
-          {onBack ? (
-            <IconButton icon="arrow-back" onPress={onBack} size={22} />
-          ) : null}
-          <View style={styles.headerTextWrap}>
-            <Text style={styles.headerTitle}>{title}</Text>
-            {subtitle ? <Text style={styles.headerSubtitle}>{subtitle}</Text> : null}
+      <LinearGradient colors={[c.primary600, c.primary, c.primaryDark]} locations={[0, 0.4, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.headerRow}>
+          <LinearGradient 
+             colors={['rgba(255,255,255,0.06)', 'rgba(255,255,255,0)']} 
+             style={StyleSheet.absoluteFillObject} 
+             pointerEvents="none" 
+          />
+          <View style={styles.headerLeftContainer}>
+            {onBack ? (
+              <IconButton icon="arrow-back" onPress={onBack} size={22} />
+            ) : null}
+            <View style={styles.headerTextWrap}>
+              <Text style={styles.headerTitle}>{title}</Text>
+              {subtitle ? <Text style={styles.headerSubtitle}>{subtitle}</Text> : null}
+            </View>
           </View>
-        </View>
-        {rightAction ? <View>{rightAction}</View> : null}
-      </View>
+          {rightAction ? <View>{rightAction}</View> : null}
+        </LinearGradient>
       {scrollable ? <ScrollView {...scrollProps}>{content}</ScrollView> : <View style={styles.body}>{content}</View>}
     </SafeAreaView>
   );
@@ -599,12 +610,19 @@ export function CountUpNumber({
     flexDirection: "row",
     alignItems: "flex-start",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: c.neutral200,
-    backgroundColor: "#ffffff",
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    backgroundColor: c.primaryDark,
+    overflow: "hidden",
+    shadowColor: c.primaryDark,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
+    marginBottom: 8,
   },
   headerLeftContainer: {
     flex: 1,
@@ -617,14 +635,15 @@ export function CountUpNumber({
     paddingRight: 10,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "800",
-    color: "#102f38",
+    color: "#ffffff",
+    letterSpacing: -0.5,
   },
   headerSubtitle: {
     marginTop: 4,
-    fontSize: 12,
-    color: "#4a6a73",
+    fontSize: 14,
+    color: c.neutral300,
   },
   scroll: {
     flex: 1,
@@ -643,17 +662,17 @@ export function CountUpNumber({
     paddingBottom: 98,
   },
   card: {
-    borderRadius: 8,
-    padding: 16,
+    borderRadius: 20,
+    padding: 20,
     backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: c.neutral200,
-    gap: 8,
-    shadowColor: "#0f2f38",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    elevation: 2,
+    borderColor: "rgba(226, 232, 240, 0.6)",
+    gap: 10,
+    shadowColor: c.neutral900,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
   },
   sectionHeader: {
     gap: 2,
@@ -747,33 +766,44 @@ badgeDanger: {
     color: c.danger.text,
   },
   primaryButton: {
-    borderRadius: 8,
-    minHeight: 36,
+    borderRadius: 14,
+    minHeight: 52,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: c.primary600,
+    backgroundColor: c.accent,
     paddingHorizontal: 24,
+    shadowColor: c.accent,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
   },
   primaryButtonText: {
     color: "#ffffff",
-    fontWeight: "700",
-    fontSize: 14,
+    fontWeight: "800",
+    fontSize: 15,
+    letterSpacing: 0.5,
   },
   secondaryButton: {
-    borderRadius: 8,
-    minHeight: 40,
-    minWidth: 44,
+    borderRadius: 14,
+    minHeight: 52,
+    minWidth: 52,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: c.neutral300,
-    backgroundColor: c.neutral50,
+    borderWidth: 1.5,
+    borderColor: c.neutral200,
+    backgroundColor: "#ffffff",
     paddingHorizontal: 20,
+    shadowColor: c.neutral900,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
   secondaryButtonText: {
     color: c.primary600,
     fontWeight: "700",
-    fontSize: 14,
+    fontSize: 15,
   },
   textButton: {
     minHeight: 44,
@@ -796,10 +826,13 @@ badgeDanger: {
     paddingVertical: 8,
   },
   buttonPressed: {
-    opacity: 0.82,
+    opacity: 0.85,
+    transform: [{ scale: 0.97 }],
   },
   buttonDisabled: {
-    opacity: 0.55,
+    opacity: 0.6,
+    backgroundColor: c.neutral200,
+    borderColor: "transparent",
   },
   inputWrap: {
     gap: 6,
@@ -812,36 +845,45 @@ badgeDanger: {
     letterSpacing: 0.4,
   },
   input: {
-    borderWidth: 1,
-    borderColor: c.neutral300,
-    borderRadius: 6,
-    backgroundColor: "#ffffff",
-    color: c.neutral800,
-    minHeight: 40,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderWidth: 1.5,
+    borderColor: c.neutral200,
+    borderRadius: 12,
+    backgroundColor: c.neutral50,
+    color: c.neutral900,
+    minHeight: 52,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     fontSize: 16,
+    fontWeight: "500",
   },
   inputFocused: {
-    borderColor: c.primary600,
+    borderColor: c.accent,
     backgroundColor: "#ffffff",
+    shadowColor: c.accent,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 2,
   },
   inputHint: {
     color: c.neutral500,
     fontSize: 12,
   },
   emptyWrap: {
-    borderWidth: 1,
-    borderColor: c.neutral200,
+    borderWidth: 1.5,
+    borderColor: c.neutral300,
     borderStyle: "dashed",
-    borderRadius: 8,
-    paddingVertical: 16,
-    paddingHorizontal: 14,
+    borderRadius: 16,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
     backgroundColor: c.neutral50,
+    alignItems: "center",
   },
   emptyText: {
     color: c.neutral500,
-    fontSize: 13,
+    fontSize: 14,
+    textAlign: "center",
+    lineHeight: 20,
   },
   emptyAction: {
     marginTop: 12,
@@ -853,10 +895,15 @@ badgeDanger: {
     fontWeight: "700",
   },
   skeletonList: {
-    gap: 12,
+    gap: 16,
   },
   skeletonCard: {
-    gap: 6,
+    gap: 8,
+    borderRadius: 20,
+    padding: 20,
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "rgba(226, 232, 240, 0.6)",
   },
   dialogOverlay: {
     position: "absolute",
@@ -864,18 +911,23 @@ badgeDanger: {
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: c.overlay,
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
   },
   dialogBox: {
     backgroundColor: "#ffffff",
-    borderRadius: 8,
-    padding: 20,
+    borderRadius: 20,
+    padding: 24,
     width: "100%",
     maxWidth: 340,
-    gap: 12,
+    gap: 16,
+    shadowColor: c.neutral900,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 8,
   },
   dialogTitle: {
     fontSize: 18,

@@ -1,12 +1,13 @@
 /**
  * Unified Design Tokens - Color System
- * [UI-FIX-V2] Remediation based on design-spec + audit — SIMDP Mobile v1.1
+ * Premium Clean Glass Enterprise Edition
  */
 export const colors = {
-  primary: '#f59e0b', // Amber 500
-  primary600: '#d97706', // Amber 600
-  primaryLight: '#fcd34d', // Amber 300
-  primaryDark: '#0f172a', // Slate 900 (Black)
+  primary: '#0F172A', // Deep Slate
+  primary600: '#1E293B',
+  primaryLight: '#334155',
+  primaryDark: '#020617',
+  accent: '#2563EB', // Blue 600
   overdue: { bg: '#FEF2F2', text: '#991B1B', border: '#FECACA', icon: '#DC2626' },
   semanticColors: {
     critical: { bg: "#fff0ee", text: "#8e3128", border: "#ffe2dd", outline: "#c0392b" },
@@ -15,44 +16,30 @@ export const colors = {
     low: { bg: "#fffbeb", text: "#92400e", border: "#fef3c7", outline: "#f59e0b" },
   },
   neutral: {
-    50: '#f8fafc',
-    100: '#f1f5f9',
-    200: '#e2e8f0',
-    300: '#cbd5e1',
-    400: '#94a3b8',
-    500: '#64748b',
+    50: '#F8FAFC',
+    100: '#F1F5F9',
+    200: '#E2E8F0',
+    300: '#CBD5E1',
+    400: '#94A3B8',
+    500: '#64748B',
     600: '#475569',
     700: '#334155',
-    800: '#1e293b',
-    900: '#0f172a',
+    800: '#1E293B',
+    900: '#0F172A',
   },
-  success: {
-    bg: '#dcfce7',
-    text: '#166534',
-    border: '#bbf7d0',
-  },
-  warning: {
-    bg: '#fef3c7',
-    text: '#92400e',
-    border: '#fde68a',
-  },
-  danger: {
-    bg: '#fee2e2',
-    text: '#991b1b',
-    border: '#fecaca',
-  },
-  info: {
-    bg: '#f0f9ff',
-    text: '#0c4a6e',
-    border: '#bae6fd',
-  },
-  overlay: 'rgba(0,0,0,0.50)',
+  success: { bg: '#ECFDF5', text: '#047857', border: '#A7F3D0' },
+  warning: { bg: '#FFFBEB', text: '#B45309', border: '#FDE68A' },
+  danger: { bg: '#FEF2F2', text: '#BE123C', border: '#FECACA' },
+  info: { bg: '#EFF6FF', text: '#1D4ED8', border: '#BFDBFE' },
+  overlay: 'rgba(15, 23, 42, 0.65)',
 };
 
 export const c = {
    primary: colors.primary,
    primary600: colors.primary600,
    primaryLight: colors.primaryLight,
+   primaryDark: colors.primaryDark,
+   accent: colors.accent,
    overdue: colors.overdue,
    neutral: colors.neutral,
    success: colors.success,
@@ -71,4 +58,4 @@ export const c = {
    neutral700: colors.neutral[700],
    neutral800: colors.neutral[800],
    neutral900: colors.neutral[900],
- } as const;
+} as const;

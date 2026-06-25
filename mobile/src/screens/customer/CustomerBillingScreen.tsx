@@ -1,20 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View, ScrollView, RefreshControl, Platform , StatusBar } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { CustomerStackParamList } from "../../navigation/types";
+import { LinearGradient } from "expo-linear-gradient";
+import * as Haptics from "expo-haptics";
+import { Ionicons } from "@expo/vector-icons";
 
 import {
    Badge,
-   Card,
    EmptyState,
-   LabeledInput,
-   PrimaryButton,
-   SecondaryButton,
-   ScreenShell,
-   SectionTitle,
+   SlideInView,
    SkeletonList,
    StatusBanner,
- } from "../../components/ui";
-import * as Haptics from "expo-haptics";
+} from "../../components/ui";
+import { c } from "../../theme/colors";
 import { useAuth } from "../../hooks/useAuth";
 import { getCustomerBillingData, submitPaymentProof } from "../../services/api";
 import { capturePhoto, pickImages, uploadPhotoForPayment } from "../../services/media";
@@ -24,32 +25,14 @@ import {
   formatDate,
   formatDateTime,
   formatInvoiceStatusLabel,
-  formatPaymentStatusLabel,
   inferBannerTone,
 } from "../../utils/format";
 
-function toneByInvoiceStatus(
-  status: InvoiceItem["status"]
-): "neutral" | "warning" | "danger" | "success" {
-  if (status === "LUNAS") {
-    return "success";
-  }
-  if (status === "JATUH_TEMPO" || status === "TERLAMBAT") {
-    return "danger";
-  }
-  if (status === "MENUNGGU_VERIFIKASI") {
-    return "warning";
-  }
-  return "neutral";
-}
-
-function toneByPaymentStatus(status: PaymentItem["status"]): "warning" | "success" {
-  return status === "DIKONFIRMASI" ? "success" : "warning";
-}
-
 export function CustomerBillingScreen(): React.JSX.Element {
   const { auth } = useAuth();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<CustomerStackParamList>>();
+  const insets = useSafeAreaInsets();
+  const safeTop = Platform.OS === 'android' ? ((StatusBar.currentHeight || 0) > 24 ? StatusBar.currentHeight : 45) : (insets?.top || 20);
 
   const [summary, setSummary] = useState<BillingSummary | null>(null);
   const [invoices, setInvoices] = useState<InvoiceItem[]>([]);
@@ -59,15 +42,11 @@ export function CustomerBillingScreen(): React.JSX.Element {
 
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string>("");
   const [amountInput, setAmountInput] = useState("");
-  const [proofUrl, setProofUrl] = useState("");
   const [selectedProofPhotoUri, setSelectedProofPhotoUri] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadData = useCallback(async () => {
-    if (!auth) {
-      return;
-    }
-
+    if (!auth) return;
     const data = await getCustomerBillingData(auth);
     setSummary(data.summary);
     setInvoices(data.invoices);
@@ -83,41 +62,23 @@ export function CustomerBillingScreen(): React.JSX.Element {
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
-
       (async () => {
         setIsLoading(true);
         setBanner(null);
-
         try {
           await loadData();
         } catch (error) {
-          if (!cancelled) {
-            setBanner(error instanceof Error ? error.message : "Gagal memuat data tagihan");
-          }
+          if (!cancelled) setBanner(error instanceof Error ? error.message : "Gagal memuat data tagihan");
         } finally {
-          if (!cancelled) {
-            setIsLoading(false);
-          }
+          if (!cancelled) setIsLoading(false);
         }
       })();
-
-      return () => {
-        cancelled = true;
-      };
+      return () => { cancelled = true; };
     }, [loadData])
   );
 
-  useEffect(() => {
-    const invoice = invoices.find((item) => item.id === selectedInvoiceId);
-    if (invoice) {
-      setAmountInput(String(invoice.amount));
-    }
-  }, [invoices, selectedInvoiceId]);
-
-  const payableInvoices = useMemo(
-    () => invoices.filter((item) => item.status !== "LUNAS"),
-    [invoices]
-  );
+  const payableInvoices = useMemo(() => invoices.filter((item) => item.status !== "LUNAS"), [invoices]);
+  const paidInvoices = useMemo(() => invoices.filter((item) => item.status === "LUNAS"), [invoices]);
 
   const selectedInvoice = useMemo(
     () => invoices.find((item) => item.id === selectedInvoiceId) ?? null,
@@ -126,36 +87,25 @@ export function CustomerBillingScreen(): React.JSX.Element {
 
   const submitProof = useCallback(async () => {
     if (!auth || !selectedInvoiceId) {
-      setBanner("Pilih invoice dan lampirkan bukti pembayaran (kamera/galeri/URL).");
+      setBanner("Pilih invoice terlebih dahulu.");
       return;
     }
-
     const amount = Number(amountInput);
     if (Number.isNaN(amount) || amount <= 0) {
       setBanner("Nominal pembayaran tidak valid.");
       return;
+    }
+    if (!selectedProofPhotoUri) {
+       setBanner("Lampirkan foto bukti pembayaran terlebih dahulu.");
+       return;
     }
 
     setIsSubmitting(true);
     setBanner(null);
 
     try {
-      let resolvedProofUrl = proofUrl.trim();
-
-      if (selectedProofPhotoUri) {
-        const uploadResult = await uploadPhotoForPayment(selectedProofPhotoUri, auth);
-        if (uploadResult?.url) {
-          resolvedProofUrl = uploadResult.url;
-        } else {
-          resolvedProofUrl = selectedProofPhotoUri;
-        }
-      }
-
-      if (!resolvedProofUrl) {
-        setBanner("Lampirkan bukti pembayaran (kamera/galeri/URL).");
-        setIsSubmitting(false);
-        return;
-      }
+      const uploadResult = await uploadPhotoForPayment(selectedProofPhotoUri, auth);
+      const resolvedProofUrl = uploadResult?.url || selectedProofPhotoUri;
 
       await submitPaymentProof(auth, {
         invoiceId: selectedInvoiceId,
@@ -164,7 +114,6 @@ export function CustomerBillingScreen(): React.JSX.Element {
       });
 
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setProofUrl("");
       setSelectedProofPhotoUri(null);
       await loadData();
       setBanner("Bukti pembayaran berhasil dikirim.");
@@ -173,19 +122,7 @@ export function CustomerBillingScreen(): React.JSX.Element {
     } finally {
       setIsSubmitting(false);
     }
-  }, [amountInput, auth, loadData, proofUrl, selectedInvoiceId, selectedProofPhotoUri]);
-
-  const takeProofPhoto = useCallback(async () => {
-    try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      const uri = await capturePhoto();
-      if (uri) {
-        setSelectedProofPhotoUri(uri);
-      }
-    } catch (error) {
-      setBanner(error instanceof Error ? error.message : "Gagal mengambil foto bukti pembayaran.");
-    }
-  }, []);
+  }, [amountInput, auth, loadData, selectedInvoiceId, selectedProofPhotoUri]);
 
   const pickProofPhoto = useCallback(async () => {
     try {
@@ -199,335 +136,433 @@ export function CustomerBillingScreen(): React.JSX.Element {
     }
   }, []);
 
+  const totalTagihan = payableInvoices.reduce((acc, curr) => acc + curr.amount, 0);
+
   return (
-    <ScreenShell 
-      title="Tagihan & Pembayaran" 
-      subtitle="Pantau invoice dan kirim bukti transfer"
-      onBack={() => {
-        if (navigation.canGoBack()) {
-          navigation.goBack();
-        } else {
-          (navigation as any).navigate("Beranda");
-        }
-      }}
-    >
-      {summary ? (
-        <Card>
-          <SectionTitle
-            title="Ringkasan Pembayaran"
-            caption={`Skema pembayaran aktif: ${summary.paymentScheme}`}
+    <View style={styles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 60 }}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => void loadData()} tintColor="#ffffff" />}
+      >
+        {/* PREMIUM ENTERPRISE HEADER */}
+        <LinearGradient 
+          colors={[c.primary600, c.primary, c.primaryDark]} 
+          locations={[0, 0.4, 1]}
+          start={{ x: 0, y: 0 }} 
+          end={{ x: 1, y: 1 }} 
+          style={styles.heroHeader}
+        >
+          {/* Subtle Top Inner Shadow/Reflection */}
+          <LinearGradient 
+             colors={['rgba(255,255,255,0.06)', 'rgba(255,255,255,0)']} 
+             style={StyleSheet.absoluteFillObject} 
+             pointerEvents="none" 
           />
-          <View style={styles.metricGrid}>
-            <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>Total Harga</Text>
-              <Text style={styles.metricValue}>{formatCurrency(summary.totalPrice)}</Text>
-            </View>
-
-            <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>Sudah Dibayar</Text>
-              <Text style={styles.metricValue}>{formatCurrency(summary.paid)}</Text>
-            </View>
-
-            <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>Sisa Tagihan</Text>
-              <Text style={styles.metricValue}>{formatCurrency(summary.outstanding)}</Text>
-            </View>
-
-            <View style={styles.metricCard}>
-              <Text style={styles.metricLabel}>Cicilan Bulanan</Text>
-              <Text style={styles.metricValue}>{formatCurrency(summary.monthlyInstallment)}</Text>
+          <View style={[styles.heroSafeArea, { paddingTop: (safeTop || 45) + 16 }]}>
+            <View style={{ height: 24 }} />
+            <View style={styles.heroTitleWrap}>
+              <Text style={styles.heroKicker}>PEMBAYARAN & INVOICE</Text>
+              <Text style={styles.heroTitle}>Tagihan Anda</Text>
             </View>
           </View>
-        </Card>
-      ) : null}
+        </LinearGradient>
 
-      <Card>
-        <SectionTitle
-          title="Unggah Bukti Pembayaran"
-          caption="Pilih invoice aktif lalu kirim bukti transfer"
-        />
+        <View style={styles.overlapContainer}>
+           {banner ? (
+             <SlideInView direction="up" delay={0} style={{ marginBottom: 16 }}>
+               <StatusBanner message={banner} tone={inferBannerTone(banner)} />
+             </SlideInView>
+           ) : null}
 
-        {payableInvoices.length === 0 ? (
-          <EmptyState message="Semua invoice sudah lunas." />
-        ) : (
-          <>
-            <Text style={styles.label}>Pilih Invoice</Text>
-            <View style={styles.pillRow}>
-              {payableInvoices.map((invoice) => (
-                <Pressable
-                  key={invoice.id}
-                  onPress={() => setSelectedInvoiceId(invoice.id)}
-                  style={({ pressed }) => [
-                    styles.pill,
-                    selectedInvoiceId === invoice.id && styles.pillActive,
-                    pressed && styles.pillPressed,
+           {/* Total Tagihan Card */}
+           <SlideInView direction="up" delay={50} duration={400}>
+             <View style={styles.summaryCard}>
+               <View style={styles.summaryHeader}>
+                 <View style={styles.summaryIconWrap}>
+                   <Ionicons name="wallet-outline" size={16} color={c.primary} />
+                 </View>
+                 <Text style={styles.summaryLabel}>
+                    {totalTagihan > 0 ? "TOTAL TAGIHAN BERJALAN" : "STATUS PEMBAYARAN"}
+                 </Text>
+               </View>
+
+               <View style={styles.summaryContent}>
+                 {totalTagihan > 0 ? (
+                    <View style={styles.summaryAmountRow}>
+                      <Text style={styles.summaryCurrency}>Rp</Text>
+                      <Text style={styles.summaryAmount}>{formatCurrency(totalTagihan).replace('Rp', '').trim()}</Text>
+                    </View>
+                 ) : (
+                    <View style={styles.summaryAmountRow}>
+                      <Ionicons name="checkmark-circle" size={32} color={c.success.bg} style={{ marginRight: 8 }} />
+                      <Text style={styles.summaryAmount}>Lunas</Text>
+                    </View>
+                 )}
+               </View>
+               
+               {totalTagihan > 0 && (
+                 <View style={styles.summaryFooter}>
+                   <Ionicons name="information-circle-outline" size={14} color={c.neutral400} />
+                   <Text style={styles.summaryFooterText}>Pembayaran diverifikasi dalam 1x24 jam</Text>
+                 </View>
+               )}
+             </View>
+           </SlideInView>
+
+           {/* PAYMENT UPLOAD SECTION */}
+           {totalTagihan > 0 && selectedInvoice && (
+             <SlideInView direction="up" delay={100} duration={400} style={styles.paymentSection}>
+                <View style={styles.paymentSectionHeader}>
+                   <View style={{ flex: 1 }}>
+                     <Text style={styles.sectionTitle}>Bayar Tagihan</Text>
+                     <Text style={styles.invoiceActiveName}>{selectedInvoice.name}</Text>
+                   </View>
+                   <Text style={styles.invoiceActiveAmount}>{formatCurrency(selectedInvoice.amount)}</Text>
+                </View>
+                
+                <Pressable 
+                  onPress={pickProofPhoto} 
+                  style={({pressed}) => [styles.uploadArea, pressed && styles.pressed]}
+                >
+                   {selectedProofPhotoUri ? (
+                      <View style={styles.uploadPreviewWrap}>
+                        <Image source={{ uri: selectedProofPhotoUri }} style={styles.uploadPreview} />
+                        <View style={styles.uploadOverlay}>
+                          <Ionicons name="camera-reverse" size={24} color="#ffffff" />
+                          <Text style={styles.uploadOverlayText}>Ganti Foto</Text>
+                        </View>
+                      </View>
+                   ) : (
+                      <View style={styles.uploadEmpty}>
+                         <View style={styles.uploadIconWrap}>
+                            <Ionicons name="cloud-upload-outline" size={28} color={c.primary} />
+                         </View>
+                         <Text style={styles.uploadTitle}>Upload Bukti Pembayaran</Text>
+                         <Text style={styles.uploadSub}>Tap untuk membuka Galeri/Kamera</Text>
+                      </View>
+                   )}
+                </Pressable>
+
+                <Pressable 
+                  disabled={isSubmitting || !selectedProofPhotoUri}
+                  onPress={() => void submitProof()}
+                  style={({pressed}) => [
+                    styles.submitBtn,
+                    (!selectedProofPhotoUri || isSubmitting) && styles.submitBtnDisabled,
+                    pressed && styles.pressed
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.pillText,
-                      selectedInvoiceId === invoice.id && styles.pillTextActive,
-                    ]}
-                  >
-                    {invoice.name}
-                  </Text>
+                  <Text style={[styles.submitBtnText, (!selectedProofPhotoUri || isSubmitting) && styles.submitBtnTextDisabled]}>{isSubmitting ? "Mengirim..." : "Kirim Bukti Pembayaran"}</Text>
+                  {!isSubmitting && <Ionicons name="arrow-forward" size={18} color={(!selectedProofPhotoUri || isSubmitting) ? c.neutral400 : "#ffffff"} />}
                 </Pressable>
-              ))}
-            </View>
+             </SlideInView>
+           )}
 
-            {selectedInvoice ? (
-              <View style={styles.selectedInvoiceCard}>
-                <View style={styles.listItemTop}>
-                  <Text style={styles.invoiceName}>{selectedInvoice.name}</Text>
-                  <Badge
-                    label={formatInvoiceStatusLabel(selectedInvoice.status)}
-                    tone={toneByInvoiceStatus(selectedInvoice.status)}
-                  />
+           {/* INVOICE HISTORY (CLEAN LIST) */}
+           <SlideInView direction="up" delay={150} duration={400} style={{ marginTop: totalTagihan > 0 ? 40 : 16 }}>
+              <Text style={styles.sectionTitle}>Riwayat Tagihan</Text>
+              
+              {paidInvoices.length === 0 ? (
+                <EmptyState message="Belum ada riwayat tagihan." />
+              ) : (
+                <View style={styles.cleanList}>
+                  {paidInvoices.map((inv, idx) => (
+                    <View key={inv.id}>
+                      {idx > 0 && <View style={styles.divider} />}
+                      <View style={styles.cleanListItem}>
+                        <View style={styles.cleanListLeft}>
+                          <Text style={styles.invoiceName}>{inv.name}</Text>
+                          <Text style={styles.invoiceMeta}>Jatuh tempo: {formatDate(inv.dueDate)}</Text>
+                        </View>
+                        <View style={styles.cleanListRight}>
+                           <Text style={styles.invoiceAmount}>{formatCurrency(inv.amount)}</Text>
+                           <View style={[styles.statusPill, { backgroundColor: c.success.bg }]}>
+                             <Text style={[styles.statusPillText, { color: c.success.text }]}>Lunas</Text>
+                           </View>
+                        </View>
+                      </View>
+                    </View>
+                  ))}
                 </View>
-                <Text style={styles.invoiceMeta}>Jatuh tempo: {formatDate(selectedInvoice.dueDate)}</Text>
-              </View>
-            ) : null}
+              )}
+           </SlideInView>
+        </View>
 
-            <LabeledInput
-              label="Nominal Transfer"
-              keyboardType="numeric"
-              value={amountInput}
-              onChangeText={setAmountInput}
-            />
-
-            <LabeledInput
-              label="URL Bukti Transfer"
-              placeholder="https://..."
-              value={proofUrl}
-              onChangeText={setProofUrl}
-            />
-
-            <Text style={styles.helperText}>Anda dapat menggunakan URL atau lampiran foto dari kamera/galeri.</Text>
-
-            <View style={styles.photoActionRow}>
-              <SecondaryButton label="Ambil Foto Bukti" onPress={() => void takeProofPhoto()} />
-              <SecondaryButton label="Pilih dari Galeri" onPress={() => void pickProofPhoto()} />
-            </View>
-
-            {selectedProofPhotoUri ? (
-              <View style={styles.photoPreviewContainer}>
-                <Image source={{ uri: selectedProofPhotoUri }} style={styles.photoPreview} resizeMode="cover" />
-                <Pressable
-                  onPress={() => setSelectedProofPhotoUri(null)}
-                  style={({ pressed }) => [styles.pill, pressed && styles.pillPressed]}
-                >
-                  <Text style={styles.pillText}>Hapus</Text>
-                </Pressable>
-              </View>
-            ) : null}
-
-            <PrimaryButton
-              label={isSubmitting ? "Mengirim..." : "Kirim Bukti Pembayaran"}
-              onPress={() => void submitProof()}
-              disabled={isSubmitting}
-            />
-          </>
-        )}
-      </Card>
-
-      {banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
-
-      {isLoading ? (
-        <SkeletonList count={3} />
-      ) : (
-        <>
-          <Card>
-            <SectionTitle title="Daftar Invoice" />
-            {invoices.length === 0 ? (
-              <EmptyState message="Belum ada invoice tersedia." />
-            ) : (
-              <View style={styles.listWrap}>
-                {invoices.map((invoice) => (
-                  <View key={invoice.id} style={styles.listItem}>
-                    <View style={styles.listItemTop}>
-                      <Text style={styles.invoiceName}>{invoice.name}</Text>
-                      <Badge
-                        label={formatInvoiceStatusLabel(invoice.status)}
-                        tone={toneByInvoiceStatus(invoice.status)}
-                      />
-                    </View>
-                    <Text style={styles.invoiceMeta}>{formatCurrency(invoice.amount)}</Text>
-                    <Text style={styles.invoiceMeta}>Jatuh tempo: {formatDate(invoice.dueDate)}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-          </Card>
-
-          <Card>
-            <SectionTitle title="Riwayat Pembayaran" />
-            {payments.length === 0 ? (
-              <EmptyState message="Belum ada riwayat pembayaran." />
-            ) : (
-              <View style={styles.listWrap}>
-                {payments.map((item) => (
-                  <View key={item.id} style={styles.listItem}>
-                    <View style={styles.listItemTop}>
-                      <Text style={styles.invoiceName}>{item.invoiceId}</Text>
-                      <Badge
-                        label={formatPaymentStatusLabel(item.status)}
-                        tone={toneByPaymentStatus(item.status)}
-                      />
-                    </View>
-                    <Text style={styles.invoiceMeta}>{formatCurrency(item.amount)}</Text>
-                    <Text style={styles.invoiceMeta}>Metode: {item.method}</Text>
-                    {item.proofUrl ? <Text style={styles.invoiceMeta}>Bukti: {item.proofUrl}</Text> : null}
-                    <Text style={styles.invoiceMeta}>{formatDateTime(item.paidAt)}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-          </Card>
-        </>
-      )}
-    </ScreenShell>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  metricGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: c.neutral50,
   },
-  metricCard: {
-    flexGrow: 1,
-    flexBasis: "48%",
-    minHeight: 72,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#cae0e4",
-    backgroundColor: "#f4fbfc",
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    justifyContent: "center",
-    gap: 2,
+  heroHeader: {
+    minHeight: 240,
+    paddingBottom: 60,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: "hidden",
   },
-  metricLabel: {
-    color: "#4a6f78",
-    fontSize: 11,
-    fontWeight: "700",
-    textTransform: "uppercase",
+  heroSafeArea: {
+    paddingHorizontal: 24,
   },
-  metricValue: {
-    color: "#184b55",
-    fontSize: 14,
-    fontWeight: "800",
+  heroTitleWrap: {
+    marginBottom: 8,
   },
-  label: {
-    color: "#1f4f5a",
+  heroKicker: {
     fontSize: 12,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.4,
+    fontWeight: "800",
+    color: "#FBBF24",
+    letterSpacing: 1,
     marginBottom: 4,
   },
-  pillRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
+  heroTitle: {
+    fontSize: 32,
+    fontWeight: "900",
+    color: "#ffffff",
+    letterSpacing: -1,
   },
-  pill: {
-    borderRadius: 999,
+  overlapContainer: {
+    paddingHorizontal: 24,
+    marginTop: -40,
+  },
+  summaryCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 24,
+    shadowColor: c.neutral900,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.06,
+    shadowRadius: 20,
+    elevation: 4,
     borderWidth: 1,
-    borderColor: "#97bbc0",
-    paddingHorizontal: 11,
-    paddingVertical: 8,
-    backgroundColor: "#f8fcfc",
+    borderColor: c.neutral100,
   },
-  pillActive: {
-    borderColor: "#1e6f78",
-    backgroundColor: "#dff3f5",
-  },
-  pillPressed: {
-    opacity: 0.82,
-  },
-  pillText: {
-    color: "#3a646d",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  pillTextActive: {
-    color: "#114a53",
-  },
-  selectedInvoiceCard: {
-    borderWidth: 1,
-    borderColor: "#c6dbde",
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    backgroundColor: "#f7fcfd",
-    gap: 2,
-  },
-  helperText: {
-    color: "#486f78",
-    fontSize: 12,
-    lineHeight: 17,
-    fontWeight: "600",
-  },
-  photoActionRow: {
-    gap: 8,
-  },
-  photoItemRow: {
-    borderWidth: 1,
-    borderColor: "#c6dbde",
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    backgroundColor: "#f7fcfd",
+  summaryHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    marginBottom: 16,
   },
-  photoItemText: {
-    flex: 1,
-    color: "#3a646d",
+  summaryIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(15, 23, 42, 0.05)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  summaryLabel: {
     fontSize: 12,
+    fontWeight: "800",
+    color: c.neutral500,
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
-  photoPreviewContainer: {
-    alignItems: "flex-start",
-    gap: 8,
+  summaryContent: {
+    marginBottom: 8,
   },
-  photoPreview: {
-    width: 120,
-    height: 120,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#c6dbde",
-  },
-  loadingText: {
-    color: "#4f6f77",
-    fontSize: 14,
-  },
-  listWrap: {
-    gap: 8,
-  },
-  listItem: {
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#c4d8db",
-    backgroundColor: "#f8fcfd",
-    padding: 10,
-    gap: 2,
-  },
-  listItemTop: {
+  summaryAmountRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  summaryCurrency: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: c.neutral900,
+    marginTop: 6,
+    marginRight: 4,
+  },
+  summaryAmount: {
+    fontSize: 44,
+    fontWeight: "900",
+    color: c.neutral900,
+    letterSpacing: -1.5,
+    lineHeight: 50,
+  },
+  summaryFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: c.neutral100,
+  },
+  summaryFooterText: {
+    fontSize: 12,
+    color: c.neutral400,
+    marginLeft: 6,
+    fontWeight: "500",
+  },
+  contentPad: {
+    paddingHorizontal: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: c.neutral900,
+    marginBottom: 16,
+  },
+  paymentSection: {
+    marginBottom: 24,
+  },
+  paymentSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  invoiceActiveName: {
+    fontSize: 14,
+    color: c.neutral500,
+    fontWeight: "600",
+  },
+  invoiceActiveAmount: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: c.primary600,
+  },
+  uploadArea: {
+    width: "100%",
+    height: 180,
+    backgroundColor: "#F8FAFC",
+    borderWidth: 2,
+    borderColor: c.neutral300,
+    borderStyle: "dashed",
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+    overflow: "hidden",
+  },
+  uploadEmpty: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  uploadIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#E2E8F0",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  uploadTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: c.neutral900,
+    marginBottom: 4,
+  },
+  uploadSub: {
+    fontSize: 13,
+    color: c.neutral500,
+    fontWeight: "500",
+  },
+  uploadPreviewWrap: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  uploadPreview: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  uploadOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  uploadOverlayText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
+    marginTop: 8,
+  },
+  submitBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: c.primary,
+    height: 56,
+    borderRadius: 16,
     gap: 8,
+    shadowColor: c.primaryDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  submitBtnDisabled: {
+    backgroundColor: c.neutral300,
+  },
+  submitBtnText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  submitBtnTextDisabled: {
+    color: c.neutral500,
+  },
+  cleanList: {
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    shadowColor: c.neutral900,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: c.neutral100,
+  },
+  cleanListItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 16,
+  },
+  cleanListLeft: {
+    flex: 1,
+  },
+  cleanListRight: {
+    alignItems: "flex-end",
   },
   invoiceName: {
-    flex: 1,
-    color: "#123e48",
-    fontSize: 14,
-    fontWeight: "800",
+    fontSize: 16,
+    fontWeight: "700",
+    color: c.neutral900,
+    marginBottom: 4,
   },
   invoiceMeta: {
-    color: "#3f6972",
-    fontSize: 12,
+    fontSize: 13,
+    color: c.neutral500,
+  },
+  invoiceAmount: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: c.neutral900,
+    marginBottom: 6,
+  },
+  statusPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  statusPillText: {
+    fontSize: 11,
+    fontWeight: "800",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: c.neutral200,
+  },
+  pressed: {
+    transform: [{ scale: 0.96 }],
+    opacity: 0.9,
   },
 });

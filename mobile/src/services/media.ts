@@ -152,9 +152,9 @@ export async function uploadPhotoForPayment(
       method: "POST",
       headers: {
         Authorization: `Bearer ${auth.token}`,
-        "Content-Type": "application/json",
+        // Content-Type removed so fetch sets multipart/form-data with boundary automatically
       },
-      body: JSON.stringify({ uri }),
+      body: (() => {  const formData = new FormData();  const filename = uri.split("/").pop() || "proof.jpg";  const match = /\\.(\\w+)$/.exec(filename);  const type = match ? "image/" + match[1] : "image/jpeg";  formData.append("image", { uri, name: filename, type } as any);  return formData;})(),
     });
 
     if (!response.ok) {

@@ -1,39 +1,35 @@
 import React, { useCallback, useState } from "react";
-import { Pressable, StyleSheet, Text, View, ActivityIndicator, Alert } from "react-native";
+import { Pressable, StyleSheet, Text, View, ActivityIndicator, Alert, ScrollView, RefreshControl } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 
 import {
   Badge,
-  Card,
   EmptyState,
-  PrimaryButton,
-  ScreenShell,
-  SecondaryButton,
-  SectionTitle,
-  Skeleton,
   StatusBanner,
+  SlideInView,
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { getCustomerDocuments, getHandoverInfo } from "../../services/api";
 import { downloadDocument } from "../../services/media";
 import { DocumentItem, HandoverInfo } from "../../types";
 import { formatDocumentStatusLabel, inferBannerTone } from "../../utils/format";
+import { c } from "../../theme";
 
-import { colors } from "../../theme/colors";
-
+// Helper for status tone
 function statusTone(status: DocumentItem["status"]): "neutral" | "warning" | "success" {
-  if (status === "TERSEDIA") {
-    return "success";
-  }
-  if (status === "SEDANG_DIPROSES") {
-    return "warning";
-  }
+  if (status === "TERSEDIA") return "success";
+  if (status === "SEDANG_DIPROSES") return "warning";
   return "neutral";
 }
 
 export function CustomerDocumentsScreen(): React.JSX.Element {
   const { auth } = useAuth();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [handoverInfo, setHandoverInfo] = useState<HandoverInfo | null>(null);
@@ -42,10 +38,7 @@ export function CustomerDocumentsScreen(): React.JSX.Element {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
-    if (!auth) {
-      return;
-    }
-
+    if (!auth) return;
     const [data, handover] = await Promise.all([
       getCustomerDocuments(auth),
       getHandoverInfo(auth?.user?.id ? 'unit-1' : 'unit-001'),
@@ -53,19 +46,6 @@ export function CustomerDocumentsScreen(): React.JSX.Element {
     setDocuments(data);
     setHandoverInfo(handover);
   }, [auth]);
-
-  const handleReload = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    try {
-      await loadData();
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Gagal memuat dokumen");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [loadData]);
 
   const handleDownload = useCallback(async (document: DocumentItem) => {
     if (!document.url) {
@@ -91,293 +71,392 @@ export function CustomerDocumentsScreen(): React.JSX.Element {
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
-
       (async () => {
         setIsLoading(true);
         setErrorMessage(null);
-
         try {
           await loadData();
         } catch (error) {
-          if (!cancelled) {
-            setErrorMessage(error instanceof Error ? error.message : "Gagal memuat dokumen");
-          }
+          if (!cancelled) setErrorMessage(error instanceof Error ? error.message : "Gagal memuat dokumen");
         } finally {
-          if (!cancelled) {
-            setIsLoading(false);
-          }
+          if (!cancelled) setIsLoading(false);
         }
       })();
-
-      return () => {
-        cancelled = true;
-      };
+      return () => { cancelled = true; };
     }, [loadData])
   );
 
   return (
-    <ScreenShell 
-      title="Dokumen Digital" 
-      subtitle="Akses dokumen legal dan transaksi unit Anda"
-      onBack={() => {
-        if (navigation.canGoBack()) {
-          navigation.goBack();
-        } else {
-          (navigation as any).navigate("Beranda");
-        }
-      }}
-    >
-      <Card>
-        <SectionTitle title="Status Dokumen" />
-        <Text style={styles.summaryText}>Total dokumen: {documents.length}</Text>
-      </Card>
+    <View style={styles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 60 }}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => void loadData()} tintColor="#ffffff" />}
+      >
+        {/* PREMIUM ENTERPRISE HEADER */}
+        <LinearGradient 
+          colors={[c.primary600, c.primary, c.primaryDark]} 
+          locations={[0, 0.4, 1]}
+          start={{ x: 0, y: 0 }} 
+          end={{ x: 1, y: 1 }} 
+          style={styles.heroHeader}
+        >
+          {/* Subtle Top Inner Shadow/Reflection */}
+          <LinearGradient 
+             colors={['rgba(255,255,255,0.06)', 'rgba(255,255,255,0)']} 
+             style={StyleSheet.absoluteFillObject} 
+             pointerEvents="none" 
+          />
 
-      {/* Handover Section */}
-      {handoverInfo === null ? (
-        <Card style={{ marginBottom: 20 }}>
-          <Skeleton width="60%" height={20} style={{ marginBottom: 8 }} />
-          <Skeleton width="100%" height={16} style={{ marginBottom: 8 }} />
-          <Skeleton width="100%" height={16} />
-        </Card>
-      ) : (
-        <Card style={{ marginBottom: 20 }}>
-          <View style={styles.handoverHeaderRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.handoverTitle}>Serah Terima Unit</Text>
-              <Text style={styles.handoverSubtitle}>
-                Rencana:{" "}
-                <Text style={{ fontWeight: "600", color: colors.primary }}>
-                  {new Date(handoverInfo.plannedDate).toLocaleDateString("id-ID", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </Text>
-              </Text>
+          <View style={[styles.heroSafeArea, { paddingTop: (insets.top || 45) + 16 }]}>
+            <View style={{ height: 24 }} />
+            <View style={styles.heroTitleWrap}>
+              <Text style={styles.heroKicker}>LEGAL & TRANSAKSI</Text>
+              <Text style={styles.heroTitle}>Dokumen Digital</Text>
             </View>
-            <Badge
-              label={
-                handoverInfo.checklist.every((i) => i.isCompleted) ? "Siap" : handoverInfo.status === "READY" ? "Siap" : "Persiapan"
-              }
-              tone={
-                handoverInfo.checklist.every((i) => i.isCompleted) ? "success" : "warning"
-              }
-            />
           </View>
+        </LinearGradient>
 
-          <Text style={styles.handoverSectionTitle}>CHECKLIST KESIAPAN</Text>
-
-          <View style={{ gap: 12 }}>
-            {handoverInfo.checklist.map((item, index) => (
-              <View key={item.id} style={styles.handoverItemRow}>
-                <View
-                  style={[
-                    styles.handoverCheckbox,
-                    item.isCompleted && styles.handoverCheckboxCompleted,
-                  ]}
-                >
-                  {item.isCompleted ? (
-                    <Text style={styles.handoverCheckboxMark}>✓</Text>
-                  ) : (
-                    <Text style={styles.handoverCheckboxNum}>{index + 1}</Text>
-                  )}
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={[
-                      styles.handoverItemLabel,
-                      item.isCompleted && styles.handoverItemDone,
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                  <Text style={styles.handoverItemDesc}>{item.description}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-
-          {!handoverInfo.checklist.every((i) => i.isCompleted) && (
-            <View style={styles.handoverWarningBox}>
-              <Text style={styles.handoverWarningText}>
-                ⚠ Selesaikan semua checklist sebelum tanggal serah terima
-              </Text>
-            </View>
+        <View style={styles.overlapContainer}>
+          {errorMessage && (
+            <SlideInView direction="up" delay={0} style={{ marginBottom: 16 }}>
+               <StatusBanner message={errorMessage} tone={inferBannerTone(errorMessage)} />
+            </SlideInView>
           )}
-        </Card>
-      )}
 
-      <SecondaryButton label="Muat Ulang Dokumen" onPress={() => void handleReload()} disabled={isLoading} />
+          {/* Handover Card */}
+          {handoverInfo && (
+            <SlideInView direction="up" delay={50}>
+              <View style={styles.handoverCard}>
+                <View style={styles.handoverHeaderRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.handoverTitle}>Serah Terima Unit</Text>
+                    <Text style={styles.handoverSubtitle}>
+                      Rencana: <Text style={{ fontWeight: "700", color: c.primary600 }}>{new Date(handoverInfo.plannedDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</Text>
+                    </Text>
+                  </View>
+                  <Badge
+                    label={handoverInfo.checklist.every((i) => i.isCompleted) ? "Siap" : handoverInfo.status === "READY" ? "Siap" : "Persiapan"}
+                    tone={handoverInfo.checklist.every((i) => i.isCompleted) ? "success" : "warning"}
+                  />
+                </View>
 
-      {isLoading ? (
-        <Card>
-          <Text style={styles.loadingText}>Memuat dokumen...</Text>
-        </Card>
-      ) : errorMessage ? (
-        <StatusBanner message={errorMessage} tone={inferBannerTone(errorMessage)} />
-      ) : documents.length === 0 ? (
-        <EmptyState message="Belum ada dokumen untuk unit Anda." />
-      ) : (
-        <View style={styles.listWrap}>
-          {documents.map((item) => (
-            <Card key={item.id}>
-              <View style={styles.topRow}>
-                <Text style={styles.title}>{item.title}</Text>
-                <Badge label={formatDocumentStatusLabel(item.status)} tone={statusTone(item.status)} />
+                <Text style={styles.handoverSectionTitle}>CHECKLIST KESIAPAN</Text>
+
+                <View style={styles.handoverList}>
+                  {handoverInfo.checklist.map((item, index) => (
+                    <View key={item.id} style={styles.handoverItemRow}>
+                      <View style={[styles.handoverCheckbox, item.isCompleted && styles.handoverCheckboxCompleted]}>
+                        {item.isCompleted ? (
+                          <Ionicons name="checkmark" size={14} color="#ffffff" />
+                        ) : (
+                          <Text style={styles.handoverCheckboxNum}>{index + 1}</Text>
+                        )}
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.handoverItemLabel, item.isCompleted && styles.handoverItemDone]}>{item.label}</Text>
+                        <Text style={styles.handoverItemDesc}>{item.description}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+
+                {!handoverInfo.checklist.every((i) => i.isCompleted) && (
+                  <View style={styles.handoverWarningBox}>
+                    <Ionicons name="warning" size={16} color={c.warning.text} style={styles.handoverWarningIcon} />
+                    <Text style={styles.handoverWarningText}>Selesaikan semua checklist sebelum tanggal serah terima</Text>
+                  </View>
+                )}
               </View>
-              <Text style={styles.category}>Kategori: {item.category}</Text>
-{item.url ? (
-                 <Pressable
-                   onPress={() => {
-                     void handleDownload(item);
-                   }}
-                   style={({ pressed }) => [styles.linkBtn, pressed && styles.linkBtnPressed]}
-                   disabled={downloadingId === item.id}
-                 >
-                   {downloadingId === item.id ? (
-                     <ActivityIndicator size="small" color="#1f5661" />
-                   ) : (
-                     <>
-                       <Text style={styles.linkText}>Unduh Dokumen</Text>
-                     </>
-                   )}
-                 </Pressable>
-               ) : (
-                 <Text style={styles.pendingText}>Dokumen belum tersedia untuk diunduh.</Text>
-               )}
-            </Card>
-          ))}
+            </SlideInView>
+          )}
+
+          {/* Document List */}
+          <SlideInView direction="up" delay={100}>
+             <View style={styles.sectionHeader}>
+               <Text style={styles.sectionTitle}>Daftar Dokumen</Text>
+               <View style={styles.badgeWrap}>
+                 <Text style={styles.badgeText}>{documents.length} File</Text>
+               </View>
+             </View>
+
+             {documents.length === 0 && !isLoading ? (
+               <EmptyState message="Belum ada dokumen untuk unit Anda." />
+             ) : (
+               <View style={styles.listWrap}>
+                 {documents.map((item) => (
+                   <View key={item.id} style={styles.docCard}>
+                     <View style={[styles.docIconWrap, !item.url && styles.docIconWrapDisabled]}>
+                        <Ionicons name="document-text-outline" size={24} color={item.url ? c.accent : c.neutral400} />
+                     </View>
+                     <View style={styles.docContent}>
+                        <Text style={styles.docTitle}>{item.title}</Text>
+                        <Text style={styles.docCategory}>{item.category}</Text>
+                        <View style={{ alignSelf: 'flex-start', marginTop: 8 }}>
+                           <Badge label={formatDocumentStatusLabel(item.status)} tone={statusTone(item.status)} />
+                        </View>
+                     </View>
+                     <View style={styles.docAction}>
+                        {item.url ? (
+                          <Pressable
+                            onPress={() => void handleDownload(item)}
+                            style={({ pressed }) => [styles.downloadBtn, pressed && styles.pressed]}
+                            disabled={downloadingId === item.id}
+                          >
+                            {downloadingId === item.id ? (
+                              <ActivityIndicator size="small" color="#ffffff" />
+                            ) : (
+                              <Ionicons name="cloud-download-outline" size={20} color="#ffffff" />
+                            )}
+                          </Pressable>
+                        ) : (
+                          <View style={styles.downloadBtnDisabled}>
+                             <Ionicons name="lock-closed-outline" size={18} color={c.neutral400} />
+                          </View>
+                        )}
+                     </View>
+                   </View>
+                 ))}
+               </View>
+             )}
+          </SlideInView>
+
         </View>
-      )}
-    </ScreenShell>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  summaryText: {
-    color: "#315b64",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  loadingText: {
-    color: "#4f6f77",
-    fontSize: 14,
-  },
-  listWrap: {
-    gap: 9,
-  },
-  topRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 8,
-  },
-  title: {
+  container: {
     flex: 1,
-    color: "#123d47",
-    fontSize: 15,
+    backgroundColor: c.neutral50,
+  },
+  heroHeader: {
+    minHeight: 240,
+    paddingBottom: 60,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: "hidden",
+  },
+  heroSafeArea: {
+    paddingHorizontal: 24,
+  },
+
+  heroTitleWrap: {
+  },
+  heroKicker: {
+    color: "#FBBF24",
+    fontSize: 12,
     fontWeight: "800",
+    letterSpacing: 1.5,
+    marginBottom: 4,
   },
-  category: {
-    color: "#44656e",
-    fontSize: 12,
+  heroTitle: {
+    color: "#ffffff",
+    fontSize: 34,
+    fontWeight: "900",
+    letterSpacing: -1.2,
   },
-  linkBtn: {
-    alignSelf: "flex-start",
+  overlapContainer: {
+    marginTop: -40,
+    paddingHorizontal: 24,
+    zIndex: 10,
+    marginBottom: 24,
+  },
+  handoverCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: c.neutral900,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
+    elevation: 4,
     borderWidth: 1,
-    borderColor: "#7fa6ab",
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    backgroundColor: "#f4fcfd",
-  },
-  linkBtnPressed: {
-    opacity: 0.8,
-  },
-  linkText: {
-    color: "#1f5661",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  pendingText: {
-    color: "#5b7980",
-    fontSize: 12,
+    borderColor: c.neutral100,
+    marginBottom: 24,
   },
   handoverHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 16,
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: c.neutral100,
+    paddingBottom: 16,
   },
   handoverTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "800",
-    color: "#123d47",
+    color: c.neutral900,
   },
   handoverSubtitle: {
     fontSize: 13,
-    color: "#4a6870",
-    marginTop: 2,
+    color: c.neutral500,
+    marginTop: 4,
   },
   handoverSectionTitle: {
     fontSize: 12,
-    fontWeight: "700",
-    color: "#3a5f67",
-    marginBottom: 12,
+    fontWeight: "800",
+    color: c.neutral400,
+    marginBottom: 16,
+    letterSpacing: 1,
+  },
+  handoverList: {
+    gap: 16,
   },
   handoverItemRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: 16,
     alignItems: "flex-start",
   },
   handoverCheckbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     borderWidth: 2,
-    borderColor: "#97bbc0",
-    backgroundColor: "#f8fcfc",
+    borderColor: c.neutral200,
+    backgroundColor: c.neutral50,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 1,
+    marginTop: 2,
   },
   handoverCheckboxCompleted: {
-    backgroundColor: colors.success.text,
-    borderColor: colors.success.text,
-  },
-  handoverCheckboxMark: {
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: "700",
+    backgroundColor: c.success.text,
+    borderColor: c.success.text,
   },
   handoverCheckboxNum: {
-    color: "#547078",
+    color: c.neutral500,
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: "800",
   },
   handoverItemLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#123d47",
+    fontSize: 15,
+    fontWeight: "700",
+    color: c.neutral900,
   },
   handoverItemDone: {
     textDecorationLine: "line-through",
-    color: "#7a949e",
+    color: c.neutral400,
   },
   handoverItemDesc: {
-    fontSize: 12,
-    color: "#547078",
-    marginTop: 2,
+    fontSize: 13,
+    color: c.neutral500,
+    marginTop: 4,
+    lineHeight: 18,
   },
   handoverWarningBox: {
-    marginTop: 16,
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: colors.warning.bg,
+    marginTop: 20,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: c.warning.bg,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    borderWidth: 1,
+    borderColor: c.warning.border,
+  },
+  handoverWarningIcon: {
+    marginTop: 1,
   },
   handoverWarningText: {
+    flex: 1,
+    fontSize: 13,
+    color: c.warning.text,
+    fontWeight: "700",
+    lineHeight: 18,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: c.neutral900,
+  },
+  badgeWrap: {
+    backgroundColor: c.neutral800,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  badgeText: {
+    color: "#ffffff",
     fontSize: 12,
-    color: colors.warning.text,
-    fontWeight: "600",
+    fontWeight: "800",
+  },
+  listWrap: {
+    gap: 12,
+  },
+  docCard: {
+    flexDirection: "row",
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: c.neutral100,
+    shadowColor: c.neutral900,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 2,
+    alignItems: "center",
+  },
+  docIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: "rgba(37, 99, 235, 0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 16,
+  },
+  docIconWrapDisabled: {
+    backgroundColor: c.neutral100,
+  },
+  docContent: {
+    flex: 1,
+  },
+  docTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: c.neutral900,
+    marginBottom: 4,
+  },
+  docCategory: {
+    fontSize: 13,
+    color: c.neutral500,
+  },
+  docAction: {
+    marginLeft: 16,
+  },
+  downloadBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: c.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: c.primaryDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  downloadBtnDisabled: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: c.neutral100,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pressed: {
+    transform: [{ scale: 0.94 }],
+    opacity: 0.9,
   },
 });

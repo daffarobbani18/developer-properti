@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#e5f1f0"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.simdp.mobile",
@@ -33,6 +35,9 @@
       "eas": {
         "projectId": "simdp-mobile-project"
       }
-    }
+    },
+    "plugins": [
+      "@sentry/react-native"
+    ]
   }
 }

@@ -1,15 +1,18 @@
 import React, { useCallback, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { StyleSheet, Text, View, RefreshControl, StatusBar, Platform, ScrollView, Pressable } from "react-native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
 import {
   Badge,
   Card,
   EmptyState,
   PrimaryButton,
-  ScreenShell,
   SectionTitle,
   StatusBanner,
+  SlideInView,
 } from "../../components/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { getUnitMilestones } from "../../services/api";
@@ -19,6 +22,7 @@ import {
   formatMilestoneStatusLabel,
   inferBannerTone,
 } from "../../utils/format";
+import { c } from "../../theme/colors";
 
 export function FieldUpdateHistoryScreen(): React.JSX.Element {
   const { auth } = useAuth();
@@ -53,57 +57,103 @@ export function FieldUpdateHistoryScreen(): React.JSX.Element {
 
   const completedMilestones = milestones.filter((m) => m.status === "COMPLETED");
 
+  const insets = useSafeAreaInsets();
+  const safeTop = Platform.OS === 'android' ? ((StatusBar.currentHeight || 0) > 24 ? StatusBar.currentHeight : 45) : (insets?.top || 20);
+  const navigation = useNavigation();
+
   return (
-    <ScreenShell title="Riwayat Update Milestone" subtitle="Daftar pembaruan yang telah dilakukan">
-      {banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
-
-      <Card>
-        <SectionTitle title="Statistik" caption="Ringkasan milestone yang telah selesai" />
-        <View style={styles.statsGrid}>
-          <View style={styles.statsPill}>
-            <Text style={styles.statsLabel}>Total Selesai</Text>
-            <Text style={styles.statsValue}>{completedMilestones.length}</Text>
+    <View style={styles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 60 }}
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => void loadData()} tintColor="#ffffff" />}
+      >
+        {/* HERO HEADER */}
+        <LinearGradient 
+          colors={[c.primary600, c.primary, c.primaryDark]} 
+          locations={[0, 0.4, 1]}
+          start={{ x: 0, y: 0 }} 
+          end={{ x: 1, y: 1 }} 
+          style={styles.heroHeader}
+        >
+          <LinearGradient 
+             colors={['rgba(255,255,255,0.06)', 'rgba(255,255,255,0)']} 
+             style={StyleSheet.absoluteFillObject} 
+             pointerEvents="none" 
+          />
+          <View style={[styles.heroSafeArea, { paddingTop: (safeTop || 45) + 16 }]}>
+            <View style={styles.heroTopRow}>
+              <Pressable onPress={() => navigation.goBack()} style={({ pressed }) => [styles.iconBtn, pressed && styles.pressed]}>
+                <Ionicons name="arrow-back" size={24} color="#ffffff" />
+              </Pressable>
+              <Text style={styles.heroHeaderTitle}>Riwayat Update Milestone</Text>
+              <View style={{ width: 44 }} />
+            </View>
           </View>
-          <View style={styles.statsPill}>
-            <Text style={styles.statsLabel}>Total Milestone</Text>
-            <Text style={styles.statsValue}>{milestones.length}</Text>
-          </View>
-        </View>
-      </Card>
+        </LinearGradient>
 
-      <PrimaryButton label="Muat Ulang Data" onPress={() => void loadData()} />
+        <View style={styles.contentPad}>
+          {banner ? <StatusBanner message={banner} tone={inferBannerTone(banner)} /> : null}
 
-      {isLoading ? (
-        <Card>
-          <Text style={styles.loadingText}>Memuat riwayat update...</Text>
-        </Card>
-      ) : completedMilestones.length === 0 ? (
-        <EmptyState message="Belum ada milestone yang selesai untuk ditampilkan." />
-      ) : (
-        <View style={styles.listWrap}>
-          {completedMilestones.map((milestone) => (
-            <Card key={milestone.id}>
-              <View style={styles.itemHeader}>
-                <Text style={styles.milestoneTitle}>
-                  {milestone.orderNo}. {milestone.name}
-                </Text>
-                <Badge label={formatMilestoneStatusLabel(milestone.status)} tone="success" />
+          <SlideInView direction="up" delay={50} duration={400}>
+            <Card>
+              <SectionTitle title="Statistik" caption="Ringkasan milestone yang telah selesai" />
+              <View style={styles.statsGrid}>
+                <View style={styles.statsPill}>
+                  <Text style={styles.statsLabel}>Total Selesai</Text>
+                  <Text style={styles.statsValue}>{completedMilestones.length}</Text>
+                </View>
+                <View style={styles.statsPill}>
+                  <Text style={styles.statsLabel}>Total Milestone</Text>
+                  <Text style={styles.statsValue}>{milestones.length}</Text>
+                </View>
               </View>
-              <Text style={styles.milestoneMeta}>Target: {formatDate(milestone.targetDate)}</Text>
-              {milestone.actualDate ? (
-                <Text style={styles.milestoneMeta}>Selesai: {formatDate(milestone.actualDate)}</Text>
-              ) : null}
-              {milestone.note ? (
-                <Text style={styles.milestoneNote}>{milestone.note}</Text>
-              ) : null}
-              <Text style={styles.milestonePhotos}>
-                Foto lampiran: {milestone.photos.length} file
-              </Text>
             </Card>
-          ))}
+          </SlideInView>
+
+          <SlideInView direction="up" delay={100} duration={400}>
+            <PrimaryButton label="Muat Ulang Data" onPress={() => void loadData()} />
+          </SlideInView>
+
+          {isLoading ? (
+            <SlideInView direction="up" delay={150} duration={400}>
+              <Card>
+                <Text style={styles.loadingText}>Memuat riwayat update...</Text>
+              </Card>
+            </SlideInView>
+          ) : completedMilestones.length === 0 ? (
+            <SlideInView direction="up" delay={150} duration={400}>
+              <EmptyState message="Belum ada milestone yang selesai untuk ditampilkan." />
+            </SlideInView>
+          ) : (
+            <SlideInView direction="up" delay={200} duration={400}>
+              <View style={styles.listWrap}>
+                {completedMilestones.map((milestone) => (
+                  <Card key={milestone.id}>
+                    <View style={styles.itemHeader}>
+                      <Text style={styles.milestoneTitle}>
+                        {milestone.orderNo}. {milestone.name}
+                      </Text>
+                      <Badge label={formatMilestoneStatusLabel(milestone.status)} tone="success" />
+                    </View>
+                    <Text style={styles.milestoneMeta}>Target: {formatDate(milestone.targetDate)}</Text>
+                    {milestone.actualDate ? (
+                      <Text style={styles.milestoneMeta}>Selesai: {formatDate(milestone.actualDate)}</Text>
+                    ) : null}
+                    {milestone.note ? (
+                      <Text style={styles.milestoneNote}>{milestone.note}</Text>
+                    ) : null}
+                    <Text style={styles.milestonePhotos}>
+                      Foto lampiran: {milestone.photos.length} file
+                    </Text>
+                  </Card>
+                ))}
+              </View>
+            </SlideInView>
+          )}
         </View>
-      )}
-    </ScreenShell>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -167,5 +217,48 @@ const styles = StyleSheet.create({
     color: "#355f68",
     fontSize: 12,
     fontWeight: "600",
+  },
+
+  // Standard Header Styles
+  container: {
+    flex: 1,
+    backgroundColor: c.neutral50,
+  },
+  heroHeader: {
+    minHeight: 240,
+    paddingBottom: 60,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: "hidden",
+  },
+  heroSafeArea: {
+    paddingHorizontal: 24,
+  },
+  heroTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  iconBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  heroHeaderTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#ffffff",
+  },
+  contentPad: {
+    paddingHorizontal: 24,
+    marginTop: 32,
+  },
+  pressed: {
+    opacity: 0.8,
+    transform: [{ scale: 0.96 }],
   },
 });

@@ -3,28 +3,10 @@ import type { MilestonePhoto, Milestone } from "../types";
 
 export type FieldStackParamList = {
   Beranda: undefined;
-  FieldMilestone: undefined;
-  FieldUnit: undefined;
-  FieldKendala: undefined;
   FieldNotifikasi: undefined;
-  UnitDetail: { unitId: string; unitCode?: string; unitName?: string };
-  UpdateHistory: undefined;
-  ProjectSelect: undefined;
-  UnitSelect: undefined;
-  MilestoneList: { unitId: string; unitCode?: string; unitName?: string };
-  MilestoneUpdate: {
-    milestoneId: string;
-    milestoneName?: string;
-    currentStatus?: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
-    milestone?: Milestone;
-  };
-  UnitDetailField: { unitId: string; unitCode?: string; unitName?: string };
-  PhotoCapture: Record<string, never> | undefined;
-  IssueForm: { projectId?: string };
-  UpdateHistoryField: undefined;
-  IssueHistory: undefined;
-  Attendance: undefined;
-  AttendanceHistory: undefined;
+  UpdateHistory: { milestoneId: string; milestoneName: string };
+  UnitDetail: { unitId: string; unitName: string };
+  FieldDailyReport: undefined;
   ProjectDetail: { projectId: string; projectName: string };
   FieldUnits: { projectId?: string } | undefined;
   FieldMilestones: { projectId?: string; unitId?: string } | undefined;
@@ -39,6 +21,7 @@ export type CustomerStackParamList = {
   Tagihan: undefined;
   Dokumen: undefined;
   Bantuan: undefined;
+  CustomerNotifikasi: undefined;
   PhotoGallery: {
     photos: MilestonePhoto[];
     initialIndex?: number;
@@ -55,26 +38,16 @@ export type PengawasStackParamList = {
   Team: undefined;
   Laporan: undefined;
   Notifikasi: undefined;
-  IssueHistory: undefined;
-  AttendanceHistory: undefined;
-  TeamAttendance: undefined;
+
   ProjectDashboard: undefined;
   TeamManagement: undefined;
   FieldNotifications: undefined;
   ProjectReports: undefined;
   FieldUnits: { projectId?: string } | undefined;
-  FieldUnitDetail: { unitId: string; unitName: string };
   FieldMilestones: { projectId?: string; unitId?: string } | undefined;
-  MilestoneList: { unitId: string; unitName: string };
-  FieldIssues: undefined;
   FieldDailyReport: undefined;
-  FieldAttendance: undefined;
   ProjectDetail: { projectId: string; projectName: string };
   InspectionUnits: undefined;
   InspectionDetail: { bookingId: string; unitName: string };
   AddDefect: { bookingId: string };
 };
-
-export type MilestoneUpdateScreenProps = NativeStackScreenProps<FieldStackParamList, "MilestoneUpdate">;
-export type PhotoGalleryScreenProps = NativeStackScreenProps<CustomerStackParamList, "PhotoGallery">;
-export type FieldUnitDetailScreenProps = NativeStackScreenProps<FieldStackParamList, "UnitDetail">;
