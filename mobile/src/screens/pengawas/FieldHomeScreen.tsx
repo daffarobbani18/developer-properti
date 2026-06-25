@@ -196,10 +196,10 @@ export function FieldHomeScreen(): React.JSX.Element {
                 }}
                 style={({ pressed }) => [
                   styles.reportCard,
+                  (todayReport === null || todayReport.isDraft) && { borderLeftWidth: 4, borderLeftColor: c.warning.text },
                   (todayReport === null || todayReport.isDraft) && pressed && styles.pressed,
                 ]}
               >
-                {/* Header */}
                 <View style={styles.reportCardHeader}>
                   <View
                     style={[
@@ -222,7 +222,7 @@ export function FieldHomeScreen(): React.JSX.Element {
                           ? "create-outline"
                           : "checkmark-circle"
                       }
-                      size={24}
+                      size={22}
                       color={
                         todayReport === null
                           ? c.warning.text
@@ -242,55 +242,21 @@ export function FieldHomeScreen(): React.JSX.Element {
                         : "Sudah terkirim ✓"}
                     </Text>
                   </View>
-                  <Text style={styles.reportCardDay}>
-                    {new Date(todayDate).toLocaleDateString("id-ID", { weekday: "short" })}
-                  </Text>
+                  {(todayReport === null || todayReport.isDraft) && (
+                    <View style={styles.reportCtaBadge}>
+                      <Text style={styles.reportCtaText}>
+                        {todayReport === null ? "Buat" : "Edit"}
+                      </Text>
+                      <Ionicons name="arrow-forward" size={13} color={c.primaryDark} />
+                    </View>
+                  )}
                 </View>
-
-                {/* Divider */}
-                <View style={styles.reportCardDivider} />
-
-                {/* Footer CTA */}
-                {todayReport === null ? (
-                  <View style={styles.reportCardFooter}>
-                    <View style={styles.reportFooterLeft}>
-                      <View style={[styles.reportIconSmall, { backgroundColor: c.warning.bg }]}>
-                        <Ionicons name="time" size={15} color={c.warning.text} />
-                      </View>
-                      <Text style={styles.reportFooterMeta}>Laporan belum dibuat hari ini</Text>
-                    </View>
-                    <View style={styles.reportCtaBadge}>
-                      <Text style={styles.reportCtaText}>Buat</Text>
-                      <Ionicons name="arrow-forward" size={13} color={c.primaryDark} />
-                    </View>
-                  </View>
-                ) : todayReport.isDraft ? (
-                  <View style={styles.reportCardFooter}>
-                    <View style={styles.reportFooterLeft}>
-                      <View style={[styles.reportIconSmall, { backgroundColor: c.warning.bg }]}>
-                        <Ionicons name="alert-circle" size={15} color={c.warning.text} />
-                      </View>
-                      <Text style={styles.reportFooterMeta}>Draft — belum dikirim ke server</Text>
-                    </View>
-                    <View style={styles.reportCtaBadge}>
-                      <Text style={styles.reportCtaText}>Edit</Text>
-                      <Ionicons name="arrow-forward" size={13} color={c.primaryDark} />
-                    </View>
-                  </View>
-                ) : (
-                  <View style={[styles.reportCardFooter, { justifyContent: "center" }]}>
-                    <Ionicons name="checkmark-circle" size={17} color={c.success.text} />
-                    <Text style={[styles.reportFooterMeta, { color: c.success.text, marginLeft: 8 }]}>
-                      Laporan hari ini sudah terkirim
-                    </Text>
-                  </View>
-                )}
               </Pressable>
             </SlideInView>
           )}
 
           {/* ── PROYEK AKTIF ── */}
-          <SlideInView direction="up" delay={150} duration={400} style={{ marginTop: 28 }}>
+          <SlideInView direction="up" delay={150} duration={400} style={{ marginTop: 24 }}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionTitle}>Proyek Aktif</Text>
               {!isLoading && projects.length > 0 && (
@@ -374,8 +340,8 @@ const styles = StyleSheet.create({
 
   // ── Hero ──
   heroHeader: {
-    minHeight: 200,
-    paddingBottom: 52,
+    minHeight: 240,
+    paddingBottom: 60,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
     overflow: "hidden",
@@ -385,26 +351,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginTop: 8,
+    marginTop: 24,
   },
   heroGreeting: {
-    color: "rgba(255,255,255,0.65)",
-    fontSize: 15,
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 18,
     fontWeight: "600",
     letterSpacing: 0.1,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   heroName: {
     color: "#ffffff",
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "800",
     letterSpacing: -0.5,
-    lineHeight: 34,
+    lineHeight: 36,
   },
   heroActions: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 12,
     marginTop: 4,
   },
   actionBtn: {
@@ -417,25 +383,25 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: "absolute",
-    top: 5,
-    right: 6,
+    top: 6,
+    right: 8,
     backgroundColor: c.danger.text,
     borderRadius: 8,
     minWidth: 16,
     height: 16,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 3,
+    paddingHorizontal: 4,
   },
   badgeText: { color: "#ffffff", fontSize: 9, fontWeight: "bold" },
-  pressed: { opacity: 0.8, transform: [{ scale: 0.97 }] },
+  pressed: { opacity: 0.8, transform: [{ scale: 0.96 }] },
 
   // ── Glass Card ──
   overlapContainer: { marginTop: -40, paddingHorizontal: 24, zIndex: 10 },
   glassCard: {
     backgroundColor: "#ffffff",
     borderRadius: 24,
-    padding: 24,
+    padding: 20,
     flexDirection: "row",
     alignItems: "center",
     shadowColor: c.primaryDark,
@@ -446,25 +412,25 @@ const styles = StyleSheet.create({
   },
   statsMainCol: { flex: 1, alignItems: "flex-start" },
   statsMainValue: {
-    fontSize: 42,
+    fontSize: 34,
     fontWeight: "900",
     color: c.primary600,
     letterSpacing: -1.5,
-    lineHeight: 46,
+    lineHeight: 38,
   },
-  statsMainLabel: { fontSize: 13, fontWeight: "600", color: c.neutral500, marginTop: 2 },
+  statsMainLabel: { fontSize: 14, fontWeight: "600", color: c.neutral500, marginTop: 4 },
   statsDivider: {
     width: 1,
-    height: 48,
+    height: 44,
     backgroundColor: c.neutral200,
-    marginHorizontal: 24,
+    marginHorizontal: 20,
   },
   statsSubGroup: { flex: 1, gap: 12 },
   statsSubItem: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   statsSubItemLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
   statsDot: { width: 8, height: 8, borderRadius: 4 },
   statsSubLabel: { fontSize: 13, fontWeight: "600", color: c.neutral500 },
-  statsSubValue: { fontSize: 16, fontWeight: "800", color: c.neutral900 },
+  statsSubValue: { fontSize: 18, fontWeight: "800", color: c.neutral900 },
 
   // ── Content ──
   contentPad: { paddingHorizontal: 24, marginTop: 24 },
@@ -481,18 +447,16 @@ const styles = StyleSheet.create({
     elevation: 3,
     borderWidth: 1,
     borderColor: c.neutral100,
-    marginBottom: 4,
   },
   reportCardHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
-    marginBottom: 16,
   },
   reportIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -503,37 +467,16 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   reportCardStatus: { fontSize: 13, fontWeight: "600", color: c.neutral500 },
-  reportCardDay: { fontSize: 13, fontWeight: "700", color: c.neutral400 },
-  reportCardDivider: {
-    height: 1,
-    backgroundColor: c.neutral100,
-    marginHorizontal: -20,
-    marginBottom: 16,
-  },
-  reportCardFooter: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  reportFooterLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
-  reportIconSmall: {
-    width: 30,
-    height: 30,
-    borderRadius: 9,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  reportFooterMeta: { fontSize: 13, fontWeight: "600", color: c.neutral500 },
   reportCtaBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    backgroundColor: "rgba(14,165,233,0.1)",
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
+    gap: 6,
+    backgroundColor: "rgba(14,165,233,0.12)",
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 22,
   },
-  reportCtaText: { fontSize: 12, fontWeight: "800", color: c.primaryDark },
+  reportCtaText: { fontSize: 13, fontWeight: "800", color: c.primaryDark },
 
   // ── Section ──
   sectionHeaderRow: {
@@ -542,7 +485,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
-  sectionTitle: { fontSize: 18, fontWeight: "800", color: c.neutral900, letterSpacing: -0.5 },
+  sectionTitle: { fontSize: 18, fontWeight: "800", color: c.neutral900, letterSpacing: -1 },
   sectionCount: { fontSize: 13, fontWeight: "600", color: c.neutral400 },
 
   // ── Project Cards ──
@@ -598,6 +541,6 @@ const styles = StyleSheet.create({
   progressFill: { height: "100%", borderRadius: 4 },
 
   // ── Empty ──
-  emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 40 },
-  emptyText: { color: c.neutral400, fontSize: 14, fontWeight: "500" },
+  emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: 60 },
+  emptyText: { color: c.neutral400, fontSize: 15, fontWeight: "500" },
 });
